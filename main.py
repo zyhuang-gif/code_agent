@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import argparse
+import shutil
+import uuid
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -29,13 +31,22 @@ class FakeResp:
     assistant_message: dict
     prompt_tokens: int = 1
     completion_tokens: int = 1
+    cost_usd: float = 0.0
 
 
 class FakeLLM:
     def __init__(self):
-        self.responses = [FakeResp(None, [FakeCall("f", "finish", {"summary": "fake run"})], {"role":"assistant", "content": None})]
+        self.responses = [FakeResp(None, [FakeCall("f", "finish", {"summary": "fake run"})], {"role": "assistant", "content": None})]
+
     def chat(self, messages, tools):
         return self.responses.pop(0)
+
+
+def create_workspace_copy(repo: Path, workspace_root: Path) -> Path:
+    workspace_root.mkdir(parents=True, exist_ok=True)
+    run_dir = workspace_root / f"run-{uuid.uuid4().hex}"
+    shutil.copytree(repo, run_dir, ignore=shutil.ignore_patterns(".git"))
+    return run_dir
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -43,18 +54,22 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("task")
     parser.add_argument("repo", type=Path)
     parser.add_argument("--profile", type=Path)
+    parser.add_argument("--workspace", type=Path, default=Path("workspace"))
     parser.add_argument("--fake", action="store_true")
     args = parser.parse_args(argv)
+    source_repo = args.repo.resolve()
+    workspace = create_workspace_copy(source_repo, args.workspace)
     profile = load_profile(args.profile) if args.profile else ProjectProfile()
-    trace = Trace(args.repo / "trace.jsonl")
-    ctx = RunContext(args.repo, profile, trace, Budget(), GrepLocator(args.repo, profile), SearchReplaceEditor(profile))
+    trace = Trace(workspace / "trace.jsonl")
+    ctx = RunContext(workspace, profile, trace, Budget(), GrepLocator(workspace, profile), SearchReplaceEditor(profile))
     llm = FakeLLM() if args.fake else None
     if llm is None:
         from agent.llm import LLMClient
         llm = LLMClient(trace=trace)
     result = AgentLoop(llm, build_default_registry()).run(args.task, ctx)
-    diff_path = args.repo / "final.diff"
+    diff_path = workspace / "final.diff"
     diff_path.write_text(result.diff, encoding="utf-8")
+    print(f"workspace={workspace}")
     print(f"diff_path={diff_path}")
     print(f"reason={result.reason} cost_usd=0")
     return 0
