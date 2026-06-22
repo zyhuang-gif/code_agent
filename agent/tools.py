@@ -105,8 +105,8 @@ def edit(args: dict[str, Any], ctx: RunContext) -> ToolResult:
     return ToolResult(result.content, result.is_error, result.meta)
 
 
-def default_runner(cmd: str, cwd: Path | None = None, timeout: int | None = None) -> dict[str, Any]:
-    # MVP keeps allow_network as a future policy hook; real isolation arrives later.
+def default_runner(cmd: str, cwd: Path | None = None, timeout: int | None = None, allow_network: bool = False) -> dict[str, Any]:
+    # TODO: enforce network isolation in the future executor; MVP only propagates policy intent.
     proc = subprocess.run(cmd, cwd=cwd, shell=True, text=True, capture_output=True, timeout=timeout)
     return {"exit_code": proc.returncode, "stdout": proc.stdout, "stderr": proc.stderr}
 
@@ -114,7 +114,8 @@ def default_runner(cmd: str, cwd: Path | None = None, timeout: int | None = None
 def run_command(args: dict[str, Any], ctx: RunContext) -> ToolResult:
     runner = ctx.runner or default_runner
     timeout = int(args.get("timeout", 60))
-    result = runner(args["cmd"], cwd=ctx.workspace, timeout=timeout)
+    allow_network = bool(args.get("allow_network", False))
+    result = runner(args["cmd"], cwd=ctx.workspace, timeout=timeout, allow_network=allow_network)
     content = f"exit_code={result.get('exit_code')}\nstdout:\n{result.get('stdout','')}\nstderr:\n{result.get('stderr','')}"
     return ToolResult(truncate(content), is_error=result.get("exit_code") != 0, meta={"exit_code": result.get("exit_code")})
 
@@ -141,4 +142,5 @@ def build_default_registry() -> ToolRegistry:
         ToolSpec("run_command", "Run a command in the workspace", object_schema({"cmd": {"type": "string"}, "timeout": {"type": "integer"}, "allow_network": {"type": "boolean", "default": False}}, ["cmd"]), run_command),
         ToolSpec("finish", "Finish the task", object_schema({"summary": {"type": "string"}}, ["summary"]), finish),
     ])
+
 

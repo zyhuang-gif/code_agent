@@ -27,8 +27,8 @@ def ctx(tmp_path: Path, runner=None):
 def test_tools_list_read_grep_edit_run_finish(tmp_path: Path):
     (tmp_path / "a.py").write_text("one\ntwo\n", encoding="utf-8")
     ignored = tmp_path / "node_modules"; ignored.mkdir(); (ignored / "x.js").write_text("x", encoding="utf-8")
-    def runner(cmd, cwd=None, timeout=None):
-        assert cwd == tmp_path; assert timeout == 5
+    def runner(cmd, cwd=None, timeout=None, allow_network=False):
+        assert cwd == tmp_path; assert timeout == 5; assert allow_network is False
         return {"exit_code": 0, "stdout": "ok", "stderr": ""}
     context, locator = ctx(tmp_path, runner=runner)
     registry = build_default_registry()
@@ -63,3 +63,19 @@ def test_default_tool_schemas_are_precise_for_llm_function_calling():
 
     finish_schema = registry.get("finish").parameters
     assert finish_schema["required"] == ["summary"]
+
+
+def test_run_command_passes_allow_network_policy_to_runner(tmp_path: Path):
+    calls = []
+    def runner(cmd, **kwargs):
+        calls.append(kwargs)
+        return {"exit_code": 0, "stdout": "ok", "stderr": ""}
+    context, _ = ctx(tmp_path, runner=runner)
+    registry = build_default_registry()
+
+    registry.run("run_command", {"cmd": "pytest"}, context)
+    registry.run("run_command", {"cmd": "pytest", "allow_network": True}, context)
+
+    assert calls[0]["allow_network"] is False
+    assert calls[1]["allow_network"] is True
+
