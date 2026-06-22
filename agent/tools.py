@@ -73,7 +73,10 @@ def _resolve(ctx: RunContext, rel: str) -> Path:
 
 
 def list_dir(args: dict[str, Any], ctx: RunContext) -> ToolResult:
-    root = _resolve(ctx, args.get("path", "."))
+    rel_path = args.get("path", ".")
+    root = _resolve(ctx, rel_path)
+    if not root.exists():
+        return ToolResult(f"path not found: {rel_path}", is_error=True)
     lines: list[str] = []
     for path in sorted(root.rglob("*")):
         rel = path.relative_to(ctx.workspace).as_posix()

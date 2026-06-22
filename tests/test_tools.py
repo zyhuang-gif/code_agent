@@ -40,6 +40,16 @@ def test_tools_list_read_grep_edit_run_finish(tmp_path: Path):
     assert "exit_code=0" in registry.run("run_command", {"cmd": "pytest", "timeout": 5}, context).content
     assert registry.run("finish", {"summary": "done"}, context).meta["finish"] is True
     assert registry.to_openai_tools()[0]["type"] == "function"
+
+
+def test_list_dir_reports_missing_path(tmp_path: Path):
+    context, _ = ctx(tmp_path)
+    registry = build_default_registry()
+
+    result = registry.run("list_dir", {"path": "does/not/exist"}, context)
+
+    assert result.is_error is True
+    assert "not found" in result.content
 from agent.tools import build_default_registry
 
 
