@@ -23,3 +23,36 @@ def test_summarize_reports_solution_rate():
     assert summary["total"] == 2
     assert summary["solution_rate"] == 0.5
     assert summary["avg_steps"] == 3
+
+
+def test_eval_main_without_fake_uses_injected_real_factory(tmp_path: Path, monkeypatch):
+    task_dir = tmp_path / "tasks" / "t"; repo = task_dir / "repo"; repo.mkdir(parents=True)
+    (repo / "answer.txt").write_text("bad", encoding="utf-8")
+    (task_dir / "prompt.md").write_text("fix", encoding="utf-8")
+    (task_dir / "verify.py").write_text("from pathlib import Path\nraise SystemExit(0 if Path('answer.txt').read_text() == 'ok' else 1)\n", encoding="utf-8")
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "test-key")
+    called = []
+    def real_factory():
+        called.append(True)
+        def agent(workspace, prompt):
+            (workspace / "answer.txt").write_text("ok", encoding="utf-8")
+            return {"steps": 3, "cost_usd": 0.2}
+        return agent
+
+    from eval.run_eval import main
+    code = main([str(task_dir.parent)], agent_factory=real_factory, work_root=tmp_path / "work")
+
+    assert code == 0
+    assert called == [True]
+
+
+def test_eval_main_without_key_reports_error_instead_of_using_fake(tmp_path: Path, monkeypatch, capsys):
+    tasks = tmp_path / "tasks"; tasks.mkdir()
+    monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
+    from eval.run_eval import main
+
+    code = main([str(tasks)], work_root=tmp_path / "work")
+
+    captured = capsys.readouterr()
+    assert code == 2
+    assert "DEEPSEEK_API_KEY" in captured.err

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import shutil
 import subprocess
 import sys
@@ -63,13 +64,38 @@ def discover(root: Path) -> list[EvalTask]:
     return [EvalTask(path.name, path) for path in sorted(root.iterdir()) if path.is_dir()]
 
 
-def main(argv: list[str] | None = None) -> int:
+def real_agent_factory() -> Callable[[Path, str], dict[str, Any]]:
+    def agent(workspace: Path, prompt: str) -> dict[str, Any]:
+        from agent.budget import Budget
+        from agent.editor import SearchReplaceEditor
+        from agent.llm import LLMClient
+        from agent.locator import GrepLocator
+        from agent.loop import AgentLoop
+        from agent.profile import ProjectProfile
+        from agent.tools import RunContext, build_default_registry
+        from agent.trace import Trace
+
+        profile = ProjectProfile()
+        trace = Trace(workspace / "trace.jsonl")
+        ctx = RunContext(workspace, profile, trace, Budget(), GrepLocator(workspace, profile), SearchReplaceEditor(profile))
+        result = AgentLoop(LLMClient(trace=trace), build_default_registry()).run(prompt, ctx)
+        return {"steps": ctx.budget.steps, "cost_usd": 0.0, "reason": result.reason}
+    return agent
+
+
+def main(argv: list[str] | None = None, agent_factory: Callable[[], Callable[[Path, str], dict[str, Any]]] | None = None, work_root: Path = Path("workspace")) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("tasks", type=Path, nargs="?", default=Path(__file__).parent / "tasks")
     parser.add_argument("--fake", action="store_true")
     args = parser.parse_args(argv)
-    agent = fake_agent if args.fake else fake_agent
-    results = [run_task(task, agent, Path("workspace") / task.id) for task in discover(args.tasks)]
+    if args.fake:
+        agent = fake_agent
+    else:
+        if agent_factory is None and not os.environ.get("DEEPSEEK_API_KEY"):
+            print("DEEPSEEK_API_KEY is required for non-fake eval runs", file=sys.stderr)
+            return 2
+        agent = (agent_factory or real_agent_factory)()
+    results = [run_task(task, agent, work_root / task.id) for task in discover(args.tasks)]
     summary = summarize(results)
     print(summary)
     return 0 if summary["solved"] == summary["total"] else 1
@@ -77,6 +103,7 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
 
 
 
