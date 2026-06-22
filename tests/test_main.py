@@ -36,9 +36,10 @@ def test_main_runs_with_fake_llm_in_isolated_workspace(tmp_path: Path, monkeypat
     assert _git(user_repo, "status", "--short") == before_status
     assert not (user_repo / "trace.jsonl").exists()
     assert not (user_repo / "final.diff").exists()
-    runs = list((tmp_path / "workspace").glob("run-*"))
+    runs = [p for p in (tmp_path / "workspace").glob("run-*") if p.is_dir()]
     assert len(runs) == 1
-    assert (runs[0] / "trace.jsonl").exists()
+    assert not (runs[0] / "trace.jsonl").exists()
+    assert (tmp_path / "workspace" / f"{runs[0].name}.trace.jsonl").exists()
     assert (runs[0] / "final.diff").exists()
     assert (runs[0] / ".git").exists()
 

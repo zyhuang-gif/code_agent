@@ -60,7 +60,7 @@ def main(argv: list[str] | None = None) -> int:
     source_repo = args.repo.resolve()
     workspace = create_workspace_copy(source_repo, args.workspace)
     profile = load_profile(args.profile) if args.profile else ProjectProfile()
-    trace = Trace(workspace / "trace.jsonl")
+    trace = Trace(workspace.parent / f"{workspace.name}.trace.jsonl")
     ctx = RunContext(workspace, profile, trace, Budget(), GrepLocator(workspace, profile), SearchReplaceEditor(profile))
     llm = FakeLLM() if args.fake else None
     if llm is None:
