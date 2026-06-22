@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import shutil
 import subprocess
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Any
@@ -25,13 +26,14 @@ class EvalResult:
 
 
 def run_task(task: EvalTask, agent: Callable[[Path, str], dict[str, Any]], work_root: Path) -> EvalResult:
+    task_path = task.path.resolve()
     if work_root.exists():
         shutil.rmtree(work_root)
-    shutil.copytree(task.path / "repo", work_root)
-    prompt = (task.path / "prompt.md").read_text(encoding="utf-8")
+    shutil.copytree(task_path / "repo", work_root)
+    prompt = (task_path / "prompt.md").read_text(encoding="utf-8")
     meta = agent(work_root, prompt) or {}
-    verify = task.path / "verify.py"
-    proc = subprocess.run(["python", str(verify)], cwd=work_root, text=True, capture_output=True)
+    verify = task_path / "verify.py"
+    proc = subprocess.run([sys.executable, "-c", verify.read_text(encoding="utf-8").lstrip("\ufeff")], cwd=work_root, text=True, capture_output=True)
     return EvalResult(task.id, "solved" if proc.returncode == 0 else "failed", int(meta.get("steps", 0)), float(meta.get("cost_usd", 0.0)))
 
 
@@ -75,3 +77,6 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
+
