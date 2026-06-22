@@ -70,3 +70,27 @@ def test_loop_records_cumulative_llm_cost_in_run_summary(tmp_path: Path):
     summary = [row for row in rows if row["t"] == "run_summary"][-1]
     assert summary["total_cost_usd"] == 0.06
 
+
+
+import pytest
+
+
+@pytest.mark.parametrize("profile", [ProjectProfile(), ProjectProfile(syntax_check={".py": "fake-check {file}"})])
+def test_loop_runs_same_read_edit_finish_sequence_across_profiles(tmp_path: Path, profile: ProjectProfile):
+    (tmp_path / "a.py").write_text("hello\n", encoding="utf-8")
+    syntax_calls = []
+    def syntax_runner(cmd, cwd=None, timeout=None):
+        syntax_calls.append((cmd, cwd, timeout))
+        return {"exit_code": 0, "stdout": "", "stderr": ""}
+    ctx = RunContext(tmp_path, profile, Trace(tmp_path / "trace.jsonl"), Budget(max_steps=5), GrepLocator(tmp_path, profile), SearchReplaceEditor(profile, runner=syntax_runner))
+    llm = FakeLLM([
+        Resp(None, [Call("1", "read_file", {"path":"a.py"})], {}),
+        Resp(None, [Call("2", "edit", {"path":"a.py", "search":"hello", "replace":"hi"})], {}),
+        Resp(None, [Call("3", "finish", {"summary":"done"})], {}),
+    ])
+
+    result = AgentLoop(llm, build_default_registry()).run("change greeting", ctx)
+
+    assert result.reason == "finished"
+    assert "-hello" in result.diff and "+hi" in result.diff
+    assert (tmp_path / "a.py").read_text(encoding="utf-8") == "hi\n"
