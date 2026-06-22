@@ -1,4 +1,5 @@
-﻿from types import SimpleNamespace
+﻿import json
+from types import SimpleNamespace
 from pathlib import Path
 from agent.llm import LLMClient, MODEL
 from agent.trace import Trace
@@ -42,3 +43,13 @@ def test_llm_client_handles_content_without_tool_calls(tmp_path: Path):
     result = LLMClient(client=fake, trace=Trace(tmp_path / "t.jsonl")).chat([], [])
     assert result.content == "done"
     assert result.tool_calls == []
+
+
+def test_llm_client_records_measured_latency_ms(tmp_path: Path):
+    ticks = iter([10.0, 10.125])
+    trace = Trace(tmp_path / "trace.jsonl")
+    LLMClient(client=FakeClient(), trace=trace, clock=lambda: next(ticks)).chat([], [])
+    row = json.loads((tmp_path / "trace.jsonl").read_text(encoding="utf-8-sig").splitlines()[0])
+    assert row["latency_ms"] == 125
+
+

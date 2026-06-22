@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import json
 import os
+import time
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Callable
 
 from openai import OpenAI
 
@@ -38,16 +39,19 @@ class LLMResult:
 
 
 class LLMClient:
-    def __init__(self, client: Any | None = None, trace: Trace | None = None, model: str = MODEL):
+    def __init__(self, client: Any | None = None, trace: Trace | None = None, model: str = MODEL, clock: Callable[[], float] = time.monotonic):
         # DeepSeek uses the OpenAI SDK against its base URL. Prompt caching is automatic
         # when loop messages keep the system/repo overview prefix stable.
         self.client = client or OpenAI(api_key=os.environ.get("DEEPSEEK_API_KEY"), base_url=BASE_URL)
         self.trace = trace
         self.model = model
+        self.clock = clock
         self.step = 0
 
     def chat(self, messages: list[dict[str, Any]], tools: list[dict[str, Any]]) -> LLMResult:
+        start = self.clock()
         response = self.client.chat.completions.create(model=self.model, messages=messages, tools=tools)
+        latency_ms = int((self.clock() - start) * 1000)
         message = response.choices[0].message
         raw_tool_calls = getattr(message, "tool_calls", None) or []
         tool_calls = [
@@ -65,5 +69,6 @@ class LLMClient:
             assistant_message["tool_calls"] = raw_tool_calls
         self.step += 1
         if self.trace:
-            self.trace.llm_call(step=self.step, model=self.model, prompt_tokens=prompt_tokens, completion_tokens=completion, cache_hit_tokens=hit, cache_miss_tokens=miss, latency_ms=0, cost_usd=cost, tool_calls=[call.name for call in tool_calls])
+            self.trace.llm_call(step=self.step, model=self.model, prompt_tokens=prompt_tokens, completion_tokens=completion, cache_hit_tokens=hit, cache_miss_tokens=miss, latency_ms=latency_ms, cost_usd=cost, tool_calls=[call.name for call in tool_calls])
         return LLMResult(getattr(message, "content", None), tool_calls, assistant_message, prompt_tokens, completion, hit, miss, cost)
+
