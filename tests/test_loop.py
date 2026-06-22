@@ -94,3 +94,30 @@ def test_loop_runs_same_read_edit_finish_sequence_across_profiles(tmp_path: Path
     assert result.reason == "finished"
     assert "-hello" in result.diff and "+hi" in result.diff
     assert (tmp_path / "a.py").read_text(encoding="utf-8") == "hi\n"
+
+
+class FakeCheckpoint:
+    def __init__(self, diff_text="sentinel diff", fail_init=False):
+        self.diff_text = diff_text
+        self.fail_init = fail_init
+    def init(self):
+        if self.fail_init:
+            raise RuntimeError("checkpoint init failed")
+    def diff(self):
+        return self.diff_text
+
+
+def test_loop_finalizes_with_checkpoint_diff(tmp_path: Path):
+    (tmp_path / "a.py").write_text("hello\n", encoding="utf-8")
+    llm = FakeLLM([Resp(None, [Call("f", "finish", {"summary":"done"})], {})])
+    result = AgentLoop(llm, build_default_registry(), checkpoint_factory=lambda workspace: FakeCheckpoint("from checkpoint")).run("x", make_ctx(tmp_path))
+    assert result.diff == "from checkpoint"
+
+
+def test_loop_records_checkpoint_warning_when_init_fails(tmp_path: Path):
+    llm = FakeLLM([Resp(None, [Call("f", "finish", {"summary":"done"})], {})])
+    AgentLoop(llm, build_default_registry(), checkpoint_factory=lambda workspace: FakeCheckpoint("", fail_init=True)).run("x", make_ctx(tmp_path))
+    rows = [json.loads(line) for line in (tmp_path / "trace.jsonl").read_text(encoding="utf-8-sig").splitlines()]
+    warnings = [row for row in rows if row["t"] == "checkpoint_warning"]
+    assert warnings
+    assert "checkpoint init failed" in warnings[0]["error"]

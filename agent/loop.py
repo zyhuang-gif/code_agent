@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-import subprocess
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Callable
 
 from agent.budget import LoopDetector
 from agent.checkpoint import GitCheckpoint
@@ -19,16 +18,17 @@ class RunResult:
 
 
 class AgentLoop:
-    def __init__(self, llm: Any, tools: ToolRegistry):
+    def __init__(self, llm: Any, tools: ToolRegistry, checkpoint_factory: Callable[[Any], Any] = GitCheckpoint):
         self.llm = llm
         self.tools = tools
+        self.checkpoint_factory = checkpoint_factory
 
     def run(self, task: str, ctx: RunContext) -> RunResult:
-        checkpoint = GitCheckpoint(ctx.workspace)
+        checkpoint = self.checkpoint_factory(ctx.workspace)
         try:
             checkpoint.init()
-        except Exception:
-            pass
+        except Exception as exc:
+            ctx.trace.write({"t": "checkpoint_warning", "error": str(exc)})
         prefix = [
             {"role": "system", "content": "You are a code agent. Use tools and call finish when done."},
             {"role": "user", "content": f"Repository: {ctx.workspace}\nTask: {task}"},
@@ -49,7 +49,7 @@ class AgentLoop:
                 continue
             for call in response.tool_calls:
                 if call.name == "finish":
-                    result = self._finalize(ctx, messages, "finished", total_cost_usd)
+                    result = self._finalize(ctx, messages, "finished", total_cost_usd, checkpoint)
                     return result
                 action = {"tool": call.name, "args": call.args}
                 if detector.is_repeating(action):
@@ -57,13 +57,17 @@ class AgentLoop:
                 else:
                     result = self.tools.run(call.name, call.args, ctx)
                 messages.append({"role": "tool", "tool_call_id": call.id, "content": result.content})
-        return self._finalize(ctx, messages, "budget_exceeded", total_cost_usd)
+        return self._finalize(ctx, messages, "budget_exceeded", total_cost_usd, checkpoint)
 
-    def _finalize(self, ctx: RunContext, messages: list[dict[str, Any]], reason: str, total_cost_usd: float) -> RunResult:
-        proc = subprocess.run(["git", "diff"], cwd=ctx.workspace, text=True, capture_output=True)
-        diff = proc.stdout if proc.returncode == 0 else ""
+    def _finalize(self, ctx: RunContext, messages: list[dict[str, Any]], reason: str, total_cost_usd: float, checkpoint: Any) -> RunResult:
+        try:
+            diff = checkpoint.diff()
+        except Exception as exc:
+            ctx.trace.write({"t": "checkpoint_warning", "error": str(exc)})
+            diff = ""
         ctx.trace.run_summary(task_id="manual", steps=ctx.budget.steps, total_tokens=ctx.budget.tokens, total_cost_usd=total_cost_usd, result=reason, diff_path="")
         return RunResult(reason, diff, messages)
+
 
 
 
