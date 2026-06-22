@@ -40,3 +40,26 @@ def test_tools_list_read_grep_edit_run_finish(tmp_path: Path):
     assert "exit_code=0" in registry.run("run_command", {"cmd": "pytest", "timeout": 5}, context).content
     assert registry.run("finish", {"summary": "done"}, context).meta["finish"] is True
     assert registry.to_openai_tools()[0]["type"] == "function"
+from agent.tools import build_default_registry
+
+
+def test_default_tool_schemas_are_precise_for_llm_function_calling():
+    registry = build_default_registry()
+    edit_schema = registry.get("edit").parameters
+    assert edit_schema["required"] == ["path", "search", "replace"]
+    assert edit_schema["additionalProperties"] is False
+    assert set(edit_schema["properties"]) == {"path", "search", "replace"}
+
+    read_schema = registry.get("read_file").parameters
+    assert read_schema["required"] == ["path"]
+    assert read_schema["additionalProperties"] is False
+    assert read_schema["properties"]["start_line"]["type"] == "integer"
+    assert read_schema["properties"]["end_line"]["type"] == "integer"
+
+    run_schema = registry.get("run_command").parameters
+    assert run_schema["required"] == ["cmd"]
+    assert run_schema["additionalProperties"] is False
+    assert run_schema["properties"]["allow_network"]["type"] == "boolean"
+
+    finish_schema = registry.get("finish").parameters
+    assert finish_schema["required"] == ["summary"]

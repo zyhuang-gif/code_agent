@@ -123,13 +123,22 @@ def finish(args: dict[str, Any], ctx: RunContext) -> ToolResult:
     return ToolResult(args.get("summary", "finished"), meta={"finish": True})
 
 
+def object_schema(properties: dict[str, Any], required: list[str] | None = None) -> dict[str, Any]:
+    return {
+        "type": "object",
+        "properties": properties,
+        "required": required or [],
+        "additionalProperties": False,
+    }
+
+
 def build_default_registry() -> ToolRegistry:
-    any_schema = {"type": "object", "properties": {}, "additionalProperties": True}
     return ToolRegistry([
-        ToolSpec("list_dir", "List files under a directory", any_schema, list_dir),
-        ToolSpec("read_file", "Read a file range with line numbers", any_schema, read_file),
-        ToolSpec("grep", "Search files with regex", any_schema, grep),
-        ToolSpec("edit", "Apply a SEARCH/REPLACE edit", any_schema, edit),
-        ToolSpec("run_command", "Run a command in the workspace", any_schema, run_command),
-        ToolSpec("finish", "Finish the task", any_schema, finish),
+        ToolSpec("list_dir", "List files under a directory", object_schema({"path": {"type": "string", "default": "."}}), list_dir),
+        ToolSpec("read_file", "Read a file range with line numbers", object_schema({"path": {"type": "string"}, "start_line": {"type": "integer"}, "end_line": {"type": "integer"}}, ["path"]), read_file),
+        ToolSpec("grep", "Search files with regex", object_schema({"pattern": {"type": "string"}, "glob": {"type": "string"}}, ["pattern"]), grep),
+        ToolSpec("edit", "Apply a SEARCH/REPLACE edit", object_schema({"path": {"type": "string"}, "search": {"type": "string"}, "replace": {"type": "string"}}, ["path", "search", "replace"]), edit),
+        ToolSpec("run_command", "Run a command in the workspace", object_schema({"cmd": {"type": "string"}, "timeout": {"type": "integer"}, "allow_network": {"type": "boolean", "default": False}}, ["cmd"]), run_command),
+        ToolSpec("finish", "Finish the task", object_schema({"summary": {"type": "string"}}, ["summary"]), finish),
     ])
+
