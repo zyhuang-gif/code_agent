@@ -1,0 +1,1 @@
+"""Minimal code agent package."""
