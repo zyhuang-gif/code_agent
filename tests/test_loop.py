@@ -1,4 +1,5 @@
 ﻿from pathlib import Path
+import json
 from dataclasses import dataclass
 from agent.budget import Budget
 from agent.editor import SearchReplaceEditor
@@ -15,7 +16,7 @@ class Call:
 
 @dataclass
 class Resp:
-    content: str | None; tool_calls: list; assistant_message: dict; prompt_tokens: int = 1; completion_tokens: int = 1
+    content: str | None; tool_calls: list; assistant_message: dict; prompt_tokens: int = 1; completion_tokens: int = 1; cost_usd: float = 0.0
 
 class FakeLLM:
     def __init__(self, responses): self.responses = list(responses); self.messages_seen = []
@@ -55,3 +56,17 @@ def test_loop_handles_plain_text_response(tmp_path: Path):
     llm = FakeLLM([Resp("I am done", [], {}), Resp(None, [Call("f", "finish", {"summary":"done"})], {})])
     result = AgentLoop(llm, build_default_registry()).run("x", make_ctx(tmp_path))
     assert result.reason == "finished"
+
+
+def test_loop_records_cumulative_llm_cost_in_run_summary(tmp_path: Path):
+    (tmp_path / "a.py").write_text("hello\n", encoding="utf-8")
+    llm = FakeLLM([
+        Resp(None, [Call("1", "read_file", {"path":"a.py"})], {}, cost_usd=0.01),
+        Resp(None, [Call("2", "edit", {"path":"a.py", "search":"hello", "replace":"hi"})], {}, cost_usd=0.02),
+        Resp(None, [Call("3", "finish", {"summary":"done"})], {}, cost_usd=0.03),
+    ])
+    AgentLoop(llm, build_default_registry()).run("change greeting", make_ctx(tmp_path))
+    rows = [json.loads(line) for line in (tmp_path / "trace.jsonl").read_text(encoding="utf-8-sig").splitlines()]
+    summary = [row for row in rows if row["t"] == "run_summary"][-1]
+    assert summary["total_cost_usd"] == 0.06
+

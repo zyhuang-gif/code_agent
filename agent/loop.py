@@ -35,9 +35,11 @@ class AgentLoop:
         ]
         messages = list(prefix)
         detector = LoopDetector()
+        total_cost_usd = 0.0
         while ctx.budget.ok():
             response = self.llm.chat(messages, self.tools.to_openai_tools())
             ctx.budget.tick(getattr(response, "prompt_tokens", 0) + getattr(response, "completion_tokens", 0))
+            total_cost_usd += float(getattr(response, "cost_usd", 0.0) or 0.0)
             assistant_message = getattr(response, "assistant_message", None) or {"role": "assistant", "content": response.content}
             if "role" not in assistant_message:
                 assistant_message = {"role": "assistant", "content": response.content, **assistant_message}
@@ -47,7 +49,7 @@ class AgentLoop:
                 continue
             for call in response.tool_calls:
                 if call.name == "finish":
-                    result = self._finalize(ctx, messages, "finished")
+                    result = self._finalize(ctx, messages, "finished", total_cost_usd)
                     return result
                 action = {"tool": call.name, "args": call.args}
                 if detector.is_repeating(action):
@@ -55,12 +57,13 @@ class AgentLoop:
                 else:
                     result = self.tools.run(call.name, call.args, ctx)
                 messages.append({"role": "tool", "tool_call_id": call.id, "content": result.content})
-        return self._finalize(ctx, messages, "budget_exceeded")
+        return self._finalize(ctx, messages, "budget_exceeded", total_cost_usd)
 
-    def _finalize(self, ctx: RunContext, messages: list[dict[str, Any]], reason: str) -> RunResult:
+    def _finalize(self, ctx: RunContext, messages: list[dict[str, Any]], reason: str, total_cost_usd: float) -> RunResult:
         proc = subprocess.run(["git", "diff"], cwd=ctx.workspace, text=True, capture_output=True)
         diff = proc.stdout if proc.returncode == 0 else ""
-        ctx.trace.run_summary(task_id="manual", steps=ctx.budget.steps, total_tokens=ctx.budget.tokens, total_cost_usd=0.0, result=reason, diff_path="")
+        ctx.trace.run_summary(task_id="manual", steps=ctx.budget.steps, total_tokens=ctx.budget.tokens, total_cost_usd=total_cost_usd, result=reason, diff_path="")
         return RunResult(reason, diff, messages)
+
 
 
