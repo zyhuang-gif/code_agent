@@ -45,9 +45,9 @@ class AgentLoop:
         except Exception as exc:
             ctx.trace.write({"t": "checkpoint_warning", "error": str(exc)})
         prefix = [
-            {"role": "system", "content": "You are a code agent. Use tools and call finish when done."},
+            {"role": "system", "content": "You are a code agent. Use tools and call finish when done. Use file paths relative to the repo root, for example greeting.py. Do not add workspace/ or absolute path prefixes. The environment is Windows; run_command executes through cmd, so use Windows-compatible commands."},
             {"role": "user", "content": build_repo_overview(ctx)},
-            {"role": "user", "content": f"Repository: {ctx.workspace}\nTask: {task}"},
+            {"role": "user", "content": f"Task: {task}"},
         ]
         messages = list(prefix)
         detector = LoopDetector()

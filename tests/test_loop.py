@@ -63,6 +63,24 @@ def test_loop_includes_repo_overview_in_stable_prefix(tmp_path: Path):
     assert "node_modules" not in prefix_text
     assert llm.messages_seen[0] == llm.messages_seen[-1]
 
+
+def test_loop_prompt_uses_relative_paths_and_windows_context(tmp_path: Path):
+    (tmp_path / "greeting.py").write_text("hello\n", encoding="utf-8")
+    llm = FakeLLM([Resp(None, [Call("1", "finish", {"summary":"done"})], {})])
+
+    AgentLoop(llm, build_default_registry()).run("change greeting", make_ctx(tmp_path))
+
+    prefix = llm.messages_seen[0]
+    prefix_text = "\n".join(message["content"] for message in prefix)
+    system_text = prefix[0]["content"]
+    assert str(tmp_path) not in prefix_text
+    assert "relative" in system_text.lower()
+    assert "repo root" in system_text.lower()
+    assert "workspace/" in system_text
+    assert "absolute" in system_text.lower()
+    assert "Windows" in system_text
+    assert "cmd" in system_text
+
 def test_loop_budget_and_repetition_are_graceful(tmp_path: Path):
     (tmp_path / "a.py").write_text("hello\n", encoding="utf-8")
     repeat = Resp(None, [Call("1", "read_file", {"path":"a.py"})], {})
