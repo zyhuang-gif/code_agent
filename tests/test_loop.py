@@ -19,9 +19,11 @@ class Resp:
     content: str | None; tool_calls: list; assistant_message: dict; prompt_tokens: int = 1; completion_tokens: int = 1; cost_usd: float = 0.0
 
 class FakeLLM:
-    def __init__(self, responses): self.responses = list(responses); self.messages_seen = []
+    def __init__(self, responses): self.responses = list(responses); self.messages_seen = []; self.prefix_len = None
     def chat(self, messages, tools):
-        self.messages_seen.append([dict(m) for m in messages[:2]])
+        if self.prefix_len is None:
+            self.prefix_len = len(messages)
+        self.messages_seen.append([dict(m) for m in messages[:self.prefix_len]])
         return self.responses.pop(0)
 
 
@@ -42,6 +44,24 @@ def test_loop_read_edit_finish_produces_diff_and_stable_prefix(tmp_path: Path):
     assert "-hello" in result.diff and "+hi" in result.diff
     assert llm.messages_seen[0] == llm.messages_seen[-1]
 
+def test_loop_includes_repo_overview_in_stable_prefix(tmp_path: Path):
+    (tmp_path / "greeting.py").write_text("hello\n", encoding="utf-8")
+    ignored = tmp_path / "node_modules"
+    ignored.mkdir()
+    (ignored / "x.js").write_text("ignored\n", encoding="utf-8")
+    profile = ProjectProfile(ignore=["node_modules"])
+    ctx = RunContext(tmp_path, profile, Trace(tmp_path / "trace.jsonl"), Budget(max_steps=5), GrepLocator(tmp_path, profile), SearchReplaceEditor(profile))
+    llm = FakeLLM([
+        Resp(None, [Call("1", "read_file", {"path":"greeting.py"})], {}),
+        Resp(None, [Call("2", "finish", {"summary":"done"})], {}),
+    ])
+
+    AgentLoop(llm, build_default_registry()).run("change greeting", ctx)
+
+    prefix_text = "\n".join(message["content"] for message in llm.messages_seen[0])
+    assert "greeting.py" in prefix_text
+    assert "node_modules" not in prefix_text
+    assert llm.messages_seen[0] == llm.messages_seen[-1]
 
 def test_loop_budget_and_repetition_are_graceful(tmp_path: Path):
     (tmp_path / "a.py").write_text("hello\n", encoding="utf-8")

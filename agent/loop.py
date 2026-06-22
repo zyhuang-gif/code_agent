@@ -17,6 +17,21 @@ class RunResult:
     messages: list[dict[str, Any]]
 
 
+def build_repo_overview(ctx: RunContext, max_files: int = 200, max_chars: int = 4000) -> str:
+    paths: list[str] = []
+    for path in sorted(ctx.workspace.rglob("*")):
+        rel = path.relative_to(ctx.workspace).as_posix()
+        if ctx.profile.should_ignore(rel):
+            continue
+        paths.append(rel + ("/" if path.is_dir() else ""))
+        if len(paths) >= max_files:
+            paths.append("...<truncated>")
+            break
+    body = "\n".join(paths) if paths else "(empty)"
+    if len(body) > max_chars:
+        body = body[:max_chars] + "\n...<truncated>"
+    return "Repository files (relative to repo root):\n" + body
+
 class AgentLoop:
     def __init__(self, llm: Any, tools: ToolRegistry, checkpoint_factory: Callable[[Any], Any] = GitCheckpoint):
         self.llm = llm
@@ -31,6 +46,7 @@ class AgentLoop:
             ctx.trace.write({"t": "checkpoint_warning", "error": str(exc)})
         prefix = [
             {"role": "system", "content": "You are a code agent. Use tools and call finish when done."},
+            {"role": "user", "content": build_repo_overview(ctx)},
             {"role": "user", "content": f"Repository: {ctx.workspace}\nTask: {task}"},
         ]
         messages = list(prefix)
