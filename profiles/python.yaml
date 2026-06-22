@@ -1,0 +1,6 @@
+﻿ignore:
+  - .git
+  - __pycache__
+syntax_check:
+  .py: python -m py_compile {file}
+language: python
