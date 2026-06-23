@@ -2,7 +2,7 @@
 from agent.editor import EditResult
 from agent.locator import Hit
 from agent.profile import ProjectProfile
-from agent.tools import RunContext, ToolRegistry, ToolResult, build_default_registry
+from agent.tools import RunContext, ToolRegistry, ToolResult, build_default_registry, build_readonly_registry
 from agent.trace import Trace
 from agent.budget import Budget
 
@@ -140,6 +140,7 @@ def test_write_file_schema_requires_path_and_content():
     schema = build_default_registry().get("write_file").parameters
     assert schema["required"] == ["path", "content"]
     assert schema["additionalProperties"] is False
-
-
+def test_readonly_registry_excludes_mutating_tools():
+    reg = build_readonly_registry()
+    assert set(reg.specs) == {"list_dir", "read_file", "grep", "finish"}
 

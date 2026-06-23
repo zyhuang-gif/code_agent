@@ -154,6 +154,11 @@ def build_default_registry() -> ToolRegistry:
         ToolSpec("finish", "Finish the task", object_schema({"summary": {"type": "string"}}, ["summary"]), finish),
         ToolSpec("write_file", "Create or overwrite a file with the given content (use for temp .py scripts)", object_schema({"path": {"type": "string"}, "content": {"type": "string"}}, ["path", "content"]), write_file),
     ])
-
-
+def build_readonly_registry() -> ToolRegistry:
+    return ToolRegistry([
+        ToolSpec("list_dir", "List files under a directory", object_schema({"path": {"type": "string", "default": "."}}), list_dir),
+        ToolSpec("read_file", "Read a file range with line numbers", object_schema({"path": {"type": "string"}, "start_line": {"type": "integer"}, "end_line": {"type": "integer"}}, ["path"]), read_file),
+        ToolSpec("grep", "Search files with regex", object_schema({"pattern": {"type": "string"}, "glob": {"type": "string"}}, ["pattern"]), grep),
+        ToolSpec("finish", "Finish with a summary", object_schema({"summary": {"type": "string"}}, ["summary"]), finish),
+    ])
 
