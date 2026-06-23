@@ -11,11 +11,17 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Any
 
+from agent.profile import ProjectProfile, load_profile
+
+
+AgentCallable = Callable[[Path, str, ProjectProfile], dict[str, Any]]
+
 
 @dataclass
 class EvalTask:
     id: str
     path: Path
+    profile: ProjectProfile
 
 
 @dataclass
@@ -26,13 +32,13 @@ class EvalResult:
     cost_usd: float
 
 
-def run_task(task: EvalTask, agent: Callable[[Path, str], dict[str, Any]], work_root: Path) -> EvalResult:
+def run_task(task: EvalTask, agent: AgentCallable, work_root: Path) -> EvalResult:
     task_path = task.path.resolve()
     if work_root.exists():
         shutil.rmtree(work_root)
     shutil.copytree(task_path / "repo", work_root)
     prompt = (task_path / "prompt.md").read_text(encoding="utf-8")
-    meta = agent(work_root, prompt) or {}
+    meta = agent(work_root, prompt, task.profile) or {}
     verify = task_path / "verify.py"
     proc = subprocess.run([sys.executable, "-c", verify.read_text(encoding="utf-8").lstrip("\ufeff")], cwd=work_root, text=True, capture_output=True)
     return EvalResult(task.id, "solved" if proc.returncode == 0 else "failed", int(meta.get("steps", 0)), float(meta.get("cost_usd", 0.0)))
@@ -50,7 +56,7 @@ def summarize(results: list[EvalResult]) -> dict[str, float | int]:
     }
 
 
-def fake_agent(workspace: Path, prompt: str) -> dict[str, Any]:
+def fake_agent(workspace: Path, prompt: str, profile: ProjectProfile) -> dict[str, Any]:
     if (workspace / "greeting.py").exists():
         (workspace / "greeting.py").write_text("def greet(name):\n    return f'Hello, {name}!'\n", encoding="utf-8")
     if (workspace / "count.py").exists():
@@ -61,11 +67,18 @@ def fake_agent(workspace: Path, prompt: str) -> dict[str, Any]:
 
 
 def discover(root: Path) -> list[EvalTask]:
-    return [EvalTask(path.name, path) for path in sorted(root.iterdir()) if path.is_dir()]
+    tasks = []
+    for path in sorted(root.iterdir()):
+        if not path.is_dir():
+            continue
+        profile_path = path / "profile.yaml"
+        profile = load_profile(profile_path) if profile_path.exists() else ProjectProfile()
+        tasks.append(EvalTask(path.name, path, profile))
+    return tasks
 
 
-def real_agent_factory() -> Callable[[Path, str], dict[str, Any]]:
-    def agent(workspace: Path, prompt: str) -> dict[str, Any]:
+def real_agent_factory() -> AgentCallable:
+    def agent(workspace: Path, prompt: str, profile: ProjectProfile) -> dict[str, Any]:
         from agent.budget import Budget
         from agent.editor import SearchReplaceEditor
         from agent.llm import LLMClient
@@ -83,7 +96,7 @@ def real_agent_factory() -> Callable[[Path, str], dict[str, Any]]:
     return agent
 
 
-def main(argv: list[str] | None = None, agent_factory: Callable[[], Callable[[Path, str], dict[str, Any]]] | None = None, work_root: Path = Path("workspace")) -> int:
+def main(argv: list[str] | None = None, agent_factory: Callable[[], AgentCallable] | None = None, work_root: Path = Path("workspace")) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("tasks", type=Path, nargs="?", default=Path(__file__).parent / "tasks")
     parser.add_argument("--fake", action="store_true")
@@ -103,7 +116,3 @@ def main(argv: list[str] | None = None, agent_factory: Callable[[], Callable[[Pa
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
-
-
-
