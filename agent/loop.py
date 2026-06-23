@@ -7,7 +7,8 @@ from typing import Any, Callable
 
 from agent.budget import LoopDetector
 from agent.checkpoint import GitCheckpoint
-from agent.tools import RunContext, ToolRegistry, ToolResult
+from agent.tester import run_tests
+from agent.tools import RunContext, ToolRegistry, ToolResult, default_runner
 
 
 @dataclass
@@ -44,6 +45,7 @@ class AgentLoop:
             checkpoint.init()
         except Exception as exc:
             ctx.trace.write({"t": "checkpoint_warning", "error": str(exc)})
+        baseline = run_tests(ctx.workspace, ctx.profile, ctx.runner or default_runner)
         prefix = [
             {"role": "system", "content": "You are a code agent. Use tools and call finish when done. Use file paths relative to the repo root, for example greeting.py. Do not add workspace/ or absolute path prefixes. The environment is Windows; run_command executes through cmd, so use Windows-compatible commands."},
             {"role": "user", "content": build_repo_overview(ctx)},

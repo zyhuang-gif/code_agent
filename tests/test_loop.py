@@ -27,9 +27,9 @@ class FakeLLM:
         return self.responses.pop(0)
 
 
-def make_ctx(tmp_path: Path, budget=None):
-    profile = ProjectProfile()
-    return RunContext(tmp_path, profile, Trace(tmp_path / "trace.jsonl"), budget or Budget(max_steps=5), GrepLocator(tmp_path, profile), SearchReplaceEditor(profile))
+def make_ctx(tmp_path: Path, budget=None, profile=None, runner=None):
+    profile = profile or ProjectProfile()
+    return RunContext(tmp_path, profile, Trace(tmp_path / "trace.jsonl"), budget or Budget(max_steps=5), GrepLocator(tmp_path, profile), SearchReplaceEditor(profile), runner)
 
 
 def test_loop_read_edit_finish_produces_diff_and_stable_prefix(tmp_path: Path):
@@ -43,6 +43,33 @@ def test_loop_read_edit_finish_produces_diff_and_stable_prefix(tmp_path: Path):
     assert result.reason == "finished"
     assert "-hello" in result.diff and "+hi" in result.diff
     assert llm.messages_seen[0] == llm.messages_seen[-1]
+
+
+def test_loop_runs_baseline_tests_when_profile_has_test_cmd(tmp_path: Path):
+    calls = []
+
+    def fake_runner(cmd, cwd=None, timeout=None, allow_network=False):
+        calls.append((cmd, cwd, timeout, allow_network))
+        return {"exit_code": 0, "stdout": "green\n", "stderr": ""}
+
+    profile = ProjectProfile(test_cmd="pytest -q")
+    ctx = make_ctx(tmp_path, Budget(max_steps=0), profile, fake_runner)
+
+    result = AgentLoop(FakeLLM([]), build_default_registry()).run("x", ctx)
+
+    assert result.reason == "budget_exceeded"
+    assert calls == [("pytest -q", tmp_path, 60, False)]
+
+
+def test_loop_skips_baseline_tests_without_test_cmd(tmp_path: Path):
+    def fake_runner(cmd, cwd=None, timeout=None, allow_network=False):
+        raise AssertionError("runner should not be called")
+
+    ctx = make_ctx(tmp_path, Budget(max_steps=0), ProjectProfile(), fake_runner)
+
+    result = AgentLoop(FakeLLM([]), build_default_registry()).run("x", ctx)
+    assert result.reason == "budget_exceeded"
+
 
 def test_loop_includes_repo_overview_in_stable_prefix(tmp_path: Path):
     (tmp_path / "greeting.py").write_text("hello\n", encoding="utf-8")
