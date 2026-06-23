@@ -55,3 +55,11 @@ def test_should_ignore_matches_directory_names_and_globs():
     assert profile.should_ignore("app/cache.pyc") is True
     assert profile.should_ignore("build/output/app.js") is True
     assert profile.should_ignore("src/app.py") is False
+
+
+def test_builtin_python_profile_declares_test_cmd_and_empty_profile_does_not():
+    python_profile = load_profile("profiles/python.yaml")
+    empty_profile = load_profile("profiles/empty.yaml")
+
+    assert python_profile.test_cmd == "pytest -q"
+    assert empty_profile.test_cmd is None
