@@ -98,6 +98,30 @@ def test_orchestrator_planner_coder_reviewer_pass(tmp_path):
     assert "-hello" in result.diff and "+hi" in result.diff
 
 
+def test_orchestrator_uses_role_specific_llms_for_planner_and_reviewer(tmp_path):
+    (tmp_path / "a.py").write_text("hello\n", encoding="utf-8")
+    planner_llm = _script_llm([
+        _Resp(None, [_Call("p", "finish", {"summary": "plan from planner llm"})]),
+    ])
+    main_llm = _script_llm([
+        _Resp(None, [_Call("c1", "edit", {"path": "a.py", "search": "hello", "replace": "hi"})]),
+        _Resp(None, [_Call("c2", "finish", {"summary": "done"})]),
+    ])
+    reviewer_llm = _script_llm([
+        _Resp(None, [_Call("r", "finish", {"summary": "PASS"})]),
+    ])
+
+    result = MultiAgentOrchestrator(
+        main_llm,
+        build_default_registry(),
+        planner_llm=planner_llm,
+        reviewer_llm=reviewer_llm,
+    ).run("change hello", _ctx(tmp_path))
+
+    assert result.reason == "finished"
+    assert len(planner_llm.q) == 0
+    assert len(main_llm.q) == 0
+    assert len(reviewer_llm.q) == 0
 def test_orchestrator_review_loop_then_pass(tmp_path):
     (tmp_path / "a.py").write_text("hello\n", encoding="utf-8")
     llm = _script_llm([

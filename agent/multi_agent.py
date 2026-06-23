@@ -62,10 +62,12 @@ def run_reviewer(llm: Any, task: str, diff: str, base_ctx: RunContext, max_steps
 
 
 class MultiAgentOrchestrator:
-    def __init__(self, llm: Any, coder_tools, max_review_rounds: int = 2):
+    def __init__(self, llm: Any, coder_tools, max_review_rounds: int = 2, planner_llm: Any | None = None, reviewer_llm: Any | None = None):
         self.llm = llm
         self.coder_tools = coder_tools
         self.max_review_rounds = max_review_rounds
+        self.planner_llm = planner_llm
+        self.reviewer_llm = reviewer_llm
 
     def run(self, task: str, ctx: RunContext) -> RunResult:
         checkpoint = GitCheckpoint(ctx.workspace)
@@ -76,7 +78,7 @@ class MultiAgentOrchestrator:
 
         total_steps = 0
         total_cost = 0.0
-        plan, planner_result = run_planner(self.llm, task, ctx)
+        plan, planner_result = run_planner(self.planner_llm or self.llm, task, ctx)
         total_steps += planner_result.steps
         total_cost += planner_result.cost_usd
 
@@ -89,7 +91,7 @@ class MultiAgentOrchestrator:
         round_idx = -1
         for round_idx in range(self.max_review_rounds):
             diff = checkpoint.diff()
-            passed, comments, reviewer_result = run_reviewer(self.llm, task, diff, ctx)
+            passed, comments, reviewer_result = run_reviewer(self.reviewer_llm or self.llm, task, diff, ctx)
             total_steps += reviewer_result.steps
             total_cost += reviewer_result.cost_usd
             if passed:
