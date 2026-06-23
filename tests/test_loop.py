@@ -186,3 +186,63 @@ def test_loop_records_checkpoint_warning_when_init_fails(tmp_path: Path):
     warnings = [row for row in rows if row["t"] == "checkpoint_warning"]
     assert warnings
     assert "checkpoint init failed" in warnings[0]["error"]
+
+
+def test_finish_is_blocked_until_configured_tests_pass(tmp_path: Path):
+    calls = []
+    results = [
+        {"exit_code": 1, "stdout": "baseline red\n", "stderr": ""},
+        {"exit_code": 1, "stdout": "still red\n", "stderr": "details\n"},
+        {"exit_code": 0, "stdout": "green\n", "stderr": ""},
+    ]
+
+    def fake_runner(cmd, cwd=None, timeout=None, allow_network=False):
+        calls.append((cmd, cwd, timeout, allow_network))
+        return results.pop(0)
+
+    profile = ProjectProfile(test_cmd="pytest -q")
+    ctx = make_ctx(tmp_path, Budget(max_steps=5), profile, fake_runner)
+    llm = FakeLLM([
+        Resp(None, [Call("f1", "finish", {"summary": "done"})], {}),
+        Resp(None, [Call("f2", "finish", {"summary": "done"})], {}),
+    ])
+
+    result = AgentLoop(llm, build_default_registry()).run("x", ctx)
+
+    assert result.reason == "finished"
+    assert calls == [("pytest -q", tmp_path, 60, False)] * 3
+    tool_messages = [m["content"] for m in result.messages if m["role"] == "tool"]
+    assert any("测试未通过（基线 passed=False）" in message for message in tool_messages)
+    assert any("still red" in message and "details" in message for message in tool_messages)
+
+
+def test_finish_without_test_cmd_is_not_gated(tmp_path: Path):
+    def fake_runner(cmd, cwd=None, timeout=None, allow_network=False):
+        raise AssertionError("runner should not be called")
+
+    ctx = make_ctx(tmp_path, Budget(max_steps=5), ProjectProfile(), fake_runner)
+    llm = FakeLLM([Resp(None, [Call("f", "finish", {"summary": "done"})], {})])
+
+    result = AgentLoop(llm, build_default_registry()).run("x", ctx)
+
+    assert result.reason == "finished"
+    assert len(llm.messages_seen) == 1
+
+
+def test_finish_with_failing_tests_is_released_after_block_limit(tmp_path: Path):
+    calls = []
+
+    def fake_runner(cmd, cwd=None, timeout=None, allow_network=False):
+        calls.append((cmd, cwd, timeout, allow_network))
+        return {"exit_code": 1, "stdout": "red\n", "stderr": ""}
+
+    profile = ProjectProfile(test_cmd="pytest -q")
+    ctx = make_ctx(tmp_path, Budget(max_steps=10), profile, fake_runner)
+    llm = FakeLLM([Resp(None, [Call(f"f{i}", "finish", {"summary": "done"})], {}) for i in range(4)])
+
+    result = AgentLoop(llm, build_default_registry()).run("x", ctx)
+
+    assert result.reason == "finished_with_failing_tests"
+    assert len(calls) == 5
+    blocked_messages = [m for m in result.messages if m["role"] == "tool" and "测试未通过" in m["content"]]
+    assert len(blocked_messages) == 3

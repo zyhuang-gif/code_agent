@@ -1,4 +1,4 @@
-﻿"""Minimal ReAct loop."""
+"""Minimal ReAct loop."""
 
 from __future__ import annotations
 
@@ -9,6 +9,9 @@ from agent.budget import LoopDetector
 from agent.checkpoint import GitCheckpoint
 from agent.tester import run_tests
 from agent.tools import RunContext, ToolRegistry, ToolResult, default_runner
+
+
+MAX_FINISH_BLOCKS = 3
 
 
 @dataclass
@@ -53,6 +56,7 @@ class AgentLoop:
         ]
         messages = list(prefix)
         detector = LoopDetector()
+        finish_blocks = 0
         total_cost_usd = 0.0
         while ctx.budget.ok():
             response = self.llm.chat(messages, self.tools.to_openai_tools())
@@ -67,8 +71,17 @@ class AgentLoop:
                 continue
             for call in response.tool_calls:
                 if call.name == "finish":
-                    result = self._finalize(ctx, messages, "finished", total_cost_usd, checkpoint)
-                    return result
+                    current = run_tests(ctx.workspace, ctx.profile, ctx.runner or default_runner)
+                    if current is None or current.passed:
+                        result = self._finalize(ctx, messages, "finished", total_cost_usd, checkpoint)
+                        return result
+                    if finish_blocks >= MAX_FINISH_BLOCKS:
+                        result = self._finalize(ctx, messages, "finished_with_failing_tests", total_cost_usd, checkpoint)
+                        return result
+                    baseline_passed = baseline.passed if baseline is not None else None
+                    messages.append({"role": "tool", "tool_call_id": call.id, "content": f"测试未通过（基线 passed={baseline_passed}）。输出：{current.output}。请修复后再 finish。"})
+                    finish_blocks += 1
+                    break
                 action = {"tool": call.name, "args": call.args}
                 if detector.is_repeating(action):
                     result = ToolResult("检测到重复动作，请换思路", is_error=True)
