@@ -130,7 +130,8 @@ def test_loop_records_cumulative_llm_cost_in_run_summary(tmp_path: Path):
         Resp(None, [Call("2", "edit", {"path":"a.py", "search":"hello", "replace":"hi"})], {}, cost_usd=0.02),
         Resp(None, [Call("3", "finish", {"summary":"done"})], {}, cost_usd=0.03),
     ])
-    AgentLoop(llm, build_default_registry()).run("change greeting", make_ctx(tmp_path))
+    result = AgentLoop(llm, build_default_registry()).run("change greeting", make_ctx(tmp_path))
+    assert result.cost_usd == 0.06
     rows = [json.loads(line) for line in (tmp_path / "trace.jsonl").read_text(encoding="utf-8-sig").splitlines()]
     summary = [row for row in rows if row["t"] == "run_summary"][-1]
     assert summary["total_cost_usd"] == 0.06
@@ -280,3 +281,4 @@ def test_loop_omits_test_guidance_without_test_cmd(tmp_path: Path):
 
     prefix_text = "\n".join(message["content"] for message in llm.messages_seen[0])
     assert "测试命令：" not in prefix_text
+

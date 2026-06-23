@@ -19,7 +19,7 @@ def _init_user_repo(repo: Path) -> None:
     subprocess.run(["git", "commit", "-m", "initial"], cwd=repo, check=True, capture_output=True, text=True)
 
 
-def test_main_runs_with_fake_llm_in_isolated_workspace(tmp_path: Path, monkeypatch):
+def test_main_runs_with_fake_llm_in_isolated_workspace(tmp_path: Path, monkeypatch, capsys):
     user_repo = tmp_path / "user-repo"
     _init_user_repo(user_repo)
     before_files = sorted(p.relative_to(user_repo).as_posix() for p in user_repo.rglob("*") if ".git" not in p.parts)
@@ -27,10 +27,31 @@ def test_main_runs_with_fake_llm_in_isolated_workspace(tmp_path: Path, monkeypat
     before_status = _git(user_repo, "status", "--short")
     monkeypatch.chdir(tmp_path)
 
+    class CostLLM:
+        def __init__(self):
+            self.used = False
+
+        def chat(self, messages, tools):
+            if self.used:
+                raise AssertionError("unexpected second call")
+            self.used = True
+            return type("Resp", (), {
+                "content": None,
+                "tool_calls": [type("Call", (), {"id": "f", "name": "finish", "args": {"summary": "done"}})()],
+                "assistant_message": {"role": "assistant", "content": None},
+                "prompt_tokens": 1,
+                "completion_tokens": 1,
+                "cost_usd": 0.25,
+            })()
+
+    monkeypatch.setattr("main.FakeLLM", CostLLM)
+
     code = main(["change hello", str(user_repo), "--fake"])
+    captured = capsys.readouterr()
 
     after_files = sorted(p.relative_to(user_repo).as_posix() for p in user_repo.rglob("*") if ".git" not in p.parts)
     assert code == 0
+    assert "cost_usd=0.25" in captured.out
     assert after_files == before_files
     assert _git(user_repo, "rev-parse", "HEAD") == before_head
     assert _git(user_repo, "status", "--short") == before_status
@@ -42,5 +63,6 @@ def test_main_runs_with_fake_llm_in_isolated_workspace(tmp_path: Path, monkeypat
     assert (tmp_path / "workspace" / f"{runs[0].name}.trace.jsonl").exists()
     assert (runs[0] / "final.diff").exists()
     assert (runs[0] / ".git").exists()
+
 
 

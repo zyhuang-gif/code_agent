@@ -71,9 +71,10 @@ def main(argv: list[str] | None = None) -> int:
     diff_path.write_text(result.diff, encoding="utf-8")
     print(f"workspace={workspace}")
     print(f"diff_path={diff_path}")
-    print(f"reason={result.reason} cost_usd=0")
+    print(f"reason={result.reason} cost_usd={result.cost_usd}")
     return 0
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

@@ -1,4 +1,4 @@
-"""Minimal ReAct loop."""
+﻿"""Minimal ReAct loop."""
 
 from __future__ import annotations
 
@@ -19,6 +19,7 @@ class RunResult:
     reason: str
     diff: str
     messages: list[dict[str, Any]]
+    cost_usd: float = 0.0
 
 
 def build_repo_overview(ctx: RunContext, max_files: int = 200, max_chars: int = 4000) -> str:
@@ -100,7 +101,8 @@ class AgentLoop:
             ctx.trace.write({"t": "checkpoint_warning", "error": str(exc)})
             diff = ""
         ctx.trace.run_summary(task_id="manual", steps=ctx.budget.steps, total_tokens=ctx.budget.tokens, total_cost_usd=total_cost_usd, result=reason, diff_path="")
-        return RunResult(reason, diff, messages)
+        return RunResult(reason, diff, messages, total_cost_usd)
+
 
 
 

@@ -109,7 +109,7 @@ def test_real_agent_factory_uses_task_profile_and_writes_trace_outside_workspace
             captured["trace_path"] = ctx.trace.path
             ctx.trace.write({"t": "fake_loop"})
             (ctx.workspace / "answer.txt").write_text("ok", encoding="utf-8")
-            return type("Result", (), {"reason": "finished"})()
+            return type("Result", (), {"reason": "finished", "cost_usd": 0.25})()
 
     monkeypatch.setattr("agent.llm.LLMClient", FakeLLMClient)
     monkeypatch.setattr("agent.loop.AgentLoop", FakeLoop)
@@ -119,6 +119,7 @@ def test_real_agent_factory_uses_task_profile_and_writes_trace_outside_workspace
     result = run_task(task, real_agent_factory(), work_root)
 
     assert result.status == "solved"
+    assert result.cost_usd == 0.25
     assert captured["profile"] is task.profile
     assert captured["trace_path"] == work_root.parent / f"{work_root.name}.trace.jsonl"
     assert captured["llm_trace_path"] == captured["trace_path"]
@@ -135,6 +136,8 @@ def test_eval_main_without_key_reports_error_instead_of_using_fake(tmp_path: Pat
     captured = capsys.readouterr()
     assert code == 2
     assert "DEEPSEEK_API_KEY" in captured.err
+
+
 
 
 
