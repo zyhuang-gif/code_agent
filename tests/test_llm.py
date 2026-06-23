@@ -33,6 +33,14 @@ def test_llm_client_passes_model_messages_tools_and_records_trace(tmp_path: Path
     assert "llm_call" in (tmp_path / "trace.jsonl").read_text(encoding="utf-8")
 
 
+def test_llm_client_passes_reasoning_effort_only_when_configured():
+    with_effort = FakeClient()
+    LLMClient(client=with_effort, reasoning_effort="high").chat([], [])
+    assert with_effort.chat.completions.calls[0]["reasoning_effort"] == "high"
+
+    default = FakeClient()
+    LLMClient(client=default).chat([], [])
+    assert "reasoning_effort" not in default.chat.completions.calls[0]
 def test_llm_client_handles_content_without_tool_calls(tmp_path: Path):
     class NoTools(FakeCompletions):
         def create(self, **kwargs):

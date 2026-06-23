@@ -39,18 +39,20 @@ class LLMResult:
 
 
 class LLMClient:
-    def __init__(self, client: Any | None = None, trace: Trace | None = None, model: str = MODEL, clock: Callable[[], float] = time.monotonic):
+    def __init__(self, client: Any | None = None, trace: Trace | None = None, model: str = MODEL, reasoning_effort: str | None = None, clock: Callable[[], float] = time.monotonic):
         # DeepSeek uses the OpenAI SDK against its base URL. Prompt caching is automatic
         # when loop messages keep the system/repo overview prefix stable.
         self.client = client or OpenAI(api_key=os.environ.get("DEEPSEEK_API_KEY"), base_url=BASE_URL)
         self.trace = trace
         self.model = model
+        self.reasoning_effort = reasoning_effort
         self.clock = clock
         self.step = 0
 
     def chat(self, messages: list[dict[str, Any]], tools: list[dict[str, Any]]) -> LLMResult:
         start = self.clock()
-        response = self.client.chat.completions.create(model=self.model, messages=messages, tools=tools)
+        extra = {} if self.reasoning_effort is None else {"reasoning_effort": self.reasoning_effort}
+        response = self.client.chat.completions.create(model=self.model, messages=messages, tools=tools, **extra)
         latency_ms = int((self.clock() - start) * 1000)
         message = response.choices[0].message
         raw_tool_calls = getattr(message, "tool_calls", None) or []
