@@ -116,6 +116,17 @@ def test_discover_finds_tested_eval_tasks_with_profiles():
     assert tasks["t04_fix_tested_bug"].profile.test_cmd == "python -m pytest -q"
     assert tasks["t05_multifile"].profile.test_cmd == "python -m pytest -q"
 
+
+def test_discover_finds_hard_eval_tasks_with_profiles():
+    tasks = {task.id: task for task in discover(Path("eval/tasks_hard"))}
+
+    assert set(tasks) == {
+        "h1_locate_among_distractors",
+        "h2_cross_file_rootcause",
+        "h3_multi_case",
+        "h4_extend_dispatcher",
+    }
+    assert all(task.profile.test_cmd for task in tasks.values())
 def test_summarize_reports_solution_rate():
     summary = summarize([type("R", (), {"status":"solved", "steps":2, "cost_usd":0.1})(), type("R", (), {"status":"failed", "steps":4, "cost_usd":0.3})()])
     assert summary["solved"] == 1
@@ -190,6 +201,7 @@ def test_eval_main_without_key_reports_error_instead_of_using_fake(tmp_path: Pat
     captured = capsys.readouterr()
     assert code == 2
     assert "DEEPSEEK_API_KEY" in captured.err
+
 
 
 
