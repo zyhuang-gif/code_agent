@@ -46,17 +46,21 @@ def _role_ctx(base: RunContext, max_steps: int) -> RunContext:
     )
 
 
-def run_planner(llm: Any, task: str, base_ctx: RunContext, max_steps: int = 8) -> str:
+def run_planner(llm: Any, task: str, base_ctx: RunContext, max_steps: int = 8) -> tuple[str, RunResult]:
     loop = AgentLoop(llm, build_readonly_registry(), checkpoint_factory=NoOpCheckpoint, system_prompt=PLANNER_PROMPT)
     result = loop.run(f"为以下任务制定修改计划：{task}", _role_ctx(base_ctx, max_steps))
-    return result.finish_summary
-def run_reviewer(llm: Any, task: str, diff: str, base_ctx: RunContext, max_steps: int = 8) -> tuple[bool, str]:
+    return result.finish_summary, result
+
+
+def run_reviewer(llm: Any, task: str, diff: str, base_ctx: RunContext, max_steps: int = 8) -> tuple[bool, str, RunResult]:
     loop = AgentLoop(llm, build_readonly_registry(), checkpoint_factory=NoOpCheckpoint, system_prompt=REVIEWER_PROMPT)
     review_task = f"任务：{task}\n\nCoder 的改动 diff：\n{diff}\n\n请审查并 finish。"
     result = loop.run(review_task, _role_ctx(base_ctx, max_steps))
     summary = result.finish_summary.strip()
     passed = summary.upper().startswith("PASS")
-    return passed, summary
+    return passed, summary, result
+
+
 class MultiAgentOrchestrator:
     def __init__(self, llm: Any, coder_tools, max_review_rounds: int = 2):
         self.llm = llm
@@ -70,23 +74,33 @@ class MultiAgentOrchestrator:
         except Exception as exc:
             ctx.trace.write({"t": "checkpoint_warning", "error": str(exc)})
 
-        plan = run_planner(self.llm, task, ctx)
+        total_steps = 0
+        total_cost = 0.0
+        plan, planner_result = run_planner(self.llm, task, ctx)
+        total_steps += planner_result.steps
+        total_cost += planner_result.cost_usd
 
         coder = AgentLoop(self.llm, self.coder_tools, checkpoint_factory=NoOpCheckpoint)
-        coder.run(f"{task}\n\n参考修改计划：\n{plan}", _role_ctx(ctx, 40))
+        coder_result = coder.run(f"{task}\n\n参考修改计划：\n{plan}", _role_ctx(ctx, 40))
+        total_steps += coder_result.steps
+        total_cost += coder_result.cost_usd
 
         reason = "finished"
         round_idx = -1
         for round_idx in range(self.max_review_rounds):
             diff = checkpoint.diff()
-            passed, comments = run_reviewer(self.llm, task, diff, ctx)
+            passed, comments, reviewer_result = run_reviewer(self.llm, task, diff, ctx)
+            total_steps += reviewer_result.steps
+            total_cost += reviewer_result.cost_usd
             if passed:
                 reason = "finished"
                 break
             if round_idx == self.max_review_rounds - 1:
                 reason = "review_unresolved"
                 break
-            coder.run(f"{task}\n\n上轮改动被 Reviewer 打回：{comments}\n请在现有基础上修复。", _role_ctx(ctx, 40))
+            coder_result = coder.run(f"{task}\n\n上轮改动被 Reviewer 打回：{comments}\n请在现有基础上修复。", _role_ctx(ctx, 40))
+            total_steps += coder_result.steps
+            total_cost += coder_result.cost_usd
 
         ctx.trace.write({"t": "multi_summary", "result": reason, "rounds": round_idx + 1})
-        return RunResult(reason, checkpoint.diff(), [], 0.0, "")
+        return RunResult(reason, checkpoint.diff(), [], total_cost, "", steps=total_steps)

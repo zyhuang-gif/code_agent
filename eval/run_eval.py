@@ -149,7 +149,7 @@ def multi_agent_factory() -> AgentCallable:
         trace = Trace(workspace.parent / f"{workspace.name}.trace.jsonl")
         ctx = RunContext(workspace, profile, trace, Budget(), GrepLocator(workspace, profile), SearchReplaceEditor(profile))
         result = MultiAgentOrchestrator(LLMClient(trace=trace), build_default_registry()).run(prompt, ctx)
-        return {"steps": ctx.budget.steps, "cost_usd": result.cost_usd, "reason": result.reason}
+        return {"steps": result.steps, "cost_usd": result.cost_usd, "reason": result.reason}
     return agent
 
 def main(argv: list[str] | None = None, agent_factory: Callable[[], AgentCallable] | None = None, work_root: Path = Path("workspace")) -> int:

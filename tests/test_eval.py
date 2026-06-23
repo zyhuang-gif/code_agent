@@ -285,3 +285,32 @@ def test_eval_main_multi_uses_multi_agent_factory(tmp_path, monkeypatch):
     code = main([str(task_dir.parent), "--multi"], agent_factory=multi_factory, work_root=tmp_path / "work")
     assert code == 0
     assert called == [True]
+
+def test_multi_agent_factory_returns_orchestrator_steps_and_cost(tmp_path, monkeypatch):
+    from agent.profile import ProjectProfile
+    from eval.run_eval import multi_agent_factory
+
+    captured = {}
+
+    class FakeLLMClient:
+        def __init__(self, trace):
+            captured["llm_trace_path"] = trace.path
+
+    class FakeOrchestrator:
+        def __init__(self, llm, tools):
+            pass
+
+        def run(self, prompt, ctx):
+            captured["ctx_steps"] = ctx.budget.steps
+            return type("Result", (), {"steps": 7, "cost_usd": 1.25, "reason": "finished"})()
+
+    monkeypatch.setattr("agent.llm.LLMClient", FakeLLMClient)
+    monkeypatch.setattr("agent.multi_agent.MultiAgentOrchestrator", FakeOrchestrator)
+
+    workspace = tmp_path / "repo"
+    workspace.mkdir()
+    result = multi_agent_factory()(workspace, "fix", ProjectProfile())
+
+    assert captured["ctx_steps"] == 0
+    assert result["steps"] == 7
+    assert result["cost_usd"] == 1.25
