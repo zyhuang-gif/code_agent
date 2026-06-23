@@ -6,7 +6,8 @@ from pathlib import Path
 from typing import Any
 
 from agent.budget import Budget
-from agent.loop import AgentLoop
+from agent.checkpoint import GitCheckpoint
+from agent.loop import AgentLoop, RunResult
 from agent.tools import RunContext, build_readonly_registry
 
 
@@ -56,3 +57,36 @@ def run_reviewer(llm: Any, task: str, diff: str, base_ctx: RunContext, max_steps
     summary = result.finish_summary.strip()
     passed = summary.upper().startswith("PASS")
     return passed, summary
+class MultiAgentOrchestrator:
+    def __init__(self, llm: Any, coder_tools, max_review_rounds: int = 2):
+        self.llm = llm
+        self.coder_tools = coder_tools
+        self.max_review_rounds = max_review_rounds
+
+    def run(self, task: str, ctx: RunContext) -> RunResult:
+        checkpoint = GitCheckpoint(ctx.workspace)
+        try:
+            checkpoint.init()
+        except Exception as exc:
+            ctx.trace.write({"t": "checkpoint_warning", "error": str(exc)})
+
+        plan = run_planner(self.llm, task, ctx)
+
+        coder = AgentLoop(self.llm, self.coder_tools, checkpoint_factory=NoOpCheckpoint)
+        coder.run(f"{task}\n\n参考修改计划：\n{plan}", _role_ctx(ctx, 40))
+
+        reason = "finished"
+        round_idx = -1
+        for round_idx in range(self.max_review_rounds):
+            diff = checkpoint.diff()
+            passed, comments = run_reviewer(self.llm, task, diff, ctx)
+            if passed:
+                reason = "finished"
+                break
+            if round_idx == self.max_review_rounds - 1:
+                reason = "review_unresolved"
+                break
+            coder.run(f"{task}\n\n上轮改动被 Reviewer 打回：{comments}\n请在现有基础上修复。", _role_ctx(ctx, 40))
+
+        ctx.trace.write({"t": "multi_summary", "result": reason, "rounds": round_idx + 1})
+        return RunResult(reason, checkpoint.diff(), [], 0.0, "")
