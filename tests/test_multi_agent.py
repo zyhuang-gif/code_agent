@@ -1,6 +1,6 @@
-﻿from pathlib import Path
+from pathlib import Path
 
-from agent.multi_agent import NoOpCheckpoint, run_planner
+from agent.multi_agent import NoOpCheckpoint, run_planner, run_reviewer
 
 
 class _Call:
@@ -51,3 +51,18 @@ def test_run_planner_returns_plan_with_readonly_tools(tmp_path):
     plan = run_planner(PlanLLM(), "实现 f", _ctx(tmp_path))
     assert plan == "改 a.py 的 f"
     assert seen["names"] == {"list_dir", "read_file", "grep", "finish"}
+def test_run_reviewer_parses_pass_and_fail(tmp_path):
+    (tmp_path / "a.py").write_text("x", encoding="utf-8")
+
+    class RevLLM:
+        def __init__(self, s):
+            self.s = s
+
+        def chat(self, messages, tools):
+            return _Resp(None, [_Call("1", "finish", {"summary": self.s})])
+
+    passed, comments = run_reviewer(RevLLM("PASS 看起来对"), "t", "diff...", _ctx(tmp_path))
+    assert passed is True
+    passed2, comments2 = run_reviewer(RevLLM("FAIL: 改坏了 x"), "t", "diff...", _ctx(tmp_path))
+    assert passed2 is False
+    assert "改坏" in comments2

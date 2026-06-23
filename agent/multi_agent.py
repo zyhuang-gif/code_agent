@@ -1,4 +1,4 @@
-﻿"""Multi-agent orchestration: Planner -> Coder -> Reviewer."""
+"""Multi-agent orchestration: Planner -> Coder -> Reviewer."""
 
 from __future__ import annotations
 
@@ -49,3 +49,10 @@ def run_planner(llm: Any, task: str, base_ctx: RunContext, max_steps: int = 8) -
     loop = AgentLoop(llm, build_readonly_registry(), checkpoint_factory=NoOpCheckpoint, system_prompt=PLANNER_PROMPT)
     result = loop.run(f"为以下任务制定修改计划：{task}", _role_ctx(base_ctx, max_steps))
     return result.finish_summary
+def run_reviewer(llm: Any, task: str, diff: str, base_ctx: RunContext, max_steps: int = 8) -> tuple[bool, str]:
+    loop = AgentLoop(llm, build_readonly_registry(), checkpoint_factory=NoOpCheckpoint, system_prompt=REVIEWER_PROMPT)
+    review_task = f"任务：{task}\n\nCoder 的改动 diff：\n{diff}\n\n请审查并 finish。"
+    result = loop.run(review_task, _role_ctx(base_ctx, max_steps))
+    summary = result.finish_summary.strip()
+    passed = summary.upper().startswith("PASS")
+    return passed, summary
