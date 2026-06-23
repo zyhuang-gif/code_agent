@@ -77,9 +77,10 @@ def list_dir(args: dict[str, Any], ctx: RunContext) -> ToolResult:
     root = _resolve(ctx, rel_path)
     if not root.exists():
         return ToolResult(f"path not found: {rel_path}", is_error=True)
+    base = ctx.workspace.resolve()
     lines: list[str] = []
     for path in sorted(root.rglob("*")):
-        rel = path.relative_to(ctx.workspace).as_posix()
+        rel = path.relative_to(base).as_posix()
         if ctx.profile.should_ignore(rel):
             continue
         lines.append(rel + ("/" if path.is_dir() else ""))

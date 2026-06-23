@@ -104,4 +104,26 @@ def test_run_command_uses_profile_timeout_when_arg_omitted(tmp_path: Path):
     assert calls == [{"cwd": tmp_path, "timeout": 240, "allow_network": False}]
 
 
+def test_list_dir_works_with_relative_workspace(tmp_path: Path, monkeypatch):
+    # eval 真实任务里 ctx.workspace 是相对路径（work_root="workspace/<task>"）。
+    # list_dir 之前对 rglob 出的绝对路径 relative_to(相对 workspace) 会抛 not-in-subpath。
+    (tmp_path / "repo").mkdir()
+    (tmp_path / "repo" / "a.py").write_text("x", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+    context = RunContext(
+        workspace=Path("repo"),
+        profile=ProjectProfile(),
+        trace=Trace(tmp_path / "trace.jsonl"),
+        budget=Budget(),
+        locator=FakeLocator(),
+        editor=FakeEditor(),
+    )
+    registry = build_default_registry()
+
+    result = registry.run("list_dir", {"path": "."}, context)
+
+    assert result.is_error is False
+    assert "a.py" in result.content
+
+
 

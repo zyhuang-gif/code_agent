@@ -108,6 +108,22 @@ def test_loop_prompt_uses_relative_paths_and_windows_context(tmp_path: Path):
     assert "Windows" in system_text
     assert "cmd" in system_text
 
+
+def test_loop_prompt_guides_tool_use_and_avoids_overdebugging(tmp_path: Path):
+    (tmp_path / "a.py").write_text("hello\n", encoding="utf-8")
+    llm = FakeLLM([
+        Resp(None, [Call("1", "read_file", {"path": "a.py"})], {}),
+        Resp(None, [Call("2", "finish", {"summary": "done"})], {}),
+    ])
+
+    AgentLoop(llm, build_default_registry()).run("t", make_ctx(tmp_path))
+
+    system_text = llm.messages_seen[0][0]["content"]
+    assert "python -c" in system_text       # F2: 警告别用 python -c 多行
+    assert "临时" in system_text             # F2: 引导写临时 .py 文件
+    assert "直接修复" in system_text          # F3: 定位后直接改
+    assert llm.messages_seen[0] == llm.messages_seen[-1]   # 前缀仍稳定
+
 def test_loop_budget_and_repetition_are_graceful(tmp_path: Path):
     (tmp_path / "a.py").write_text("hello\n", encoding="utf-8")
     repeat = Resp(None, [Call("1", "read_file", {"path":"a.py"})], {})
