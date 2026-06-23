@@ -1,5 +1,5 @@
 ﻿from pathlib import Path
-from eval.run_eval import EvalTask, discover, run_task, summarize
+from eval.run_eval import EvalTask, discover, real_agent_factory, run_task, summarize
 
 
 def make_task(task_dir: Path, answer: str = "bad") -> Path:
@@ -87,6 +87,43 @@ def test_eval_main_without_fake_uses_injected_real_factory(tmp_path: Path, monke
     assert code == 0
     assert called == [True]
 
+def test_real_agent_factory_uses_task_profile_and_writes_trace_outside_workspace(tmp_path: Path, monkeypatch):
+    task_dir = make_task(tmp_path / "tasks" / "t_profile")
+    (task_dir / "profile.yaml").write_text(
+        "language: python\n"
+        "test_cmd: python -m pytest -q\n",
+        encoding="utf-8",
+    )
+    captured = {}
+
+    class FakeLLMClient:
+        def __init__(self, trace):
+            captured["llm_trace_path"] = trace.path
+
+    class FakeLoop:
+        def __init__(self, llm, tools):
+            pass
+
+        def run(self, prompt, ctx):
+            captured["profile"] = ctx.profile
+            captured["trace_path"] = ctx.trace.path
+            ctx.trace.write({"t": "fake_loop"})
+            (ctx.workspace / "answer.txt").write_text("ok", encoding="utf-8")
+            return type("Result", (), {"reason": "finished"})()
+
+    monkeypatch.setattr("agent.llm.LLMClient", FakeLLMClient)
+    monkeypatch.setattr("agent.loop.AgentLoop", FakeLoop)
+
+    task = discover(task_dir.parent)[0]
+    work_root = tmp_path / "work" / task.id
+    result = run_task(task, real_agent_factory(), work_root)
+
+    assert result.status == "solved"
+    assert captured["profile"] is task.profile
+    assert captured["trace_path"] == work_root.parent / f"{work_root.name}.trace.jsonl"
+    assert captured["llm_trace_path"] == captured["trace_path"]
+    assert captured["trace_path"].exists()
+    assert not (work_root / "trace.jsonl").exists()
 
 def test_eval_main_without_key_reports_error_instead_of_using_fake(tmp_path: Path, monkeypatch, capsys):
     tasks = tmp_path / "tasks"; tasks.mkdir()
@@ -98,3 +135,6 @@ def test_eval_main_without_key_reports_error_instead_of_using_fake(tmp_path: Pat
     captured = capsys.readouterr()
     assert code == 2
     assert "DEEPSEEK_API_KEY" in captured.err
+
+
+

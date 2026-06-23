@@ -84,12 +84,10 @@ def real_agent_factory() -> AgentCallable:
         from agent.llm import LLMClient
         from agent.locator import GrepLocator
         from agent.loop import AgentLoop
-        from agent.profile import ProjectProfile
         from agent.tools import RunContext, build_default_registry
         from agent.trace import Trace
 
-        profile = ProjectProfile()
-        trace = Trace(workspace / "trace.jsonl")
+        trace = Trace(workspace.parent / f"{workspace.name}.trace.jsonl")
         ctx = RunContext(workspace, profile, trace, Budget(), GrepLocator(workspace, profile), SearchReplaceEditor(profile))
         result = AgentLoop(LLMClient(trace=trace), build_default_registry()).run(prompt, ctx)
         return {"steps": ctx.budget.steps, "cost_usd": 0.0, "reason": result.reason}
@@ -116,3 +114,5 @@ def main(argv: list[str] | None = None, agent_factory: Callable[[], AgentCallabl
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
