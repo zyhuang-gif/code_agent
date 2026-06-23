@@ -140,6 +140,20 @@ def discover(root: Path) -> list[EvalTask]:
     return tasks
 
 
+def _llm_env_kwargs(prefix: str) -> dict[str, str]:
+    kwargs = {}
+    model = os.environ.get(f"{prefix}_MODEL")
+    effort = os.environ.get(f"{prefix}_REASONING_EFFORT")
+    if model:
+        kwargs["model"] = model
+    if effort:
+        kwargs["reasoning_effort"] = effort
+    return kwargs
+
+
+def _has_llm_env(prefix: str) -> bool:
+    return bool(os.environ.get(f"{prefix}_MODEL") or os.environ.get(f"{prefix}_REASONING_EFFORT"))
+
 def real_agent_factory() -> AgentCallable:
     def agent(workspace: Path, prompt: str, profile: ProjectProfile) -> dict[str, Any]:
         from agent.budget import Budget
@@ -152,7 +166,7 @@ def real_agent_factory() -> AgentCallable:
 
         trace = Trace(workspace.parent / f"{workspace.name}.trace.jsonl")
         ctx = RunContext(workspace, profile, trace, Budget(), GrepLocator(workspace, profile), SearchReplaceEditor(profile))
-        result = AgentLoop(LLMClient(trace=trace), build_default_registry()).run(prompt, ctx)
+        result = AgentLoop(LLMClient(trace=trace, **_llm_env_kwargs("DEEPSEEK")), build_default_registry()).run(prompt, ctx)
         return {"steps": ctx.budget.steps, "cost_usd": result.cost_usd, "reason": result.reason}
     return agent
 
@@ -169,7 +183,13 @@ def multi_agent_factory() -> AgentCallable:
 
         trace = Trace(workspace.parent / f"{workspace.name}.trace.jsonl")
         ctx = RunContext(workspace, profile, trace, Budget(), GrepLocator(workspace, profile), SearchReplaceEditor(profile))
-        result = MultiAgentOrchestrator(LLMClient(trace=trace), build_default_registry()).run(prompt, ctx)
+        llm = LLMClient(trace=trace, **_llm_env_kwargs("DEEPSEEK"))
+        role_llms = {}
+        if _has_llm_env("PLANNER"):
+            role_llms["planner_llm"] = LLMClient(trace=trace, **_llm_env_kwargs("PLANNER"))
+        if _has_llm_env("REVIEWER"):
+            role_llms["reviewer_llm"] = LLMClient(trace=trace, **_llm_env_kwargs("REVIEWER"))
+        result = MultiAgentOrchestrator(llm, build_default_registry(), **role_llms).run(prompt, ctx)
         return {"steps": result.steps, "cost_usd": result.cost_usd, "reason": result.reason}
     return agent
 

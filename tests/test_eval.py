@@ -312,6 +312,77 @@ def test_eval_main_repeat_reports_per_task_pass_rate_and_overall_stats(tmp_path,
     assert summary["tasks"]["flaky"]["pass_rate"] == 0.5
     assert summary["mean_solution_rate"] == 0.5
     assert summary["std_solution_rate"] == 0.0
+
+def test_real_agent_factory_configures_llm_from_environment(tmp_path, monkeypatch):
+    from agent.profile import ProjectProfile
+    from eval.run_eval import real_agent_factory
+
+    monkeypatch.setenv("DEEPSEEK_MODEL", "deepseek-prover")
+    monkeypatch.setenv("DEEPSEEK_REASONING_EFFORT", "high")
+    captured = {}
+
+    class FakeLLMClient:
+        def __init__(self, **kwargs):
+            captured["llm_kwargs"] = kwargs
+
+    class FakeLoop:
+        def __init__(self, llm, tools):
+            pass
+
+        def run(self, prompt, ctx):
+            return type("Result", (), {"reason": "finished", "cost_usd": 0.0})()
+
+    monkeypatch.setattr("agent.llm.LLMClient", FakeLLMClient)
+    monkeypatch.setattr("agent.loop.AgentLoop", FakeLoop)
+
+    workspace = tmp_path / "repo"
+    workspace.mkdir()
+    real_agent_factory()(workspace, "fix", ProjectProfile())
+
+    assert captured["llm_kwargs"]["model"] == "deepseek-prover"
+    assert captured["llm_kwargs"]["reasoning_effort"] == "high"
+
+
+def test_multi_agent_factory_configures_role_llms_from_environment(tmp_path, monkeypatch):
+    from agent.profile import ProjectProfile
+    from eval.run_eval import multi_agent_factory
+
+    monkeypatch.setenv("DEEPSEEK_MODEL", "coder-model")
+    monkeypatch.setenv("DEEPSEEK_REASONING_EFFORT", "coder-effort")
+    monkeypatch.setenv("PLANNER_MODEL", "planner-model")
+    monkeypatch.setenv("PLANNER_REASONING_EFFORT", "planner-effort")
+    monkeypatch.setenv("REVIEWER_MODEL", "reviewer-model")
+    monkeypatch.setenv("REVIEWER_REASONING_EFFORT", "reviewer-effort")
+    llm_kwargs = []
+    orchestrator_kwargs = {}
+
+    class FakeLLMClient:
+        def __init__(self, **kwargs):
+            self.kwargs = kwargs
+            llm_kwargs.append(kwargs)
+
+    class FakeOrchestrator:
+        def __init__(self, llm, tools, **kwargs):
+            orchestrator_kwargs["llm"] = llm
+            orchestrator_kwargs.update(kwargs)
+
+        def run(self, prompt, ctx):
+            return type("Result", (), {"steps": 0, "cost_usd": 0.0, "reason": "finished"})()
+
+    monkeypatch.setattr("agent.llm.LLMClient", FakeLLMClient)
+    monkeypatch.setattr("agent.multi_agent.MultiAgentOrchestrator", FakeOrchestrator)
+
+    workspace = tmp_path / "repo"
+    workspace.mkdir()
+    multi_agent_factory()(workspace, "fix", ProjectProfile())
+
+    assert llm_kwargs[0]["model"] == "coder-model"
+    assert llm_kwargs[0]["reasoning_effort"] == "coder-effort"
+    assert orchestrator_kwargs["planner_llm"].kwargs["model"] == "planner-model"
+    assert orchestrator_kwargs["planner_llm"].kwargs["reasoning_effort"] == "planner-effort"
+    assert orchestrator_kwargs["reviewer_llm"].kwargs["model"] == "reviewer-model"
+    assert orchestrator_kwargs["reviewer_llm"].kwargs["reasoning_effort"] == "reviewer-effort"
+
 def test_multi_agent_factory_returns_orchestrator_steps_and_cost(tmp_path, monkeypatch):
     from agent.profile import ProjectProfile
     from eval.run_eval import multi_agent_factory
