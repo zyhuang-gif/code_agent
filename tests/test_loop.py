@@ -321,4 +321,9 @@ def test_loop_exposes_finish_summary(tmp_path: Path):
     llm = FakeLLM([Resp(None, [Call("1", "finish", {"summary": "我的计划"})], {})])
     result = AgentLoop(llm, build_default_registry()).run("t", make_ctx(tmp_path))
     assert result.finish_summary == "我的计划"
+def test_loop_accepts_injected_system_prompt(tmp_path: Path):
+    (tmp_path / "a.py").write_text("x", encoding="utf-8")
+    llm = FakeLLM([Resp(None, [Call("1", "finish", {"summary": "d"})], {})])
+    AgentLoop(llm, build_default_registry(), system_prompt="ROLE-X-PROMPT").run("t", make_ctx(tmp_path))
+    assert llm.messages_seen[0][0]["content"] == "ROLE-X-PROMPT"
 
