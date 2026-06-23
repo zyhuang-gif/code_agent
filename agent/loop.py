@@ -49,8 +49,11 @@ class AgentLoop:
         except Exception as exc:
             ctx.trace.write({"t": "checkpoint_warning", "error": str(exc)})
         baseline = run_tests(ctx.workspace, ctx.profile, ctx.runner or default_runner)
+        system_content = "You are a code agent. Use tools and call finish when done. Use file paths relative to the repo root, for example greeting.py. Do not add workspace/ or absolute path prefixes. The environment is Windows; run_command executes through cmd, so use Windows-compatible commands."
+        if ctx.profile.test_cmd:
+            system_content += f" 测试命令：{ctx.profile.test_cmd}。改完代码后用 run_command 跑测试验证，确认通过再调 finish。"
         prefix = [
-            {"role": "system", "content": "You are a code agent. Use tools and call finish when done. Use file paths relative to the repo root, for example greeting.py. Do not add workspace/ or absolute path prefixes. The environment is Windows; run_command executes through cmd, so use Windows-compatible commands."},
+            {"role": "system", "content": system_content},
             {"role": "user", "content": build_repo_overview(ctx)},
             {"role": "user", "content": f"Task: {task}"},
         ]

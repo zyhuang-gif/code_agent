@@ -246,3 +246,37 @@ def test_finish_with_failing_tests_is_released_after_block_limit(tmp_path: Path)
     assert len(calls) == 5
     blocked_messages = [m for m in result.messages if m["role"] == "tool" and "测试未通过" in m["content"]]
     assert len(blocked_messages) == 3
+
+
+def test_loop_adds_test_guidance_to_stable_prefix_when_test_cmd_exists(tmp_path: Path):
+    calls = []
+
+    def fake_runner(cmd, cwd=None, timeout=None, allow_network=False):
+        calls.append(cmd)
+        return {"exit_code": 0, "stdout": "green\n", "stderr": ""}
+
+    profile = ProjectProfile(test_cmd="pytest -q")
+    ctx = make_ctx(tmp_path, Budget(max_steps=5), profile, fake_runner)
+    llm = FakeLLM([
+        Resp("thinking", [], {}),
+        Resp(None, [Call("f", "finish", {"summary": "done"})], {}),
+    ])
+
+    result = AgentLoop(llm, build_default_registry()).run("x", ctx)
+
+    assert result.reason == "finished"
+    prefix_text = "\n".join(message["content"] for message in llm.messages_seen[0])
+    assert "测试命令：pytest -q" in prefix_text
+    assert "run_command" in prefix_text
+    assert "跑测试" in prefix_text
+    assert "finish" in prefix_text
+    assert llm.messages_seen[0] == llm.messages_seen[-1]
+
+
+def test_loop_omits_test_guidance_without_test_cmd(tmp_path: Path):
+    llm = FakeLLM([Resp(None, [Call("f", "finish", {"summary": "done"})], {})])
+
+    AgentLoop(llm, build_default_registry()).run("x", make_ctx(tmp_path))
+
+    prefix_text = "\n".join(message["content"] for message in llm.messages_seen[0])
+    assert "测试命令：" not in prefix_text
