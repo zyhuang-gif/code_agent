@@ -1,4 +1,4 @@
-﻿from pathlib import Path
+from pathlib import Path
 import os
 import shutil
 import stat
@@ -258,18 +258,30 @@ def test_eval_main_without_key_reports_error_instead_of_using_fake(tmp_path: Pat
     captured = capsys.readouterr()
     assert code == 2
     assert "DEEPSEEK_API_KEY" in captured.err
+def test_eval_main_multi_uses_multi_agent_factory(tmp_path, monkeypatch):
+    task_dir = tmp_path / "tasks" / "t"
+    repo = task_dir / "repo"
+    repo.mkdir(parents=True)
+    (repo / "answer.txt").write_text("bad", encoding="utf-8")
+    (task_dir / "prompt.md").write_text("fix", encoding="utf-8")
+    (task_dir / "verify.py").write_text(
+        "from pathlib import Path\nraise SystemExit(0 if Path('answer.txt').read_text()=='ok' else 1)\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "test-key")
+    called = []
 
+    def multi_factory():
+        called.append(True)
 
+        def agent(workspace, prompt, profile):
+            (workspace / "answer.txt").write_text("ok", encoding="utf-8")
+            return {"steps": 5, "cost_usd": 0.3}
 
+        return agent
 
+    from eval.run_eval import main
 
-
-
-
-
-
-
-
-
-
-
+    code = main([str(task_dir.parent), "--multi"], agent_factory=multi_factory, work_root=tmp_path / "work")
+    assert code == 0
+    assert called == [True]
