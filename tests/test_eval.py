@@ -68,6 +68,51 @@ def test_run_task_passes_discovered_profile_to_agent(tmp_path: Path):
     assert received == [task.profile]
 
 
+def test_run_task_runs_setup_cmd_before_agent_with_injected_runner(tmp_path: Path):
+    task_dir = make_task(tmp_path / "t_setup")
+    (task_dir / "profile.yaml").write_text(
+        "setup_cmd: python -m pip install -e .\n"
+        "setup_needs_network: true\n",
+        encoding="utf-8",
+    )
+    events = []
+
+    def command_runner(cmd, cwd=None, timeout=None, allow_network=False):
+        events.append(("setup", cmd, cwd, timeout, allow_network))
+        assert cwd == tmp_path / "work"
+        (cwd / "installed.txt").write_text("yes", encoding="utf-8")
+        return {"exit_code": 0, "stdout": "installed\n", "stderr": ""}
+
+    def fake_agent(workspace, prompt, profile):
+        events.append(("agent", (workspace / "installed.txt").read_text(encoding="utf-8")))
+        (workspace / "answer.txt").write_text("ok", encoding="utf-8")
+        return {"steps": 1, "cost_usd": 0.0}
+
+    task = discover(tmp_path)[0]
+    result = run_task(task, fake_agent, tmp_path / "work", command_runner=command_runner)
+
+    assert result.status == "solved"
+    assert events == [
+        ("setup", "python -m pip install -e .", tmp_path / "work", 300, True),
+        ("agent", "yes"),
+    ]
+
+
+def test_run_task_raises_when_setup_cmd_fails(tmp_path: Path):
+    task_dir = make_task(tmp_path / "t_setup")
+    (task_dir / "profile.yaml").write_text("setup_cmd: install deps\n", encoding="utf-8")
+
+    def command_runner(cmd, cwd=None, timeout=None, allow_network=False):
+        return {"exit_code": 23, "stdout": "", "stderr": "boom"}
+
+    def fake_agent(workspace, prompt, profile):
+        raise AssertionError("agent should not run after setup failure")
+
+    task = discover(tmp_path)[0]
+
+    with pytest.raises(RuntimeError, match="setup_cmd failed"):
+        run_task(task, fake_agent, tmp_path / "work", command_runner=command_runner)
+
 def test_robust_rmtree_removes_readonly_files(tmp_path: Path):
     ordinary = tmp_path / "ordinary"
     ordinary.mkdir()
@@ -127,6 +172,18 @@ def test_discover_finds_hard_eval_tasks_with_profiles():
         "h4_extend_dispatcher",
     }
     assert all(task.profile.test_cmd for task in tasks.values())
+def test_discover_finds_real_click_eval_tasks_with_profiles():
+    tasks = {task.id: task for task in discover(Path("eval/tasks_real"))}
+
+    assert set(tasks) == {
+        "click_t1_short_help_truncation",
+        "click_t2_option_prefix_parsing",
+        "click_t3_preserve_paragraph_wrapping",
+    }
+    assert all(task.profile.setup_cmd == "python -m pip install -e ." for task in tasks.values())
+    assert all(task.profile.test_cmd for task in tasks.values())
+    assert all((task.path / "repo" / "src" / "click").is_dir() for task in tasks.values())
+
 def test_summarize_reports_solution_rate():
     summary = summarize([type("R", (), {"status":"solved", "steps":2, "cost_usd":0.1})(), type("R", (), {"status":"failed", "steps":4, "cost_usd":0.3})()])
     assert summary["solved"] == 1
@@ -201,6 +258,10 @@ def test_eval_main_without_key_reports_error_instead_of_using_fake(tmp_path: Pat
     captured = capsys.readouterr()
     assert code == 2
     assert "DEEPSEEK_API_KEY" in captured.err
+
+
+
+
 
 
 

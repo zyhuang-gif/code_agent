@@ -1,0 +1,7 @@
+﻿language: python
+setup_cmd: python -m pip install -e .
+setup_needs_network: true
+setup_timeout: 300
+test_cmd: python -m pytest tests/test_utils.py::test_make_default_short_help -q -p no:cacheprovider
+test_timeout: 300
+command_timeout: 300

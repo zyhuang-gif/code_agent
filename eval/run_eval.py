@@ -19,6 +19,7 @@ from agent.profile import ProjectProfile, load_profile
 
 
 AgentCallable = Callable[[Path, str, ProjectProfile], dict[str, Any]]
+CommandRunner = Callable[..., dict[str, Any]]
 
 
 @dataclass
@@ -37,7 +38,6 @@ class EvalResult:
 
 
 
-
 def _retry_readonly_remove(func: Callable[[str], None], path: str, exc: BaseException) -> None:
     if not isinstance(exc, PermissionError):
         raise exc
@@ -47,15 +47,38 @@ def _retry_readonly_remove(func: Callable[[str], None], path: str, exc: BaseExce
 
 def robust_rmtree(path: Path) -> None:
     shutil.rmtree(path, onexc=_retry_readonly_remove)
-def run_task(task: EvalTask, agent: AgentCallable, work_root: Path) -> EvalResult:
+
+
+def default_command_runner(cmd: str, cwd: Path | None = None, timeout: int | None = None, allow_network: bool = False) -> dict[str, Any]:
+    proc = subprocess.run(cmd, cwd=cwd, shell=True, text=True, capture_output=True, timeout=timeout)
+    return {"exit_code": proc.returncode, "stdout": proc.stdout, "stderr": proc.stderr}
+
+
+def run_task(task: EvalTask, agent: AgentCallable, work_root: Path, command_runner: CommandRunner = default_command_runner) -> EvalResult:
     task_path = task.path.resolve()
     if work_root.exists():
         robust_rmtree(work_root)
     shutil.copytree(task_path / "repo", work_root)
+    if task.profile.setup_cmd:
+        setup = command_runner(
+            task.profile.setup_cmd,
+            cwd=work_root,
+            timeout=task.profile.setup_timeout,
+            allow_network=task.profile.setup_needs_network,
+        )
+        if int(setup.get("exit_code", 1)) != 0:
+            output = f"{setup.get('stdout', '')}{setup.get('stderr', '')}"
+            raise RuntimeError(f"setup_cmd failed for {task.id}: {output}")
     prompt = (task_path / "prompt.md").read_text(encoding="utf-8")
     meta = agent(work_root, prompt, task.profile) or {}
     verify = task_path / "verify.py"
-    proc = subprocess.run([sys.executable, "-c", verify.read_text(encoding="utf-8").lstrip("\ufeff")], cwd=work_root, text=True, capture_output=True)
+    proc = subprocess.run(
+        [sys.executable, "-c", verify.read_text(encoding="utf-8").lstrip("\ufeff")],
+        cwd=work_root,
+        text=True,
+        capture_output=True,
+        timeout=task.profile.test_timeout,
+    )
     return EvalResult(task.id, "solved" if proc.returncode == 0 else "failed", int(meta.get("steps", 0)), float(meta.get("cost_usd", 0.0)))
 
 
@@ -133,13 +156,3 @@ def main(argv: list[str] | None = None, agent_factory: Callable[[], AgentCallabl
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
-
-
-
-
-
-
-
-
-

@@ -16,7 +16,10 @@ class ProjectProfile:
     syntax_check: dict[str, str] = field(default_factory=dict)
     setup_cmd: str | None = None
     setup_needs_network: bool = True
+    setup_timeout: int = 300
     test_cmd: str | None = None
+    test_timeout: int = 300
+    command_timeout: int = 300
     pass_when: str = "exit_zero"
     parse_test_output: str | None = None
     language: str | None = None
@@ -43,3 +46,5 @@ def load_profile(path: str | Path) -> ProjectProfile:
     with Path(path).open("r", encoding="utf-8") as handle:
         data = yaml.safe_load(handle) or {}
     return ProjectProfile.from_dict(data)
+
+

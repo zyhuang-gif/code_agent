@@ -87,5 +87,21 @@ def test_run_command_passes_allow_network_policy_to_runner(tmp_path: Path):
     registry.run("run_command", {"cmd": "pytest", "allow_network": True}, context)
 
     assert calls[0]["allow_network"] is False
+    assert calls[0]["timeout"] == 300
     assert calls[1]["allow_network"] is True
+
+def test_run_command_uses_profile_timeout_when_arg_omitted(tmp_path: Path):
+    calls = []
+    def runner(cmd, **kwargs):
+        calls.append(kwargs)
+        return {"exit_code": 0, "stdout": "ok", "stderr": ""}
+    context, _ = ctx(tmp_path, runner=runner)
+    context.profile.command_timeout = 240
+    registry = build_default_registry()
+
+    registry.run("run_command", {"cmd": "pytest"}, context)
+
+    assert calls == [{"cwd": tmp_path, "timeout": 240, "allow_network": False}]
+
+
 

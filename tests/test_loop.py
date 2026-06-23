@@ -58,7 +58,7 @@ def test_loop_runs_baseline_tests_when_profile_has_test_cmd(tmp_path: Path):
     result = AgentLoop(FakeLLM([]), build_default_registry()).run("x", ctx)
 
     assert result.reason == "budget_exceeded"
-    assert calls == [("pytest -q", tmp_path, 60, False)]
+    assert calls == [("pytest -q", tmp_path, 300, False)]
 
 
 def test_loop_skips_baseline_tests_without_test_cmd(tmp_path: Path):
@@ -211,7 +211,7 @@ def test_finish_is_blocked_until_configured_tests_pass(tmp_path: Path):
     result = AgentLoop(llm, build_default_registry()).run("x", ctx)
 
     assert result.reason == "finished"
-    assert calls == [("pytest -q", tmp_path, 60, False)] * 3
+    assert calls == [("pytest -q", tmp_path, 300, False)] * 3
     tool_messages = [m["content"] for m in result.messages if m["role"] == "tool"]
     assert any("测试未通过（基线 passed=False）" in message for message in tool_messages)
     assert any("still red" in message and "details" in message for message in tool_messages)
@@ -281,4 +281,5 @@ def test_loop_omits_test_guidance_without_test_cmd(tmp_path: Path):
 
     prefix_text = "\n".join(message["content"] for message in llm.messages_seen[0])
     assert "测试命令：" not in prefix_text
+
 
