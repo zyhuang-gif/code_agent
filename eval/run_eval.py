@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import os
 import shutil
+import stat
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -35,10 +36,21 @@ class EvalResult:
     cost_usd: float
 
 
+
+
+def _retry_readonly_remove(func: Callable[[str], None], path: str, exc: BaseException) -> None:
+    if not isinstance(exc, PermissionError):
+        raise exc
+    os.chmod(path, stat.S_IWRITE)
+    func(path)
+
+
+def robust_rmtree(path: Path) -> None:
+    shutil.rmtree(path, onexc=_retry_readonly_remove)
 def run_task(task: EvalTask, agent: AgentCallable, work_root: Path) -> EvalResult:
     task_path = task.path.resolve()
     if work_root.exists():
-        shutil.rmtree(work_root)
+        robust_rmtree(work_root)
     shutil.copytree(task_path / "repo", work_root)
     prompt = (task_path / "prompt.md").read_text(encoding="utf-8")
     meta = agent(work_root, prompt, task.profile) or {}
@@ -121,6 +133,8 @@ def main(argv: list[str] | None = None, agent_factory: Callable[[], AgentCallabl
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
 
 
 

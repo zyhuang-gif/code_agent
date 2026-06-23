@@ -1,6 +1,10 @@
 ﻿from pathlib import Path
+import os
+import shutil
+import stat
 import runpy
 import sys
+import pytest
 from eval.run_eval import EvalTask, discover, real_agent_factory, run_task, summarize
 
 
@@ -62,6 +66,33 @@ def test_run_task_passes_discovered_profile_to_agent(tmp_path: Path):
 
     assert result.status == "solved"
     assert received == [task.profile]
+
+
+def test_robust_rmtree_removes_readonly_files(tmp_path: Path):
+    ordinary = tmp_path / "ordinary"
+    ordinary.mkdir()
+    ordinary_file = ordinary / "object"
+    ordinary_file.write_text("readonly", encoding="utf-8")
+    os.chmod(ordinary_file, stat.S_IREAD)
+    try:
+        with pytest.raises(PermissionError):
+            shutil.rmtree(ordinary)
+    finally:
+        if ordinary_file.exists():
+            os.chmod(ordinary_file, stat.S_IWRITE)
+        shutil.rmtree(ordinary, ignore_errors=True)
+
+    target = tmp_path / "target"
+    target.mkdir()
+    target_file = target / "object"
+    target_file.write_text("readonly", encoding="utf-8")
+    os.chmod(target_file, stat.S_IREAD)
+
+    from eval import run_eval
+
+    run_eval.robust_rmtree(target)
+
+    assert not target.exists()
 def test_run_eval_script_imports_when_executed_by_path(monkeypatch):
     root = Path.cwd().resolve()
     eval_dir = root / "eval"
@@ -159,6 +190,7 @@ def test_eval_main_without_key_reports_error_instead_of_using_fake(tmp_path: Pat
     captured = capsys.readouterr()
     assert code == 2
     assert "DEEPSEEK_API_KEY" in captured.err
+
 
 
 
