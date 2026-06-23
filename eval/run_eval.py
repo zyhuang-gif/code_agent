@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import os
 import shutil
+import statistics
 import stat
 import subprocess
 import sys
@@ -82,13 +83,33 @@ def run_task(task: EvalTask, agent: AgentCallable, work_root: Path, command_runn
     return EvalResult(task.id, "solved" if proc.returncode == 0 else "failed", int(meta.get("steps", 0)), float(meta.get("cost_usd", 0.0)))
 
 
-def summarize(results: list[EvalResult]) -> dict[str, float | int]:
+def summarize(results: list[EvalResult]) -> dict[str, Any]:
     total = len(results)
     solved = sum(1 for result in results if result.status == "solved")
+    by_task: dict[str, list[EvalResult]] = {}
+    for result in results:
+        by_task.setdefault(getattr(result, "task_id", "__all__"), []).append(result)
+
+    task_summaries = {}
+    for task_id, task_results in by_task.items():
+        task_total = len(task_results)
+        task_solved = sum(1 for result in task_results if result.status == "solved")
+        task_summaries[task_id] = {
+            "runs": task_total,
+            "solved": task_solved,
+            "pass_rate": task_solved / task_total if task_total else 0.0,
+            "avg_steps": sum(result.steps for result in task_results) / task_total if task_total else 0.0,
+            "avg_cost_usd": sum(result.cost_usd for result in task_results) / task_total if task_total else 0.0,
+        }
+
+    pass_rates = [float(task["pass_rate"]) for task in task_summaries.values()]
     return {
         "total": total,
         "solved": solved,
         "solution_rate": solved / total if total else 0.0,
+        "tasks": task_summaries,
+        "mean_solution_rate": statistics.mean(pass_rates) if pass_rates else 0.0,
+        "std_solution_rate": statistics.pstdev(pass_rates) if pass_rates else 0.0,
         "avg_steps": sum(result.steps for result in results) / total if total else 0.0,
         "avg_cost_usd": sum(result.cost_usd for result in results) / total if total else 0.0,
     }
@@ -157,6 +178,7 @@ def main(argv: list[str] | None = None, agent_factory: Callable[[], AgentCallabl
     parser.add_argument("tasks", type=Path, nargs="?", default=Path(__file__).parent / "tasks")
     parser.add_argument("--fake", action="store_true")
     parser.add_argument("--multi", action="store_true")
+    parser.add_argument("--repeat", type=int, default=1)
     args = parser.parse_args(argv)
     if args.fake:
         agent = fake_agent
@@ -166,7 +188,12 @@ def main(argv: list[str] | None = None, agent_factory: Callable[[], AgentCallabl
             return 2
         default_factory = multi_agent_factory if args.multi else real_agent_factory
         agent = (agent_factory or default_factory)()
-    results = [run_task(task, agent, work_root / task.id) for task in discover(args.tasks)]
+    if args.repeat < 1:
+        parser.error("--repeat must be >= 1")
+    results = []
+    for task in discover(args.tasks):
+        for run_index in range(1, args.repeat + 1):
+            results.append(run_task(task, agent, work_root / task.id / f"run-{run_index}"))
     summary = summarize(results)
     print(summary)
     return 0 if summary["solved"] == summary["total"] else 1

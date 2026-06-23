@@ -4,6 +4,7 @@ import shutil
 import stat
 import runpy
 import sys
+import ast
 import pytest
 from eval.run_eval import EvalTask, discover, real_agent_factory, run_task, summarize
 
@@ -286,6 +287,31 @@ def test_eval_main_multi_uses_multi_agent_factory(tmp_path, monkeypatch):
     assert code == 0
     assert called == [True]
 
+def test_eval_main_repeat_reports_per_task_pass_rate_and_overall_stats(tmp_path, monkeypatch, capsys):
+    task_dir = make_task(tmp_path / "tasks" / "flaky")
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "test-key")
+    calls = []
+
+    def factory():
+        def agent(workspace, prompt, profile):
+            calls.append(workspace)
+            if len(calls) == 1:
+                (workspace / "answer.txt").write_text("ok", encoding="utf-8")
+            return {"steps": len(calls), "cost_usd": 0.1 * len(calls)}
+
+        return agent
+
+    from eval.run_eval import main
+
+    code = main([str(task_dir.parent), "--repeat", "2"], agent_factory=factory, work_root=tmp_path / "work")
+
+    summary = ast.literal_eval(capsys.readouterr().out.strip())
+    assert code == 1
+    assert [path.name for path in calls] == ["run-1", "run-2"]
+    assert calls[0].parent == tmp_path / "work" / "flaky"
+    assert summary["tasks"]["flaky"]["pass_rate"] == 0.5
+    assert summary["mean_solution_rate"] == 0.5
+    assert summary["std_solution_rate"] == 0.0
 def test_multi_agent_factory_returns_orchestrator_steps_and_cost(tmp_path, monkeypatch):
     from agent.profile import ProjectProfile
     from eval.run_eval import multi_agent_factory
