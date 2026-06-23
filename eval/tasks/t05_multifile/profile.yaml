@@ -1,0 +1,2 @@
+﻿language: python
+test_cmd: python -m pytest -q

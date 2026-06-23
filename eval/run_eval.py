@@ -11,6 +11,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Any
 
+if __package__ in {None, ""}:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 from agent.profile import ProjectProfile, load_profile
 
 
@@ -63,6 +66,10 @@ def fake_agent(workspace: Path, prompt: str, profile: ProjectProfile) -> dict[st
         (workspace / "count.py").write_text("def inclusive_count(n):\n    return list(range(n + 1))\n", encoding="utf-8")
     if (workspace / "first.py").exists():
         (workspace / "first.py").write_text("def first(items):\n    return None if not items else items[0]\n", encoding="utf-8")
+    if (workspace / "pricing.py").exists():
+        (workspace / "pricing.py").write_text("def apply_discount(price, percent):\n    return price * (1 - percent / 100)\n", encoding="utf-8")
+    if (workspace / "normalizer.py").exists():
+        (workspace / "normalizer.py").write_text("def normalize_name(value):\n    return value.strip().lower().replace(\" \", \"-\")\n", encoding="utf-8")
     return {"steps": 1, "cost_usd": 0.0}
 
 
@@ -114,6 +121,11 @@ def main(argv: list[str] | None = None, agent_factory: Callable[[], AgentCallabl
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
+
+
+
 
 
 

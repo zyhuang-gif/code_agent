@@ -1,4 +1,6 @@
 ﻿from pathlib import Path
+import runpy
+import sys
 from eval.run_eval import EvalTask, discover, real_agent_factory, run_task, summarize
 
 
@@ -60,7 +62,28 @@ def test_run_task_passes_discovered_profile_to_agent(tmp_path: Path):
 
     assert result.status == "solved"
     assert received == [task.profile]
+def test_run_eval_script_imports_when_executed_by_path(monkeypatch):
+    root = Path.cwd().resolve()
+    eval_dir = root / "eval"
+    filtered = []
+    for entry in sys.path:
+        if not entry:
+            continue
+        try:
+            if Path(entry).resolve() == root:
+                continue
+        except OSError:
+            pass
+        filtered.append(entry)
+    monkeypatch.setattr(sys, "path", [str(eval_dir), *filtered])
 
+    runpy.run_path(str(eval_dir / "run_eval.py"), run_name="eval_script_import_test")
+
+def test_discover_finds_tested_eval_tasks_with_profiles():
+    tasks = {task.id: task for task in discover(Path("eval/tasks"))}
+
+    assert tasks["t04_fix_tested_bug"].profile.test_cmd == "python -m pytest -q"
+    assert tasks["t05_multifile"].profile.test_cmd == "python -m pytest -q"
 
 def test_summarize_reports_solution_rate():
     summary = summarize([type("R", (), {"status":"solved", "steps":2, "cost_usd":0.1})(), type("R", (), {"status":"failed", "steps":4, "cost_usd":0.3})()])
@@ -136,6 +159,10 @@ def test_eval_main_without_key_reports_error_instead_of_using_fake(tmp_path: Pat
     captured = capsys.readouterr()
     assert code == 2
     assert "DEEPSEEK_API_KEY" in captured.err
+
+
+
+
 
 
 
