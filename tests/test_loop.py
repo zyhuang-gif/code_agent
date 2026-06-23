@@ -316,5 +316,9 @@ def test_loop_omits_test_guidance_without_test_cmd(tmp_path: Path):
 
     prefix_text = "\n".join(message["content"] for message in llm.messages_seen[0])
     assert "测试命令：" not in prefix_text
-
+def test_loop_exposes_finish_summary(tmp_path: Path):
+    (tmp_path / "a.py").write_text("x", encoding="utf-8")
+    llm = FakeLLM([Resp(None, [Call("1", "finish", {"summary": "我的计划"})], {})])
+    result = AgentLoop(llm, build_default_registry()).run("t", make_ctx(tmp_path))
+    assert result.finish_summary == "我的计划"
 

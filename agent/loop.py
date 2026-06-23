@@ -20,6 +20,7 @@ class RunResult:
     diff: str
     messages: list[dict[str, Any]]
     cost_usd: float = 0.0
+    finish_summary: str = ""
 
 
 def build_repo_overview(ctx: RunContext, max_files: int = 200, max_chars: int = 4000) -> str:
@@ -84,10 +85,12 @@ class AgentLoop:
                 if call.name == "finish":
                     current = run_tests(ctx.workspace, ctx.profile, ctx.runner or default_runner)
                     if current is None or current.passed:
-                        result = self._finalize(ctx, messages, "finished", total_cost_usd, checkpoint)
+                        summary = call.args.get("summary", "")
+                        result = self._finalize(ctx, messages, "finished", total_cost_usd, checkpoint, summary)
                         return result
                     if finish_blocks >= MAX_FINISH_BLOCKS:
-                        result = self._finalize(ctx, messages, "finished_with_failing_tests", total_cost_usd, checkpoint)
+                        summary = call.args.get("summary", "")
+                        result = self._finalize(ctx, messages, "finished_with_failing_tests", total_cost_usd, checkpoint, summary)
                         return result
                     baseline_passed = baseline.passed if baseline is not None else None
                     messages.append({"role": "tool", "tool_call_id": call.id, "content": f"测试未通过（基线 passed={baseline_passed}）。输出：{current.output}。请修复后再 finish。"})
@@ -101,14 +104,15 @@ class AgentLoop:
                 messages.append({"role": "tool", "tool_call_id": call.id, "content": result.content})
         return self._finalize(ctx, messages, "budget_exceeded", total_cost_usd, checkpoint)
 
-    def _finalize(self, ctx: RunContext, messages: list[dict[str, Any]], reason: str, total_cost_usd: float, checkpoint: Any) -> RunResult:
+    def _finalize(self, ctx: RunContext, messages: list[dict[str, Any]], reason: str, total_cost_usd: float, checkpoint: Any, finish_summary: str = "") -> RunResult:
         try:
             diff = checkpoint.diff()
         except Exception as exc:
             ctx.trace.write({"t": "checkpoint_warning", "error": str(exc)})
             diff = ""
         ctx.trace.run_summary(task_id="manual", steps=ctx.budget.steps, total_tokens=ctx.budget.tokens, total_cost_usd=total_cost_usd, result=reason, diff_path="")
-        return RunResult(reason, diff, messages, total_cost_usd)
+        return RunResult(reason, diff, messages, total_cost_usd, finish_summary)
+
 
 
 
