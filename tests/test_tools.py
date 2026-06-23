@@ -126,4 +126,20 @@ def test_list_dir_works_with_relative_workspace(tmp_path: Path, monkeypatch):
     assert "a.py" in result.content
 
 
+def test_write_file_creates_file_with_content(tmp_path: Path):
+    context, _ = ctx(tmp_path)
+    registry = build_default_registry()
+
+    result = registry.run("write_file", {"path": "sub/t.py", "content": "print(1)\n"}, context)
+
+    assert result.is_error is False
+    assert (tmp_path / "sub" / "t.py").read_text(encoding="utf-8") == "print(1)\n"
+
+
+def test_write_file_schema_requires_path_and_content():
+    schema = build_default_registry().get("write_file").parameters
+    assert schema["required"] == ["path", "content"]
+    assert schema["additionalProperties"] is False
+
+
 

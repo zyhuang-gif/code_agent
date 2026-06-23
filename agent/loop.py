@@ -55,7 +55,7 @@ class AgentLoop:
             "Use file paths relative to the repo root, for example greeting.py. "
             "Do not add workspace/ or absolute path prefixes. "
             "The environment is Windows; run_command executes through cmd, so use Windows-compatible commands. "
-            "不要用 python -c 执行多行脚本（Windows 下输出可能丢失）；需要运行多行代码时，写入临时 .py 文件再用 python 运行。"
+            "不要用 python -c 执行多行脚本（Windows 下输出可能丢失）；需要运行多行代码时，用 write_file 工具写入临时 .py 文件再用 run_command 运行。"
             "定位到可疑或被改动的代码后直接修复并用测试验证，不要反复编写脚本探究标准库或第三方库的内部行为。"
         )
         if ctx.profile.test_cmd:
@@ -78,7 +78,7 @@ class AgentLoop:
                 assistant_message = {"role": "assistant", "content": response.content, **assistant_message}
             messages.append(assistant_message)
             if not response.tool_calls:
-                messages.append({"role": "tool", "tool_call_id": "nudge", "content": "请调用 finish 或继续使用工具。"})
+                messages.append({"role": "user", "content": "请调用 finish 或继续使用工具。"})
                 continue
             for call in response.tool_calls:
                 if call.name == "finish":

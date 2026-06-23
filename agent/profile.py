@@ -34,6 +34,11 @@ class ProjectProfile:
     def should_ignore(self, rel_path: str | Path) -> bool:
         normalized = Path(rel_path).as_posix()
         parts = normalized.split("/")
+        # 硬忽略通用 VCS/缓存垃圾（不依赖 self.ignore，永不展示给 agent）
+        if {".git", "__pycache__"} & set(parts):
+            return True
+        if normalized.endswith(".pyc") or any(part.endswith(".egg-info") for part in parts):
+            return True
         for pattern in self.ignore:
             if pattern in parts:
                 return True

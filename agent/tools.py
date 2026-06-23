@@ -128,6 +128,13 @@ def finish(args: dict[str, Any], ctx: RunContext) -> ToolResult:
     return ToolResult(args.get("summary", "finished"), meta={"finish": True})
 
 
+def write_file(args: dict[str, Any], ctx: RunContext) -> ToolResult:
+    path = _resolve(ctx, args["path"])
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(args["content"], encoding="utf-8")
+    return ToolResult(f"wrote {args['path']}", meta={"path": str(path)})
+
+
 def object_schema(properties: dict[str, Any], required: list[str] | None = None) -> dict[str, Any]:
     return {
         "type": "object",
@@ -145,6 +152,7 @@ def build_default_registry() -> ToolRegistry:
         ToolSpec("edit", "Apply a SEARCH/REPLACE edit", object_schema({"path": {"type": "string"}, "search": {"type": "string"}, "replace": {"type": "string"}}, ["path", "search", "replace"]), edit),
         ToolSpec("run_command", "Run a command in the workspace", object_schema({"cmd": {"type": "string"}, "timeout": {"type": "integer"}, "allow_network": {"type": "boolean", "default": False}}, ["cmd"]), run_command),
         ToolSpec("finish", "Finish the task", object_schema({"summary": {"type": "string"}}, ["summary"]), finish),
+        ToolSpec("write_file", "Create or overwrite a file with the given content (use for temp .py scripts)", object_schema({"path": {"type": "string"}, "content": {"type": "string"}}, ["path", "content"]), write_file),
     ])
 
 

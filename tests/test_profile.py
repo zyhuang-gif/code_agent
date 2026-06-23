@@ -63,3 +63,13 @@ def test_builtin_python_profile_declares_test_cmd_and_empty_profile_does_not():
 
     assert python_profile.test_cmd == "pytest -q"
     assert empty_profile.test_cmd is None
+
+
+def test_should_ignore_always_skips_vcs_and_cache_even_with_empty_ignore():
+    # .git / __pycache__ / *.pyc / *.egg-info 是通用垃圾，无论 profile 配没配 ignore 都不该展示给 agent
+    profile = ProjectProfile()  # ignore 为空
+    assert profile.should_ignore(".git/objects/ab/cdef") is True
+    assert profile.should_ignore("src/click/__pycache__/core.cpython-313.pyc") is True
+    assert profile.should_ignore("src/foo.pyc") is True
+    assert profile.should_ignore("src/click.egg-info/PKG-INFO") is True
+    assert profile.should_ignore("src/click/parser.py") is False

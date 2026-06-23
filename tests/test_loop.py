@@ -121,8 +121,27 @@ def test_loop_prompt_guides_tool_use_and_avoids_overdebugging(tmp_path: Path):
     system_text = llm.messages_seen[0][0]["content"]
     assert "python -c" in system_text       # F2: 警告别用 python -c 多行
     assert "临时" in system_text             # F2: 引导写临时 .py 文件
+    assert "write_file" in system_text       # F2: 引导指向真实的 write_file 工具（而非诱导调不存在的工具）
     assert "直接修复" in system_text          # F3: 定位后直接改
     assert llm.messages_seen[0] == llm.messages_seen[-1]   # 前缀仍稳定
+
+
+def test_loop_nudge_uses_user_role_not_tool(tmp_path: Path):
+    # 纯文本响应（无 tool_calls）后追加的提示必须是 role=user。
+    # role=tool 必须紧跟带 tool_calls 的 assistant，否则真实 API 报 400。
+    (tmp_path / "a.py").write_text("x", encoding="utf-8")
+    llm = FakeLLM([
+        Resp("我先想想", [], {}),                                   # 纯文本，无 tool_calls
+        Resp(None, [Call("1", "finish", {"summary": "done"})], {}),
+    ])
+
+    result = AgentLoop(llm, build_default_registry()).run("t", make_ctx(tmp_path))
+
+    nudges = [m for m in result.messages if m.get("content") == "请调用 finish 或继续使用工具。"]
+    assert nudges, "纯文本响应后应追加一条提示"
+    assert all(m["role"] == "user" for m in nudges)
+    assert all("tool_call_id" not in m for m in nudges)
+
 
 def test_loop_budget_and_repetition_are_graceful(tmp_path: Path):
     (tmp_path / "a.py").write_text("hello\n", encoding="utf-8")
