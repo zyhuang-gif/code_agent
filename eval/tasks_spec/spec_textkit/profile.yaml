@@ -1,0 +1,4 @@
+language: python
+test_cmd: python -m pytest tests/ -q -p no:cacheprovider --basetemp .tmp/pytest
+test_timeout: 120
+command_timeout: 120
