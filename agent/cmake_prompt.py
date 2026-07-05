@@ -9,6 +9,7 @@ from agent.build_runner import BuildAttempt, summarize_cmake_attempts
 from agent.cmake_context import CMakeContext, render_cmake_context, scan_cmake_context
 from agent.profile import ProjectProfile
 from agent.repair_hints import render_repair_hints
+from agent.repair_memory import RepairMemoryMatch, render_repair_memory
 from agent.trace import Trace
 
 
@@ -83,6 +84,23 @@ def _write_error_trace(summary: BuildErrorSummary, trace: Trace | None) -> None:
     })
 
 
+def _write_memory_trace(matches: list[RepairMemoryMatch], trace: Trace | None) -> None:
+    if trace is None:
+        return
+    trace.write({
+        "t": "repair_memory_matches",
+        "matches": [
+            {
+                "case_id": m.case.case_id,
+                "error_type": m.case.error_type,
+                "score": round(m.score, 2),
+                "source": m.case.source,
+            }
+            for m in matches
+        ],
+    })
+
+
 def build_cmake_task_prompt(
     task: str,
     workspace: str | Path,
@@ -90,6 +108,7 @@ def build_cmake_task_prompt(
     initial_output: str = "",
     trace: Trace | None = None,
     initial_attempts: list[BuildAttempt] | None = None,
+    repair_memory_matches: list[RepairMemoryMatch] | None = None,
 ) -> str:
     context = scan_cmake_context(Path(workspace), profile)
     attempts = initial_attempts or []
@@ -104,24 +123,30 @@ def build_cmake_task_prompt(
     _write_context_trace(context, trace)
     _write_error_trace(summary, trace)
     _write_attempt_trace(attempts, trace)
-    return "\n\n".join(
-        [
-            f"Task: {task}",
-            render_cmake_context(context),
-            _render_attempts(attempts),
-            _render_error_summary(
-                initial_output,
-                phase=first_failure.phase if first_failure else None,
-                command=first_failure.command if first_failure else None,
-            ),
-            render_repair_hints(summary, context),
-            (
-                "CMake Build-Fix rules:\n"
-                "- Inspect relevant CMake and C++ files before editing.\n"
-                "- Prefer target-based CMake fixes such as target_include_directories and target_link_libraries.\n"
-                "- Re-run the configured CMake command with run_command before finish.\n"
-                "- Do not install packages or fetch from network.\n"
-                "- Keep changes narrow and explain verification in finish summary."
-            ),
-        ]
-    )
+    memory_matches = repair_memory_matches or []
+    _write_memory_trace(memory_matches, trace)
+    sections = [
+        f"Task: {task}",
+        render_cmake_context(context),
+        _render_attempts(attempts),
+        _render_error_summary(
+            initial_output,
+            phase=first_failure.phase if first_failure else None,
+            command=first_failure.command if first_failure else None,
+        ),
+    ]
+    memory_section = render_repair_memory(memory_matches)
+    if memory_section:
+        sections.append(memory_section)
+    sections.extend([
+        render_repair_hints(summary, context),
+        (
+            "CMake Build-Fix rules:\n"
+            "- Inspect relevant CMake and C++ files before editing.\n"
+            "- Prefer target-based CMake fixes such as target_include_directories and target_link_libraries.\n"
+            "- Re-run the configured CMake command with run_command before finish.\n"
+            "- Do not install packages or fetch from network.\n"
+            "- Keep changes narrow and explain verification in finish summary."
+        ),
+    ])
+    return "\n\n".join(sections)

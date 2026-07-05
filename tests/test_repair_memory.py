@@ -4,13 +4,17 @@ import json
 from pathlib import Path
 
 from agent.fix_report import FixReport
+from agent.build_errors import BuildErrorSummary
 from agent.repair_memory import (
     RepairMemoryCase,
     RepairMemoryMatch,
     append_repair_case,
     extract_repair_case,
     load_repair_memory,
+    match_repair_memory,
+    render_repair_memory,
     repair_memory_jsonl,
+    select_cmake_repair_memory,
 )
 
 
@@ -238,3 +242,134 @@ def test_extract_repair_case_truncates_diff_excerpt(tmp_path: Path):
 def test_repair_memory_jsonl_returns_default_path():
     repo = Path("/some/repo")
     assert repair_memory_jsonl(repo) == Path("/some/repo/repair_memory.jsonl")
+
+
+# ---------------------------------------------------------------------------
+#  Matching tests
+# ---------------------------------------------------------------------------
+
+
+def _make_case(**overrides) -> RepairMemoryCase:
+    """Factory for RepairMemoryCase with sensible defaults."""
+    defaults = {
+        "case_id": "test0001",
+        "schema_version": 1,
+        "task": "Fix build",
+        "error_type": "missing_header",
+        "root_cause": "Missing target_include_directories for include/.",
+        "edited_files": ["CMakeLists.txt"],
+        "verification_status": "passed",
+        "verification_commands": ["cmake --build build"],
+        "initial_phase": "build",
+        "final_phase": "build",
+        "evidence": ["fatal error: mathx/add.hpp: No such file or directory"],
+        "diff_excerpt": "+target_include_directories(app PRIVATE include)",
+        "source": "eval/tasks_cmake/c01",
+    }
+    defaults.update(overrides)
+    return RepairMemoryCase(**defaults)
+
+
+def test_match_exact_error_type_scores_high():
+    memory = [
+        _make_case(case_id="a", error_type="missing_header"),
+        _make_case(case_id="b", error_type="undefined_reference", evidence=["undefined reference to `foo'"]),
+    ]
+    error = BuildErrorSummary(error_type="missing_header", message="fatal error: mathx/add.hpp: No such file or directory", evidence_lines=[])
+
+    matches = match_repair_memory(memory, error)
+    assert len(matches) >= 1
+    assert matches[0].case.case_id == "a"
+    assert matches[0].score >= 40.0
+
+
+def test_match_excludes_failed_cases():
+    memory = [
+        _make_case(case_id="a", verification_status="passed"),
+        _make_case(case_id="b", verification_status="failed"),
+    ]
+    error = BuildErrorSummary(error_type="missing_header", message="fatal error: x", evidence_lines=[])
+
+    matches = match_repair_memory(memory, error)
+    case_ids = {m.case.case_id for m in matches}
+    assert "a" in case_ids
+    assert "b" not in case_ids
+
+
+def test_match_respects_max_matches():
+    memory = [_make_case(case_id=f"c{i}") for i in range(5)]
+    error = BuildErrorSummary(error_type="missing_header", message="fatal error: x", evidence_lines=[])
+
+    matches = match_repair_memory(memory, error, max_matches=2)
+    assert len(matches) == 2
+
+
+def test_match_keyword_overlap_boosts_score():
+    memory = [
+        _make_case(case_id="a", evidence=["mathx/add.hpp not found"], root_cause="add.hpp missing"),
+        _make_case(case_id="b", evidence=["unrelated.cpp error"], root_cause="something else"),
+    ]
+    error = BuildErrorSummary(
+        error_type="missing_header",
+        message="fatal error: add.hpp: No such file or directory",
+        missing_header="add.hpp",
+        evidence_lines=["fatal error: add.hpp: No such file or directory"],
+    )
+
+    matches = match_repair_memory(memory, error)
+    scores = {m.case.case_id: m.score for m in matches}
+    assert scores["a"] > scores["b"]
+
+
+def test_match_no_passed_cases_returns_empty():
+    memory = [
+        _make_case(case_id="a", verification_status="failed"),
+    ]
+    error = BuildErrorSummary(error_type="missing_header", message="x", evidence_lines=[])
+    matches = match_repair_memory(memory, error)
+    assert matches == []
+
+
+def test_render_repair_memory_empty_matches():
+    result = render_repair_memory([])
+    assert result == ""
+
+
+def test_render_repair_memory_includes_case_info():
+    case = _make_case(case_id="abc12345", error_type="missing_header")
+    matches = [RepairMemoryMatch(case=case, score=85.0)]
+    result = render_repair_memory(matches)
+
+    assert "Relevant repair memory:" in result
+    assert "Case 1" in result
+    assert "abc12345" in result
+    assert "score: 85.0" in result
+    assert "missing_header" in result
+    assert "target_include_directories" in result
+
+
+def test_select_cmake_repair_memory_loads_and_matches(tmp_path: Path):
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    jsonl_path = repair_memory_jsonl(repo)
+    case = _make_case(case_id="mem01", error_type="missing_header")
+    append_repair_case(jsonl_path, case)
+
+    error = BuildErrorSummary(
+        error_type="missing_header",
+        message="fatal error: add.hpp: No such file or directory",
+        missing_header="add.hpp",
+        evidence_lines=["fatal error: add.hpp: No such file or directory"],
+    )
+
+    matches = select_cmake_repair_memory(repo, error)
+    assert len(matches) == 1
+    assert matches[0].case.case_id == "mem01"
+
+
+def test_select_cmake_repair_memory_missing_file_returns_empty(tmp_path: Path):
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    error = BuildErrorSummary(error_type="missing_header", message="x", evidence_lines=[])
+    matches = select_cmake_repair_memory(repo, error)
+    assert matches == []
