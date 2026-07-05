@@ -411,3 +411,34 @@ def test_multi_agent_factory_returns_orchestrator_steps_and_cost(tmp_path, monke
     assert captured["ctx_steps"] == 0
     assert result["steps"] == 7
     assert result["cost_usd"] == 1.25
+
+
+def test_real_agent_factory_enriches_cmake_prompt(tmp_path: Path, monkeypatch):
+    from agent.profile import ProjectProfile
+    import eval.run_eval as run_eval
+
+    workspace = tmp_path / "repo"
+    workspace.mkdir()
+    (workspace / "CMakeLists.txt").write_text("add_executable(app main.cpp)\n", encoding="utf-8")
+    captured = {}
+
+    class FakeLLMClient:
+        def __init__(self, trace, **kwargs):
+            pass
+
+    class FakeLoop:
+        def __init__(self, llm, tools):
+            pass
+
+        def run(self, prompt, ctx):
+            captured["prompt"] = prompt
+            return type("Result", (), {"cost_usd": 0.0, "reason": "finished"})()
+
+    monkeypatch.setattr("agent.llm.LLMClient", FakeLLMClient)
+    monkeypatch.setattr("agent.loop.AgentLoop", FakeLoop)
+
+    profile = ProjectProfile(language="cmake", test_cmd="cmake -S . -B build")
+    run_eval.real_agent_factory()(workspace, "Fix build", profile)
+
+    assert "CMake project context:" in captured["prompt"]
+    assert "Build error summary:" in captured["prompt"]

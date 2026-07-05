@@ -66,7 +66,16 @@ def main(argv: list[str] | None = None) -> int:
     if llm is None:
         from agent.llm import LLMClient
         llm = LLMClient(trace=trace)
-    result = AgentLoop(llm, build_default_registry()).run(args.task, ctx)
+    task = args.task
+    if profile.language == "cmake":
+        from agent.build_runner import run_cmake_verification
+        from agent.cmake_prompt import build_cmake_task_prompt
+        from agent.tools import default_runner
+
+        attempts = run_cmake_verification(workspace, profile, ctx.runner or default_runner, trace)
+        initial_output = "\n".join(attempt.output_preview for attempt in attempts)
+        task = build_cmake_task_prompt(args.task, workspace, profile, initial_output)
+    result = AgentLoop(llm, build_default_registry()).run(task, ctx)
     diff_path = workspace / "final.diff"
     diff_path.write_text(result.diff, encoding="utf-8")
     print(f"workspace={workspace}")
