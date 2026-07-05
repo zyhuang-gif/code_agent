@@ -65,24 +65,43 @@ def main(argv: list[str] | None = None) -> int:
         llm = LLMClient(trace=trace)
     task = args.task
     initial_output = ""
+    repair_memory_matches = None
     if profile.language == "cmake":
         from agent.build_runner import run_cmake_verification
         from agent.cmake_prompt import build_cmake_task_prompt
+        from agent.repair_memory import select_cmake_repair_memory
         from agent.tools import default_runner
 
         initial_attempts = run_cmake_verification(workspace, profile, ctx.runner or default_runner, trace)
         initial_output = "\n".join(attempt.output_preview for attempt in initial_attempts)
-        task = build_cmake_task_prompt(args.task, workspace, profile, initial_output, trace, initial_attempts=initial_attempts)
+
+        # 从 source_repo 加载 repair memory 并匹配当前错误
+        from agent.build_errors import classify_build_output
+        first_failure = next((a for a in initial_attempts if a.exit_code != 0), None)
+        error = classify_build_output(initial_output, phase=first_failure.phase if first_failure else None, command=first_failure.command if first_failure else None)
+        repair_memory_matches = select_cmake_repair_memory(source_repo, error)
+
+        task = build_cmake_task_prompt(args.task, workspace, profile, initial_output, trace,
+                                       initial_attempts=initial_attempts,
+                                       repair_memory_matches=repair_memory_matches)
     result = AgentLoop(llm, build_default_registry()).run(task, ctx)
     if profile.language == "cmake":
         from agent.build_runner import run_cmake_verification
         from agent.fix_report import build_fix_report, write_fix_report
+        from agent.repair_memory import append_repair_case, extract_repair_case, repair_memory_jsonl
         from agent.tools import default_runner
 
         attempts = run_cmake_verification(workspace, profile, ctx.runner or default_runner, trace)
         final_output = "\n".join(attempt.output_preview for attempt in attempts)
         report = build_fix_report(args.task, result, attempts, workspace, initial_output, final_output, initial_attempts=initial_attempts)
         write_fix_report(report, workspace / "fix_report.md", trace)
+
+        # 提取 repair case 并写入 source_repo 的 repair_memory.jsonl（不写入 workspace）
+        diff_content = result.diff
+        source = str(source_repo.relative_to(source_repo.parent) if source_repo.parent != source_repo else source_repo)
+        repair_case = extract_repair_case(report, diff_content, source)
+        append_repair_case(repair_memory_jsonl(source_repo), repair_case)
+
         print(f"fix_report={workspace / 'fix_report.md'}")
     diff_path = workspace / "final.diff"
     diff_path.write_text(result.diff, encoding="utf-8")

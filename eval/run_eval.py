@@ -313,15 +313,22 @@ def _llm_env_kwargs(prefix: str) -> dict[str, str]:
 def _has_llm_env(prefix: str) -> bool:
     return bool(os.environ.get(f"{prefix}_MODEL") or os.environ.get(f"{prefix}_REASONING_EFFORT"))
 
-def _maybe_enrich_prompt(workspace: Path, prompt: str, profile: ProjectProfile, runner: CommandRunner, trace=None) -> tuple[str, str, list]:
+def _maybe_enrich_prompt(workspace: Path, prompt: str, profile: ProjectProfile, runner: CommandRunner, trace=None) -> tuple[str, str, list, list]:
     if profile.language != "cmake":
-        return prompt, "", []
+        return prompt, "", [], []
     from agent.build_runner import run_cmake_verification
+    from agent.build_errors import classify_build_output
     from agent.cmake_prompt import build_cmake_task_prompt
+    from agent.repair_memory import select_cmake_repair_memory
 
     attempts = run_cmake_verification(workspace, profile, runner, trace)
     initial_output = "\n".join(attempt.output_preview for attempt in attempts)
-    return build_cmake_task_prompt(prompt, workspace, profile, initial_output, trace, initial_attempts=attempts), initial_output, attempts
+    first_failure = next((a for a in attempts if a.exit_code != 0), None)
+    error = classify_build_output(initial_output, phase=first_failure.phase if first_failure else None, command=first_failure.command if first_failure else None)
+    repair_memory_matches = select_cmake_repair_memory(workspace, error)
+    return build_cmake_task_prompt(prompt, workspace, profile, initial_output, trace,
+                                   initial_attempts=attempts,
+                                   repair_memory_matches=repair_memory_matches), initial_output, attempts, repair_memory_matches
 
 
 def real_agent_factory() -> AgentCallable:
@@ -336,16 +343,22 @@ def real_agent_factory() -> AgentCallable:
 
         trace = Trace(workspace.parent / f"{workspace.name}.trace.jsonl")
         ctx = RunContext(workspace, profile, trace, Budget(), GrepLocator(workspace, profile), SearchReplaceEditor(profile))
-        task_prompt, initial_output, initial_attempts = _maybe_enrich_prompt(workspace, prompt, profile, ctx.runner or default_command_runner, trace)
+        task_prompt, initial_output, initial_attempts, repair_memory_matches = _maybe_enrich_prompt(workspace, prompt, profile, ctx.runner or default_command_runner, trace)
         result = AgentLoop(LLMClient(trace=trace, **_llm_env_kwargs("DEEPSEEK")), build_default_registry()).run(task_prompt, ctx)
         if profile.language == "cmake":
             from agent.build_runner import run_cmake_verification
             from agent.fix_report import build_fix_report, write_fix_report
+            from agent.repair_memory import append_repair_case, extract_repair_case, repair_memory_jsonl
 
             attempts = run_cmake_verification(workspace, profile, ctx.runner or default_command_runner, trace)
             final_output = "\n".join(attempt.output_preview for attempt in attempts)
             report = build_fix_report(prompt, result, attempts, workspace, initial_output, final_output, initial_attempts=initial_attempts)
             write_fix_report(report, workspace / "fix_report.md", trace)
+
+            # 从 workspace 读写 repair_memory.jsonl（eval 隔离，不写回 fixture）
+            diff_content = getattr(result, "diff", "")
+            repair_case = extract_repair_case(report, diff_content, str(workspace))
+            append_repair_case(repair_memory_jsonl(workspace), repair_case)
         (workspace / "final.diff").write_text(getattr(result, "diff", ""), encoding="utf-8")
         return {"steps": ctx.budget.steps, "cost_usd": result.cost_usd, "reason": result.reason}
     return agent
@@ -369,16 +382,22 @@ def multi_agent_factory() -> AgentCallable:
             role_llms["planner_llm"] = LLMClient(trace=trace, **_llm_env_kwargs("PLANNER"))
         if _has_llm_env("REVIEWER"):
             role_llms["reviewer_llm"] = LLMClient(trace=trace, **_llm_env_kwargs("REVIEWER"))
-        task_prompt, initial_output, initial_attempts = _maybe_enrich_prompt(workspace, prompt, profile, ctx.runner or default_command_runner, trace)
+        task_prompt, initial_output, initial_attempts, repair_memory_matches = _maybe_enrich_prompt(workspace, prompt, profile, ctx.runner or default_command_runner, trace)
         result = MultiAgentOrchestrator(llm, build_default_registry(), **role_llms).run(task_prompt, ctx)
         if profile.language == "cmake":
             from agent.build_runner import run_cmake_verification
             from agent.fix_report import build_fix_report, write_fix_report
+            from agent.repair_memory import append_repair_case, extract_repair_case, repair_memory_jsonl
 
             attempts = run_cmake_verification(workspace, profile, ctx.runner or default_command_runner, trace)
             final_output = "\n".join(attempt.output_preview for attempt in attempts)
             report = build_fix_report(prompt, result, attempts, workspace, initial_output, final_output, initial_attempts=initial_attempts)
             write_fix_report(report, workspace / "fix_report.md", trace)
+
+            # 从 workspace 读写 repair_memory.jsonl（eval 隔离）
+            diff_content = getattr(result, "diff", "")
+            repair_case = extract_repair_case(report, diff_content, str(workspace))
+            append_repair_case(repair_memory_jsonl(workspace), repair_case)
         (workspace / "final.diff").write_text(getattr(result, "diff", ""), encoding="utf-8")
         return {"steps": result.steps, "cost_usd": result.cost_usd, "reason": result.reason}
     return agent
