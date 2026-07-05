@@ -105,6 +105,7 @@ def test_cleanup_agentspec_side_outputs_removes_only_generated_side_outputs(tmp_
 
 
 import subprocess
+import sys
 
 from agent.profile import ProjectProfile
 from eval.spec_ab import (
@@ -521,3 +522,19 @@ def test_main_task_id_filters_fake_run(tmp_path: Path):
     assert code == 0
     assert (tmp_path / "work" / "baseline" / "keep" / "run-1").exists()
     assert not (tmp_path / "work" / "baseline" / "drop").exists()
+
+
+def test_spec_ab_script_imports_when_executed_by_path(tmp_path: Path):
+    """spec_ab.py must bootstrap sys.path like run_eval.py for direct execution."""
+    root = Path.cwd().resolve()
+    eval_path = root / "eval" / "spec_ab.py"
+    # 用子进程直接执行脚本，模拟真实终端 python eval\spec_ab.py 场景。
+    # 子进程不受 pytest.ini pythonpath 影响，能忠实再现 bug。
+    proc = subprocess.run(
+        [sys.executable, str(eval_path), "--help"],
+        capture_output=True,
+        text=True,
+        cwd=str(tmp_path),
+    )
+    # 修复后应返回 0，表示 bootstrap 正确工作
+    assert proc.returncode == 0, f"stderr: {proc.stderr}"

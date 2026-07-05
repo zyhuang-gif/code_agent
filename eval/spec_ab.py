@@ -8,9 +8,13 @@ from __future__ import annotations
 import re
 import shutil
 import subprocess
+import sys
 from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import Any, Callable
+
+if __package__ in {None, ""}:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from agent.profile import ProjectProfile
 from eval.run_eval import AgentCallable, EvalResult, EvalTask, discover, run_task
@@ -375,7 +379,6 @@ def render_markdown_report(summary: dict[str, object]) -> str:
 import argparse
 import json
 import os
-import sys
 
 from eval.run_eval import fake_agent, multi_agent_factory, real_agent_factory
 
