@@ -440,8 +440,6 @@ def main(
 
     if args.fake:
         agent = _safe_fake_agent
-        if generator is None:
-            generator = _null_generator
     else:
         if agent_factory is None and not os.environ.get("DEEPSEEK_API_KEY"):
             print("DEEPSEEK_API_KEY is required for non-fake spec_ab runs", file=sys.stderr)

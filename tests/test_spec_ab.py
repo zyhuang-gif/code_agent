@@ -538,3 +538,53 @@ def test_spec_ab_script_imports_when_executed_by_path(tmp_path: Path):
     )
     # 修复后应返回 0，表示 bootstrap 正确工作
     assert proc.returncode == 0, f"stderr: {proc.stderr}"
+
+
+def test_main_fake_default_generator_calls_agentspec_for_bc_groups(tmp_path: Path, monkeypatch):
+    """B/C groups must use default_generator (real AgentSpec CLI), even with --fake."""
+    make_tiny_eval_task(tmp_path / "tasks" / "hello")
+    calls = []
+
+    def fake_run_agentspec(workspace, variant, *, agentspec_project, timeout):
+        calls.append((workspace, variant))
+        (workspace / "AGENTS.md").write_text(
+            """# AGENTS.md
+
+<!-- agentspec:managed name="commands" -->
+## Commands
+- Use `python`.
+<!-- agentspec:end name="commands" -->
+
+<!-- agentspec:managed name="safety" -->
+## Safety
+- Ask before destructive commands.
+<!-- agentspec:end name="safety" -->
+""",
+            encoding="utf-8",
+        )
+        return AgentspecGeneration(variant=variant.name, agents_path=workspace / "AGENTS.md")
+
+    monkeypatch.setattr("eval.spec_ab.run_agentspec_for_variant", fake_run_agentspec)
+
+    code = main(
+        [
+            "--fake",
+            "--tasks",
+            str(tmp_path / "tasks"),
+            "--groups",
+            "baseline",
+            "agentspec-minimal",
+            "agentspec-full",
+        ],
+        work_root=tmp_path / "work",
+    )
+
+    assert code == 0
+    # B 和 C 组各调了一次 run_agentspec_for_variant
+    called_variants = {call[1].name for call in calls}
+    assert called_variants == {"agentspec-minimal", "agentspec-full"}
+    # A 组 workspace 没有 AGENTS.md
+    assert not (tmp_path / "work" / "baseline" / "hello" / "run-1" / "AGENTS.md").exists()
+    # B/C 组 workspace 有 AGENTS.md
+    assert (tmp_path / "work" / "agentspec-minimal" / "hello" / "run-1" / "AGENTS.md").exists()
+    assert (tmp_path / "work" / "agentspec-full" / "hello" / "run-1" / "AGENTS.md").exists()
