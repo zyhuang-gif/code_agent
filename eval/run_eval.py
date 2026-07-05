@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import shutil
 import statistics
@@ -36,6 +37,12 @@ class EvalResult:
     status: str
     steps: int
     cost_usd: float
+    reason: str = ""
+    trace_path: str = ""
+    report_path: str = ""
+    diff_path: str = ""
+    workspace_path: str = ""
+    verify_output: str = ""
 
 
 
@@ -80,7 +87,22 @@ def run_task(task: EvalTask, agent: AgentCallable, work_root: Path, command_runn
         capture_output=True,
         timeout=task.profile.test_timeout,
     )
-    return EvalResult(task.id, "solved" if proc.returncode == 0 else "failed", int(meta.get("steps", 0)), float(meta.get("cost_usd", 0.0)))
+    verify_output = f"{proc.stdout}{proc.stderr}"
+    trace_path = work_root.parent / f"{work_root.name}.trace.jsonl"
+    report_path = work_root / "fix_report.md"
+    diff_path = work_root / "final.diff"
+    return EvalResult(
+        task.id,
+        "solved" if proc.returncode == 0 else "failed",
+        int(meta.get("steps", 0)),
+        float(meta.get("cost_usd", 0.0)),
+        str(meta.get("reason", "")),
+        str(trace_path) if trace_path.exists() else "",
+        str(report_path) if report_path.exists() else "",
+        str(diff_path) if diff_path.exists() else "",
+        str(work_root),
+        verify_output[:4000],
+    )
 
 
 def summarize(results: list[EvalResult]) -> dict[str, Any]:
@@ -100,6 +122,20 @@ def summarize(results: list[EvalResult]) -> dict[str, Any]:
             "pass_rate": task_solved / task_total if task_total else 0.0,
             "avg_steps": sum(result.steps for result in task_results) / task_total if task_total else 0.0,
             "avg_cost_usd": sum(result.cost_usd for result in task_results) / task_total if task_total else 0.0,
+            "results": [
+                {
+                    "status": result.status,
+                    "steps": result.steps,
+                    "cost_usd": result.cost_usd,
+                    "reason": getattr(result, "reason", ""),
+                    "trace_path": getattr(result, "trace_path", ""),
+                    "report_path": getattr(result, "report_path", ""),
+                    "diff_path": getattr(result, "diff_path", ""),
+                    "workspace_path": getattr(result, "workspace_path", ""),
+                    "verify_output": getattr(result, "verify_output", ""),
+                }
+                for result in task_results
+            ],
         }
 
     pass_rates = [float(task["pass_rate"]) for task in task_summaries.values()]
@@ -230,6 +266,7 @@ def real_agent_factory() -> AgentCallable:
             final_output = "\n".join(attempt.output_preview for attempt in attempts)
             report = build_fix_report(prompt, result, attempts, workspace, initial_output, final_output)
             write_fix_report(report, workspace / "fix_report.md", trace)
+        (workspace / "final.diff").write_text(getattr(result, "diff", ""), encoding="utf-8")
         return {"steps": ctx.budget.steps, "cost_usd": result.cost_usd, "reason": result.reason}
     return agent
 
@@ -262,6 +299,7 @@ def multi_agent_factory() -> AgentCallable:
             final_output = "\n".join(attempt.output_preview for attempt in attempts)
             report = build_fix_report(prompt, result, attempts, workspace, initial_output, final_output)
             write_fix_report(report, workspace / "fix_report.md", trace)
+        (workspace / "final.diff").write_text(getattr(result, "diff", ""), encoding="utf-8")
         return {"steps": result.steps, "cost_usd": result.cost_usd, "reason": result.reason}
     return agent
 
@@ -271,6 +309,7 @@ def main(argv: list[str] | None = None, agent_factory: Callable[[], AgentCallabl
     parser.add_argument("--fake", action="store_true")
     parser.add_argument("--multi", action="store_true")
     parser.add_argument("--repeat", type=int, default=1)
+    parser.add_argument("--json-summary", type=Path)
     args = parser.parse_args(argv)
     if args.fake:
         agent = fake_agent
@@ -288,6 +327,9 @@ def main(argv: list[str] | None = None, agent_factory: Callable[[], AgentCallabl
             results.append(run_task(task, agent, work_root / task.id / f"run-{run_index}"))
     summary = summarize(results)
     print(summary)
+    if args.json_summary:
+        args.json_summary.parent.mkdir(parents=True, exist_ok=True)
+        args.json_summary.write_text(json.dumps(summary, indent=2, sort_keys=True), encoding="utf-8")
     return 0 if summary["solved"] == summary["total"] else 1
 
 

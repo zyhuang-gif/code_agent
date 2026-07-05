@@ -1,4 +1,5 @@
 from pathlib import Path
+import json
 import os
 import shutil
 import stat
@@ -457,3 +458,45 @@ def test_discovers_real_inspired_cmake_tasks():
 
     assert len(tasks) >= 2
     assert all(task.profile.language == "cmake" for task in tasks)
+
+
+def test_run_task_records_artifact_metadata_and_verify_output(tmp_path: Path):
+    task_dir = make_task(tmp_path / "task")
+
+    def fake_agent(workspace, prompt, profile):
+        (workspace / "answer.txt").write_text("bad", encoding="utf-8")
+        (workspace / "fix_report.md").write_text("# Fix Report\n", encoding="utf-8")
+        (workspace / "final.diff").write_text("diff --git a/a b/a\n", encoding="utf-8")
+        (workspace.parent / f"{workspace.name}.trace.jsonl").write_text('{"t":"x"}\n', encoding="utf-8")
+        return {"steps": 2, "cost_usd": 0.1, "reason": "finished_with_failing_tests"}
+
+    result = run_task(discover(tmp_path)[0], fake_agent, tmp_path / "work")
+
+    assert result.status == "failed"
+    assert result.reason == "finished_with_failing_tests"
+    assert result.report_path.endswith("fix_report.md")
+    assert result.diff_path.endswith("final.diff")
+    assert result.trace_path.endswith("work.trace.jsonl")
+    assert result.workspace_path.endswith("work")
+    # verify_output is set (it may be empty when verify.py uses sys.exit(N) with no output)
+    assert isinstance(result.verify_output, str)
+
+
+def test_eval_main_writes_json_summary(tmp_path: Path):
+    task_dir = make_task(tmp_path / "tasks" / "t")
+    summary_path = tmp_path / "summary.json"
+
+    def factory():
+        def agent(workspace, prompt, profile):
+            (workspace / "answer.txt").write_text("ok", encoding="utf-8")
+            return {"steps": 1, "cost_usd": 0.0, "reason": "finished"}
+        return agent
+
+    from eval.run_eval import main
+
+    code = main([str(task_dir.parent), "--json-summary", str(summary_path)], agent_factory=factory, work_root=tmp_path / "work")
+
+    assert code == 0
+    data = json.loads(summary_path.read_text(encoding="utf-8"))
+    assert data["solution_rate"] == 1.0
+    assert data["tasks"]["t"]["runs"] == 1
