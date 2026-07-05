@@ -1,0 +1,9 @@
+ignore:
+  - build
+  - build/*
+  - CMakeFiles
+  - CMakeCache.txt
+language: cmake
+test_cmd: cmake -S . -B build -G "MinGW Makefiles" && cmake --build build && ctest --test-dir build --output-on-failure
+test_timeout: 120
+command_timeout: 120
