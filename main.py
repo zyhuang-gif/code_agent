@@ -35,11 +35,8 @@ class FakeResp:
 
 
 class FakeLLM:
-    def __init__(self):
-        self.responses = [FakeResp(None, [FakeCall("f", "finish", {"summary": "fake run"})], {"role": "assistant", "content": None})]
-
     def chat(self, messages, tools):
-        return self.responses.pop(0)
+        return FakeResp(None, [FakeCall("f", "finish", {"summary": "fake run"})], {"role": "assistant", "content": None})
 
 
 def create_workspace_copy(repo: Path, workspace_root: Path) -> Path:
@@ -67,6 +64,7 @@ def main(argv: list[str] | None = None) -> int:
         from agent.llm import LLMClient
         llm = LLMClient(trace=trace)
     task = args.task
+    initial_output = ""
     if profile.language == "cmake":
         from agent.build_runner import run_cmake_verification
         from agent.cmake_prompt import build_cmake_task_prompt
@@ -74,7 +72,7 @@ def main(argv: list[str] | None = None) -> int:
 
         attempts = run_cmake_verification(workspace, profile, ctx.runner or default_runner, trace)
         initial_output = "\n".join(attempt.output_preview for attempt in attempts)
-        task = build_cmake_task_prompt(args.task, workspace, profile, initial_output)
+        task = build_cmake_task_prompt(args.task, workspace, profile, initial_output, trace)
     result = AgentLoop(llm, build_default_registry()).run(task, ctx)
     if profile.language == "cmake":
         from agent.build_runner import run_cmake_verification
@@ -82,7 +80,7 @@ def main(argv: list[str] | None = None) -> int:
         from agent.tools import default_runner
 
         attempts = run_cmake_verification(workspace, profile, ctx.runner or default_runner, trace)
-        report = build_fix_report(args.task, result, attempts, workspace)
+        report = build_fix_report(args.task, result, attempts, workspace, initial_output)
         write_fix_report(report, workspace / "fix_report.md", trace)
         print(f"fix_report={workspace / 'fix_report.md'}")
     diff_path = workspace / "final.diff"

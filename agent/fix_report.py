@@ -6,6 +6,7 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from agent.build_errors import classify_build_output
 from agent.build_runner import BuildAttempt
 from agent.loop import RunResult
 from agent.trace import Trace
@@ -15,6 +16,8 @@ from agent.trace import Trace
 class FixReport:
     task: str
     summary: str
+    error_type: str = "unknown"
+    root_cause: str = ""
     edited_files: list[str] = field(default_factory=list)
     commands: list[str] = field(default_factory=list)
     verification_status: str = "not_run"
@@ -28,7 +31,7 @@ def _files_from_diff(diff: str) -> list[str]:
     return sorted(dict.fromkeys(files))
 
 
-def build_fix_report(task: str, result: RunResult, attempts: list[BuildAttempt], workspace: Path) -> FixReport:
+def build_fix_report(task: str, result: RunResult, attempts: list[BuildAttempt], workspace: Path, initial_output: str = "") -> FixReport:
     status = "not_run"
     if attempts:
         status = "passed" if attempts[-1].exit_code == 0 else "failed"
@@ -39,9 +42,27 @@ def build_fix_report(task: str, result: RunResult, attempts: list[BuildAttempt],
         risks.append("verification did not pass")
     if not risks:
         risks.append("none detected")
+
+    error_summary = classify_build_output(initial_output)
+    root_cause = ""
+    if error_summary.error_type == "missing_header" and error_summary.missing_header:
+        root_cause = f"Header file '{error_summary.missing_header}' not found — likely missing target_include_directories."
+    elif error_summary.error_type == "undefined_reference" and error_summary.missing_symbol:
+        root_cause = f"Undefined reference to '{error_summary.missing_symbol}' — likely missing source file in target or missing target_link_libraries."
+    elif error_summary.error_type == "missing_target" and error_summary.missing_target:
+        root_cause = f"Target '{error_summary.missing_target}' referenced but not defined — likely a typo or missing local target definition."
+    elif error_summary.error_type == "missing_package" and error_summary.missing_package:
+        root_cause = f"Package '{error_summary.missing_package}' not found — check find_package or use vendored local target."
+    elif error_summary.error_type == "test_failure":
+        root_cause = "CTest/verification failed — check the failing test and the corresponding implementation logic."
+    elif error_summary.error_type == "cmake_config_error":
+        root_cause = "CMake configure step failed — inspect CMakeLists.txt syntax and generator settings."
+
     return FixReport(
         task=task,
         summary=result.finish_summary or result.reason,
+        error_type=error_summary.error_type,
+        root_cause=root_cause,
         edited_files=_files_from_diff(result.diff),
         commands=[attempt.command for attempt in attempts],
         verification_status=status,
@@ -54,6 +75,14 @@ def _markdown(report: FixReport) -> str:
         "# Fix Report",
         "",
         f"Task: {report.task}",
+        "",
+        "## Error Type",
+        "",
+        report.error_type,
+        "",
+        "## Root Cause",
+        "",
+        report.root_cause or "not determined",
         "",
         "## Summary",
         "",
@@ -77,6 +106,8 @@ def write_fix_report(report: FixReport, path: Path, trace: Trace | None = None) 
             {
                 "t": "fix_report",
                 "task": report.task,
+                "error_type": report.error_type,
+                "root_cause": report.root_cause,
                 "edited_files": report.edited_files,
                 "verification_status": report.verification_status,
                 "commands": report.commands,
