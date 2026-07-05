@@ -177,6 +177,19 @@ def _remove_agents_outputs(work_root: Path) -> None:
     cleanup_agentspec_side_outputs(work_root)
 
 
+def _null_generator(work_root: Path, variant: SpecVariant) -> AgentspecGeneration:
+    """No-op generator for fake agent runs that do not supply their own."""
+    return AgentspecGeneration(variant=variant.name, agents_path=work_root / "AGENTS.md")
+
+
+def _safe_fake_agent(workspace: Path, prompt: str, profile: ProjectProfile) -> dict[str, Any]:
+    """Wrap fake_agent so non-CMake tasks without CMakeLists.txt don't crash."""
+    cmake = workspace / "CMakeLists.txt"
+    if not cmake.exists():
+        cmake.write_text("", encoding="utf-8")
+    return fake_agent(workspace, prompt, profile) or {}
+
+
 def variant_agent(
     agent: AgentCallable,
     variant: SpecVariant,
@@ -426,7 +439,9 @@ def main(
     selected_task_ids = set(args.task_id) if args.task_id else None
 
     if args.fake:
-        agent = fake_agent
+        agent = _safe_fake_agent
+        if generator is None:
+            generator = _null_generator
     else:
         if agent_factory is None and not os.environ.get("DEEPSEEK_API_KEY"):
             print("DEEPSEEK_API_KEY is required for non-fake spec_ab runs", file=sys.stderr)
