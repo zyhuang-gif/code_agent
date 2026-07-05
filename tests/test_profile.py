@@ -73,3 +73,14 @@ def test_should_ignore_always_skips_vcs_and_cache_even_with_empty_ignore():
     assert profile.should_ignore("src/foo.pyc") is True
     assert profile.should_ignore("src/click.egg-info/PKG-INFO") is True
     assert profile.should_ignore("src/click/parser.py") is False
+
+
+def test_builtin_cmake_profile_declares_language_and_build_command():
+    cmake_profile = load_profile("profiles/cmake.yaml")
+
+    assert cmake_profile.language == "cmake"
+    assert "cmake -S . -B build" in cmake_profile.test_cmd
+    assert "ctest --test-dir build" in cmake_profile.test_cmd
+    assert cmake_profile.test_timeout == 120
+    assert cmake_profile.should_ignore("build/CMakeCache.txt") is True
+    assert cmake_profile.should_ignore("cmake-build-debug/CMakeCache.txt") is True
