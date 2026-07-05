@@ -5,11 +5,15 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from agent.build_errors import classify_build_output
 from agent.build_runner import BuildAttempt
 from agent.loop import RunResult
 from agent.trace import Trace
+
+if TYPE_CHECKING:
+    from agent.repair_memory import RepairMemoryCase
 
 
 @dataclass(frozen=True)
@@ -28,6 +32,7 @@ class FixReport:
     final_error_type: str = "unknown"
     final_phase: str | None = None
     final_evidence: list[str] = field(default_factory=list)
+    repair_memory_cases: list[str] = field(default_factory=list)
 
 
 def _files_from_diff(diff: str) -> list[str]:
@@ -45,6 +50,7 @@ def build_fix_report(
     initial_output: str = "",
     final_output: str = "",
     initial_attempts: list[BuildAttempt] | None = None,
+    repair_memory_matches: list | None = None,
 ) -> FixReport:
     status = "not_run"
     if attempts:
@@ -88,7 +94,7 @@ def build_fix_report(
     elif error_type == "cmake_config_error":
         root_cause = "CMake configure step failed — inspect CMakeLists.txt syntax and generator settings."
 
-    return FixReport(
+    report = FixReport(
         task=task,
         summary=result.finish_summary or result.reason,
         error_type=error_type,
@@ -103,7 +109,11 @@ def build_fix_report(
         final_error_type=final_summary.error_type,
         final_phase=final_summary.phase,
         final_evidence=final_summary.evidence_lines,
+        repair_memory_cases=[
+            m.case.case_id for m in (repair_memory_matches or [])
+        ],
     )
+    return report
 
 
 def _markdown(report: FixReport) -> str:
@@ -146,6 +156,11 @@ def _markdown(report: FixReport) -> str:
     lines.extend(["", "## Final Failure", "", f"Type: {report.final_error_type}", f"Phase: {report.final_phase or 'unknown'}", ""])
     lines.extend(f"- {line}" for line in report.final_evidence or ["none"])
 
+    # Repair memory section
+    if report.repair_memory_cases:
+        lines.extend(["", "## Repair Memory Used", ""])
+        lines.extend(f"- {case_id}" for case_id in report.repair_memory_cases)
+
     lines.extend(["", "## Risks", ""])
     lines.extend(f"- {risk}" for risk in report.risks)
     return "\n".join(lines) + "\n"
@@ -163,5 +178,6 @@ def write_fix_report(report: FixReport, path: Path, trace: Trace | None = None) 
                 "edited_files": report.edited_files,
                 "verification_status": report.verification_status,
                 "commands": report.commands,
+                "repair_memory_cases": report.repair_memory_cases,
             }
         )

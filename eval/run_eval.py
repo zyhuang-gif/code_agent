@@ -352,7 +352,7 @@ def real_agent_factory() -> AgentCallable:
 
             attempts = run_cmake_verification(workspace, profile, ctx.runner or default_command_runner, trace)
             final_output = "\n".join(attempt.output_preview for attempt in attempts)
-            report = build_fix_report(prompt, result, attempts, workspace, initial_output, final_output, initial_attempts=initial_attempts)
+            report = build_fix_report(prompt, result, attempts, workspace, initial_output, final_output, initial_attempts=initial_attempts, repair_memory_matches=repair_memory_matches)
             write_fix_report(report, workspace / "fix_report.md", trace)
 
             # 从 workspace 读写 repair_memory.jsonl（eval 隔离，不写回 fixture）
@@ -391,7 +391,7 @@ def multi_agent_factory() -> AgentCallable:
 
             attempts = run_cmake_verification(workspace, profile, ctx.runner or default_command_runner, trace)
             final_output = "\n".join(attempt.output_preview for attempt in attempts)
-            report = build_fix_report(prompt, result, attempts, workspace, initial_output, final_output, initial_attempts=initial_attempts)
+            report = build_fix_report(prompt, result, attempts, workspace, initial_output, final_output, initial_attempts=initial_attempts, repair_memory_matches=repair_memory_matches)
             write_fix_report(report, workspace / "fix_report.md", trace)
 
             # 从 workspace 读写 repair_memory.jsonl（eval 隔离）

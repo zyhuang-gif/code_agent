@@ -126,3 +126,73 @@ def test_write_fix_report_includes_initial_and_final_sections(tmp_path: Path):
     assert "missing_header" in text
     assert "## Final Failure" in text
     assert "undefined_reference" in text
+
+
+def test_write_fix_report_includes_repair_memory_section(tmp_path: Path):
+    report = FixReport(
+        task="Fix build",
+        summary="done",
+        error_type="missing_header",
+        edited_files=["CMakeLists.txt"],
+        commands=["cmake --build build"],
+        verification_status="passed",
+        risks=["none detected"],
+        repair_memory_cases=["abc12345", "def67890"],
+    )
+
+    write_fix_report(report, tmp_path / "fix_report.md")
+
+    text = (tmp_path / "fix_report.md").read_text(encoding="utf-8")
+    assert "## Repair Memory Used" in text
+    assert "abc12345" in text
+    assert "def67890" in text
+
+
+def test_write_fix_report_repair_memory_in_trace(tmp_path: Path):
+    from agent.repair_memory import RepairMemoryCase, RepairMemoryMatch
+
+    report = FixReport(
+        task="Fix build",
+        summary="done",
+        error_type="missing_header",
+        edited_files=["CMakeLists.txt"],
+        commands=["cmake --build build"],
+        verification_status="passed",
+        risks=["none detected"],
+        repair_memory_cases=["abc12345"],
+    )
+    trace = Trace(tmp_path / "trace.jsonl")
+
+    write_fix_report(report, tmp_path / "fix_report.md", trace)
+
+    rows = [json.loads(line) for line in (tmp_path / "trace.jsonl").read_text(encoding="utf-8-sig").splitlines()]
+    last = rows[-1]
+    assert last["t"] == "fix_report"
+    assert "repair_memory_cases" in last
+    assert last["repair_memory_cases"] == ["abc12345"]
+
+
+def test_build_fix_report_accepts_repair_memory_matches(tmp_path: Path):
+    from agent.repair_memory import RepairMemoryCase, RepairMemoryMatch
+
+    result = RunResult(
+        reason="finished",
+        diff="diff --git a/CMakeLists.txt b/CMakeLists.txt\n--- a/CMakeLists.txt\n+++ b/CMakeLists.txt\n",
+        messages=[],
+        cost_usd=0.0,
+        finish_summary="done",
+        steps=3,
+    )
+    attempts = [BuildAttempt("cmake --build build", "build", 0, "ok")]
+
+    memory_case = RepairMemoryCase(
+        case_id="mem01", schema_version=1, task="Fix build",
+        error_type="missing_header", root_cause="", edited_files=["CMakeLists.txt"],
+        verification_status="passed", verification_commands=[], initial_phase="build",
+        final_phase="build", evidence=[], diff_excerpt="", source="eval/c01",
+    )
+    matches = [RepairMemoryMatch(case=memory_case, score=85.0)]
+
+    report = build_fix_report("Fix build", result, attempts, tmp_path, repair_memory_matches=matches)
+
+    assert report.repair_memory_cases == ["mem01"]

@@ -93,7 +93,7 @@ def main(argv: list[str] | None = None) -> int:
 
         attempts = run_cmake_verification(workspace, profile, ctx.runner or default_runner, trace)
         final_output = "\n".join(attempt.output_preview for attempt in attempts)
-        report = build_fix_report(args.task, result, attempts, workspace, initial_output, final_output, initial_attempts=initial_attempts)
+        report = build_fix_report(args.task, result, attempts, workspace, initial_output, final_output, initial_attempts=initial_attempts, repair_memory_matches=repair_memory_matches)
         write_fix_report(report, workspace / "fix_report.md", trace)
 
         # 提取 repair case 并写入 source_repo 的 repair_memory.jsonl（不写入 workspace）
