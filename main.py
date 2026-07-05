@@ -88,7 +88,7 @@ def main(argv: list[str] | None = None) -> int:
     if profile.language == "cmake":
         from agent.build_runner import run_cmake_verification
         from agent.fix_report import build_fix_report, write_fix_report
-        from agent.repair_memory import append_repair_case, extract_repair_case, repair_memory_jsonl
+        from agent.repair_memory import append_repair_case, extract_repair_case_from_artifacts, repair_memory_jsonl
         from agent.tools import default_runner
 
         attempts = run_cmake_verification(workspace, profile, ctx.runner or default_runner, trace)
@@ -96,10 +96,12 @@ def main(argv: list[str] | None = None) -> int:
         report = build_fix_report(args.task, result, attempts, workspace, initial_output, final_output, initial_attempts=initial_attempts, repair_memory_matches=repair_memory_matches)
         write_fix_report(report, workspace / "fix_report.md", trace)
 
-        # 提取 repair case 并写入 source_repo 的 repair_memory.jsonl（不写入 workspace）
-        diff_content = result.diff
+        # 先写 final.diff，再用 artifact extractor 从文件中提取 repair case
+        diff_path = workspace / "final.diff"
+        diff_path.write_text(result.diff, encoding="utf-8")
+
         source = str(source_repo.relative_to(source_repo.parent) if source_repo.parent != source_repo else source_repo)
-        repair_case = extract_repair_case(report, diff_content, source)
+        repair_case = extract_repair_case_from_artifacts(workspace, source=source)
         append_repair_case(repair_memory_jsonl(source_repo), repair_case)
 
         print(f"fix_report={workspace / 'fix_report.md'}")

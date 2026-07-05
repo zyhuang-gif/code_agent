@@ -348,18 +348,19 @@ def real_agent_factory() -> AgentCallable:
         if profile.language == "cmake":
             from agent.build_runner import run_cmake_verification
             from agent.fix_report import build_fix_report, write_fix_report
-            from agent.repair_memory import append_repair_case, extract_repair_case, repair_memory_jsonl
+            from agent.repair_memory import append_repair_case, extract_repair_case_from_artifacts, repair_memory_jsonl
 
             attempts = run_cmake_verification(workspace, profile, ctx.runner or default_command_runner, trace)
             final_output = "\n".join(attempt.output_preview for attempt in attempts)
             report = build_fix_report(prompt, result, attempts, workspace, initial_output, final_output, initial_attempts=initial_attempts, repair_memory_matches=repair_memory_matches)
             write_fix_report(report, workspace / "fix_report.md", trace)
 
-            # 从 workspace 读写 repair_memory.jsonl（eval 隔离，不写回 fixture）
-            diff_content = getattr(result, "diff", "")
-            repair_case = extract_repair_case(report, diff_content, str(workspace))
+            # 先写 final.diff，再用 artifact extractor 读取文件提取 repair case
+            (workspace / "final.diff").write_text(getattr(result, "diff", ""), encoding="utf-8")
+            repair_case = extract_repair_case_from_artifacts(workspace, source=str(workspace))
             append_repair_case(repair_memory_jsonl(workspace), repair_case)
-        (workspace / "final.diff").write_text(getattr(result, "diff", ""), encoding="utf-8")
+        else:
+            (workspace / "final.diff").write_text(getattr(result, "diff", ""), encoding="utf-8")
         return {"steps": ctx.budget.steps, "cost_usd": result.cost_usd, "reason": result.reason}
     return agent
 
@@ -387,18 +388,19 @@ def multi_agent_factory() -> AgentCallable:
         if profile.language == "cmake":
             from agent.build_runner import run_cmake_verification
             from agent.fix_report import build_fix_report, write_fix_report
-            from agent.repair_memory import append_repair_case, extract_repair_case, repair_memory_jsonl
+            from agent.repair_memory import append_repair_case, extract_repair_case_from_artifacts, repair_memory_jsonl
 
             attempts = run_cmake_verification(workspace, profile, ctx.runner or default_command_runner, trace)
             final_output = "\n".join(attempt.output_preview for attempt in attempts)
             report = build_fix_report(prompt, result, attempts, workspace, initial_output, final_output, initial_attempts=initial_attempts, repair_memory_matches=repair_memory_matches)
             write_fix_report(report, workspace / "fix_report.md", trace)
 
-            # 从 workspace 读写 repair_memory.jsonl（eval 隔离）
-            diff_content = getattr(result, "diff", "")
-            repair_case = extract_repair_case(report, diff_content, str(workspace))
+            # 先写 final.diff，再用 artifact extractor 读取文件
+            (workspace / "final.diff").write_text(getattr(result, "diff", ""), encoding="utf-8")
+            repair_case = extract_repair_case_from_artifacts(workspace, source=str(workspace))
             append_repair_case(repair_memory_jsonl(workspace), repair_case)
-        (workspace / "final.diff").write_text(getattr(result, "diff", ""), encoding="utf-8")
+        else:
+            (workspace / "final.diff").write_text(getattr(result, "diff", ""), encoding="utf-8")
         return {"steps": result.steps, "cost_usd": result.cost_usd, "reason": result.reason}
     return agent
 

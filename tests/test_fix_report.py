@@ -196,3 +196,42 @@ def test_build_fix_report_accepts_repair_memory_matches(tmp_path: Path):
     report = build_fix_report("Fix build", result, attempts, tmp_path, repair_memory_matches=matches)
 
     assert report.repair_memory_cases == ["mem01"]
+
+
+def test_write_fix_report_includes_repair_memory_none_when_empty(tmp_path: Path):
+    """空 repair_memory_cases 时也必须输出 ## Repair Memory Used 和 - none。"""
+    report = FixReport(
+        task="Fix build",
+        summary="done",
+        error_type="missing_header",
+        edited_files=["CMakeLists.txt"],
+        commands=["cmake --build build"],
+        verification_status="passed",
+        risks=["none detected"],
+        repair_memory_cases=[],  # 空列表
+    )
+
+    write_fix_report(report, tmp_path / "fix_report.md")
+
+    text = (tmp_path / "fix_report.md").read_text(encoding="utf-8")
+    assert "## Repair Memory Used" in text
+    assert "- none" in text
+
+
+def test_write_fix_report_repair_memory_section_always_present(tmp_path: Path):
+    """不设 repair_memory_cases (default=[]) 时也必须输出 ## Repair Memory Used。"""
+    report = FixReport(
+        task="Fix build",
+        summary="done",
+        error_type="missing_header",
+        edited_files=[],
+        commands=[],
+        verification_status="passed",
+        risks=["none detected"],
+    )
+
+    write_fix_report(report, tmp_path / "fix_report.md")
+
+    text = (tmp_path / "fix_report.md").read_text(encoding="utf-8")
+    assert "## Repair Memory Used" in text
+    assert "- none" in text

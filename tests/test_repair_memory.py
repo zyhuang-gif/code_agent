@@ -10,6 +10,7 @@ from agent.repair_memory import (
     RepairMemoryMatch,
     append_repair_case,
     extract_repair_case,
+    extract_repair_case_from_artifacts,
     load_repair_memory,
     match_repair_memory,
     render_repair_memory,
@@ -373,3 +374,98 @@ def test_select_cmake_repair_memory_missing_file_returns_empty(tmp_path: Path):
     error = BuildErrorSummary(error_type="missing_header", message="x", evidence_lines=[])
     matches = select_cmake_repair_memory(repo, error)
     assert matches == []
+
+
+# ---------------------------------------------------------------------------
+#  Artifact-based extraction tests
+# ---------------------------------------------------------------------------
+
+
+def test_extract_repair_case_from_artifacts_reads_report_and_diff(tmp_path: Path):
+    """从 fix_report.md + final.diff + trace 提取 case。"""
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+
+    report_path = workspace / "fix_report.md"
+    report_path.write_text(
+        "# Fix Report\n\n"
+        "Task: Fix CMake build\n\n"
+        "## Error Type\n\n"
+        "missing_header\n\n"
+        "## Root Cause\n\n"
+        "Header file 'mathx/add.hpp' not found — likely missing target_include_directories.\n\n"
+        "## Edited Files\n\n"
+        "- `CMakeLists.txt`\n\n"
+        "## Verification\n\n"
+        "Status: passed\n"
+        "- `cmake --build build`\n\n"
+        "## Repair Memory Used\n\n"
+        "- none\n\n", encoding="utf-8",
+    )
+
+    diff_path = workspace / "final.diff"
+    diff_path.write_text("+target_include_directories(app PRIVATE include)\n", encoding="utf-8")
+
+    case = extract_repair_case_from_artifacts(workspace, source="eval/c01")
+
+    assert case.task == "Fix CMake build"
+    assert case.error_type == "missing_header"
+    assert "Header file" in case.root_cause
+    assert case.edited_files == ["CMakeLists.txt"]
+    assert case.verification_status == "passed"
+    assert case.verification_commands == ["cmake --build build"]
+    assert "target_include_directories" in case.diff_excerpt
+    assert case.source == "eval/c01"
+
+
+def test_extract_repair_case_from_artifacts_reads_trace_evidence(tmp_path: Path):
+    """从 trace JSONL 补充 evidence。"""
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+
+    (workspace / "fix_report.md").write_text(
+        "# Fix Report\n\nTask: t\n\n## Error Type\n\nmissing_header\n\n"
+        "## Root Cause\n\nnot determined\n\n"
+        "## Edited Files\n\n- `none`\n\n"
+        "## Verification\n\nStatus: passed\n\n"
+        "## Repair Memory Used\n\n- none\n\n", encoding="utf-8",
+    )
+    (workspace / "final.diff").write_text("+ dummy\n", encoding="utf-8")
+
+    trace_path = workspace.parent / f"{workspace.name}.trace.jsonl"
+    trace_path.parent.mkdir(parents=True, exist_ok=True)
+    trace_path.write_text(
+        '{"t": "build_error_summary", "error_type": "missing_header", "message": "x", '
+        '"missing_header": "mathx/add.hpp", "evidence_lines": ["fatal error: mathx/add.hpp: No such file or directory"]}\n'
+        '{"t": "fix_report", "task": "Fix CMake build", "error_type": "missing_header", '
+        '"root_cause": "Header file not found", "edited_files": ["CMakeLists.txt"], '
+        '"verification_status": "passed", "commands": ["cmake --build build"]}\n',
+        encoding="utf-8",
+    )
+
+    case = extract_repair_case_from_artifacts(
+        workspace, trace_path=trace_path, source="trace-test",
+    )
+
+    assert case.task == "Fix CMake build"
+    assert case.error_type == "missing_header"
+    assert case.root_cause == "Header file not found"
+    assert case.edited_files == ["CMakeLists.txt"]
+    assert case.verification_status == "passed"
+    assert case.verification_commands == ["cmake --build build"]
+    assert "mathx/add.hpp" in "\n".join(case.evidence)
+    assert case.diff_excerpt == "+ dummy\n"
+    assert case.source == "trace-test"
+
+
+def test_extract_repair_case_from_artifacts_missing_files_returns_minimal(tmp_path: Path):
+    """所有文件缺失时返回最小可行 case。"""
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    # 不创建任何文件
+
+    case = extract_repair_case_from_artifacts(workspace, source="empty")
+
+    assert case.task == ""
+    assert case.error_type == "unknown"
+    assert case.source == "empty"

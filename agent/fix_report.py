@@ -156,10 +156,12 @@ def _markdown(report: FixReport) -> str:
     lines.extend(["", "## Final Failure", "", f"Type: {report.final_error_type}", f"Phase: {report.final_phase or 'unknown'}", ""])
     lines.extend(f"- {line}" for line in report.final_evidence or ["none"])
 
-    # Repair memory section
+    # Repair memory section — always present
+    lines.extend(["", "## Repair Memory Used", ""])
     if report.repair_memory_cases:
-        lines.extend(["", "## Repair Memory Used", ""])
         lines.extend(f"- {case_id}" for case_id in report.repair_memory_cases)
+    else:
+        lines.append("- none")
 
     lines.extend(["", "## Risks", ""])
     lines.extend(f"- {risk}" for risk in report.risks)

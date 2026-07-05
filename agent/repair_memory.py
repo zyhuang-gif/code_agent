@@ -111,6 +111,154 @@ def extract_repair_case(
     )
 
 
+def extract_repair_case_from_artifacts(
+    workspace: Path,
+    report_path: Path | None = None,
+    trace_path: Path | None = None,
+    diff_path: Path | None = None,
+    source: str = "repo",
+) -> RepairMemoryCase:
+    """Extract a RepairMemoryCase by reading written artifact files.
+
+    Reads fix_report.md for structured fields, trace JSONL for evidence,
+    and final.diff for the diff excerpt.  Falls back to minimal defaults
+    when files are missing.
+
+    The workspace should be the directory containing fix_report.md, final.diff,
+    etc. after the run completes.
+    """
+    _report = report_path or (workspace / "fix_report.md")
+    _trace = trace_path or (workspace.parent / f"{workspace.name}.trace.jsonl")
+    _diff = diff_path or (workspace / "final.diff")
+
+    # --- parse fix_report.md ---
+    task = ""
+    error_type = "unknown"
+    root_cause = ""
+    edited_files: list[str] = []
+    verification_status = "not_run"
+    verification_commands: list[str] = []
+    initial_phase = ""
+    final_phase = ""
+    md_evidence: list[str] = []
+
+    if _report.exists():
+        text = _report.read_text(encoding="utf-8")
+        section: str | None = None
+        next_is_value = False
+        for line in text.splitlines():
+            stripped = line.strip()
+            if stripped.startswith("## "):
+                section = stripped
+                next_is_value = True
+                continue
+
+            if stripped.startswith("Task: "):
+                task = stripped[len("Task: "):]
+            elif stripped.startswith("Status: "):
+                verification_status = stripped[len("Status: "):]
+            elif stripped.startswith("Phase: "):
+                if not initial_phase:
+                    initial_phase = stripped[len("Phase: "):]
+
+            # In ## Error Type and ## Root Cause sections, the next non-empty line is the value
+            if section == "## Error Type" and next_is_value and stripped:
+                error_type = stripped
+                next_is_value = False
+            elif section == "## Root Cause" and next_is_value and stripped:
+                root_cause = stripped
+                next_is_value = False
+
+            if section == "## Edited Files" and stripped.startswith("- `"):
+                edited_files.append(stripped[3:-1])
+            elif section == "## Verification" and stripped.startswith("- `"):
+                verification_commands.append(stripped[3:-1])
+            elif section == "## Initial Failure" and stripped.startswith("- ") and not stripped.startswith("- `"):
+                md_evidence.append(stripped[2:])
+
+            if stripped:
+                next_is_value = False
+
+    # --- parse trace JSONL for evidence ---
+    trace_evidence: list[str] = list(md_evidence)
+    if _trace and _trace.exists():
+        try:
+            with _trace.open("r", encoding="utf-8") as handle:
+                for line in handle:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        event = json.loads(line)
+                    except json.JSONDecodeError:
+                        continue
+                    if event.get("t") == "build_error_summary":
+                        for key in ("missing_header", "missing_symbol", "missing_package",
+                                    "missing_target", "source_file"):
+                            val = event.get(key)
+                            if val:
+                                trace_evidence.append(f"{key}: {val}")
+                        for ev_line in event.get("evidence_lines", []):
+                            if ev_line not in trace_evidence:
+                                trace_evidence.append(ev_line)
+                    elif event.get("t") == "fix_report":
+                        task = event.get("task", task) or task
+                        error_type = event.get("error_type", error_type) or error_type
+                        root_cause = event.get("root_cause", root_cause) or root_cause
+                        edited_files = event.get("edited_files", edited_files) or edited_files
+                        verification_status = event.get("verification_status", verification_status) or verification_status
+                        verification_commands = event.get("commands", verification_commands) or verification_commands
+        except OSError:
+            pass
+
+    # --- parse final.diff ---
+    diff_excerpt = ""
+    if _diff and _diff.exists():
+        try:
+            raw = _diff.read_text(encoding="utf-8")
+            diff_excerpt = raw[:DIFF_EXCERPT_MAX_BYTES]
+        except OSError:
+            pass
+
+    # If we still have zero struct fields, try the markdown again more aggressively
+    if not task or error_type == "unknown":
+        if _report.exists():
+            text = _report.read_text(encoding="utf-8")
+            lines_list = text.splitlines()
+            for idx, line in enumerate(lines_list):
+                s = line.strip()
+                if s == "## Error Type" and idx + 1 < len(lines_list):
+                    error_type = lines_list[idx + 2].strip() if len(lines_list) > idx + 2 else error_type
+                elif s == "## Root Cause" and idx + 1 < len(lines_list):
+                    rc_line = lines_list[idx + 2].strip()
+                    if rc_line and rc_line != "not determined":
+                        root_cause = rc_line
+                elif s == "## Edited Files":
+                    j = idx + 2
+                    while j < len(lines_list) and lines_list[j].strip().startswith("- `"):
+                        edited_files.append(lines_list[j].strip()[3:-1])
+                        j += 1
+
+    evidence = trace_evidence[:10] if trace_evidence else md_evidence[:10]
+
+    case_id = _make_case_id(error_type, edited_files, task)
+    return RepairMemoryCase(
+        case_id=case_id,
+        schema_version=SCHEMA_VERSION,
+        task=task,
+        error_type=error_type,
+        root_cause=root_cause,
+        edited_files=edited_files,
+        verification_status=verification_status,
+        verification_commands=verification_commands,
+        initial_phase=initial_phase,
+        final_phase=final_phase,
+        evidence=evidence,
+        diff_excerpt=diff_excerpt,
+        source=source,
+    )
+
+
 def _case_to_dict(case: RepairMemoryCase) -> dict[str, Any]:
     return {
         "case_id": case.case_id,
