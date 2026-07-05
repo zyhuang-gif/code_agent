@@ -44,3 +44,52 @@ def test_write_fix_report_writes_markdown_and_trace(tmp_path: Path):
     assert "CMakeLists.txt" in text
     rows = [json.loads(line) for line in (tmp_path / "trace.jsonl").read_text(encoding="utf-8-sig").splitlines()]
     assert rows[-1]["t"] == "fix_report"
+
+
+def test_build_fix_report_records_initial_and_final_failures(tmp_path: Path):
+    result = RunResult(
+        reason="finished_with_failing_tests",
+        diff="",
+        messages=[],
+        cost_usd=0.0,
+        finish_summary="tried include dir",
+        steps=3,
+    )
+    attempts = [BuildAttempt("cmake --build build", "build", 1, "undefined reference to `mathx::add(int, int)'")]
+    initial_output = "fatal error: mathx/add.hpp: No such file or directory"
+    final_output = attempts[-1].output_preview
+
+    report = build_fix_report("Fix build", result, attempts, tmp_path, initial_output, final_output)
+
+    assert report.initial_error_type == "missing_header"
+    assert report.final_error_type == "undefined_reference"
+    assert report.final_phase == "build"
+    assert "mathx/add.hpp" in "\n".join(report.initial_evidence)
+    assert "mathx::add" in "\n".join(report.final_evidence)
+
+
+def test_write_fix_report_includes_initial_and_final_sections(tmp_path: Path):
+    report = FixReport(
+        task="Fix build",
+        summary="not fixed",
+        error_type="missing_header",
+        root_cause="Header file missing.",
+        edited_files=[],
+        commands=["cmake --build build"],
+        verification_status="failed",
+        risks=["verification did not pass"],
+        initial_error_type="missing_header",
+        initial_phase="build",
+        initial_evidence=["fatal error: mathx/add.hpp: No such file or directory"],
+        final_error_type="undefined_reference",
+        final_phase="build",
+        final_evidence=["undefined reference to `mathx::add(int, int)'"],
+    )
+
+    write_fix_report(report, tmp_path / "fix_report.md")
+
+    text = (tmp_path / "fix_report.md").read_text(encoding="utf-8")
+    assert "## Initial Failure" in text
+    assert "missing_header" in text
+    assert "## Final Failure" in text
+    assert "undefined_reference" in text

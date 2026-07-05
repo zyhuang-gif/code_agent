@@ -80,7 +80,8 @@ def main(argv: list[str] | None = None) -> int:
         from agent.tools import default_runner
 
         attempts = run_cmake_verification(workspace, profile, ctx.runner or default_runner, trace)
-        report = build_fix_report(args.task, result, attempts, workspace, initial_output)
+        final_output = "\n".join(attempt.output_preview for attempt in attempts)
+        report = build_fix_report(args.task, result, attempts, workspace, initial_output, final_output)
         write_fix_report(report, workspace / "fix_report.md", trace)
         print(f"fix_report={workspace / 'fix_report.md'}")
     diff_path = workspace / "final.diff"

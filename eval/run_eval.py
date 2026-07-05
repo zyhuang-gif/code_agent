@@ -227,7 +227,8 @@ def real_agent_factory() -> AgentCallable:
             from agent.fix_report import build_fix_report, write_fix_report
 
             attempts = run_cmake_verification(workspace, profile, ctx.runner or default_command_runner, trace)
-            report = build_fix_report(prompt, result, attempts, workspace, initial_output)
+            final_output = "\n".join(attempt.output_preview for attempt in attempts)
+            report = build_fix_report(prompt, result, attempts, workspace, initial_output, final_output)
             write_fix_report(report, workspace / "fix_report.md", trace)
         return {"steps": ctx.budget.steps, "cost_usd": result.cost_usd, "reason": result.reason}
     return agent
@@ -258,7 +259,8 @@ def multi_agent_factory() -> AgentCallable:
             from agent.fix_report import build_fix_report, write_fix_report
 
             attempts = run_cmake_verification(workspace, profile, ctx.runner or default_command_runner, trace)
-            report = build_fix_report(prompt, result, attempts, workspace, initial_output)
+            final_output = "\n".join(attempt.output_preview for attempt in attempts)
+            report = build_fix_report(prompt, result, attempts, workspace, initial_output, final_output)
             write_fix_report(report, workspace / "fix_report.md", trace)
         return {"steps": result.steps, "cost_usd": result.cost_usd, "reason": result.reason}
     return agent
