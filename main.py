@@ -76,6 +76,15 @@ def main(argv: list[str] | None = None) -> int:
         initial_output = "\n".join(attempt.output_preview for attempt in attempts)
         task = build_cmake_task_prompt(args.task, workspace, profile, initial_output)
     result = AgentLoop(llm, build_default_registry()).run(task, ctx)
+    if profile.language == "cmake":
+        from agent.build_runner import run_cmake_verification
+        from agent.fix_report import build_fix_report, write_fix_report
+        from agent.tools import default_runner
+
+        attempts = run_cmake_verification(workspace, profile, ctx.runner or default_runner, trace)
+        report = build_fix_report(args.task, result, attempts, workspace)
+        write_fix_report(report, workspace / "fix_report.md", trace)
+        print(f"fix_report={workspace / 'fix_report.md'}")
     diff_path = workspace / "final.diff"
     diff_path.write_text(result.diff, encoding="utf-8")
     print(f"workspace={workspace}")

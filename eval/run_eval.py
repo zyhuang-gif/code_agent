@@ -203,6 +203,13 @@ def real_agent_factory() -> AgentCallable:
         ctx = RunContext(workspace, profile, trace, Budget(), GrepLocator(workspace, profile), SearchReplaceEditor(profile))
         task_prompt = _maybe_enrich_prompt(workspace, prompt, profile, ctx.runner or default_command_runner, trace)
         result = AgentLoop(LLMClient(trace=trace, **_llm_env_kwargs("DEEPSEEK")), build_default_registry()).run(task_prompt, ctx)
+        if profile.language == "cmake":
+            from agent.build_runner import run_cmake_verification
+            from agent.fix_report import build_fix_report, write_fix_report
+
+            attempts = run_cmake_verification(workspace, profile, ctx.runner or default_command_runner, trace)
+            report = build_fix_report(prompt, result, attempts, workspace)
+            write_fix_report(report, workspace / "fix_report.md", trace)
         return {"steps": ctx.budget.steps, "cost_usd": result.cost_usd, "reason": result.reason}
     return agent
 
@@ -227,6 +234,13 @@ def multi_agent_factory() -> AgentCallable:
             role_llms["reviewer_llm"] = LLMClient(trace=trace, **_llm_env_kwargs("REVIEWER"))
         task_prompt = _maybe_enrich_prompt(workspace, prompt, profile, ctx.runner or default_command_runner, trace)
         result = MultiAgentOrchestrator(llm, build_default_registry(), **role_llms).run(task_prompt, ctx)
+        if profile.language == "cmake":
+            from agent.build_runner import run_cmake_verification
+            from agent.fix_report import build_fix_report, write_fix_report
+
+            attempts = run_cmake_verification(workspace, profile, ctx.runner or default_command_runner, trace)
+            report = build_fix_report(prompt, result, attempts, workspace)
+            write_fix_report(report, workspace / "fix_report.md", trace)
         return {"steps": result.steps, "cost_usd": result.cost_usd, "reason": result.reason}
     return agent
 

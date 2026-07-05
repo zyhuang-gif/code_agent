@@ -432,7 +432,7 @@ def test_real_agent_factory_enriches_cmake_prompt(tmp_path: Path, monkeypatch):
 
         def run(self, prompt, ctx):
             captured["prompt"] = prompt
-            return type("Result", (), {"cost_usd": 0.0, "reason": "finished"})()
+            return type("Result", (), {"cost_usd": 0.0, "reason": "finished", "finish_summary": "done", "diff": ""})()
 
     monkeypatch.setattr("agent.llm.LLMClient", FakeLLMClient)
     monkeypatch.setattr("agent.loop.AgentLoop", FakeLoop)
