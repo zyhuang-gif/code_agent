@@ -126,6 +126,30 @@ def fake_agent(workspace: Path, prompt: str, profile: ProjectProfile) -> dict[st
         (workspace / "pricing.py").write_text("def apply_discount(price, percent):\n    return price * (1 - percent / 100)\n", encoding="utf-8")
     if (workspace / "normalizer.py").exists():
         (workspace / "normalizer.py").write_text("def normalize_name(value):\n    return value.strip().lower().replace(\" \", \"-\")\n", encoding="utf-8")
+
+    cmake = workspace / "CMakeLists.txt"
+    if cmake.exists():
+        text = cmake.read_text(encoding="utf-8")
+        if "add_executable(app src/main.cpp)" in text and (workspace / "include").exists():
+            text = text.replace(
+                "add_executable(app src/main.cpp)\n",
+                "add_executable(app src/main.cpp)\ntarget_include_directories(app PRIVATE include)\n",
+                1,
+            )
+        if "add_executable(app src/main.cpp)" in text and (workspace / "src" / "add.cpp").exists():
+            text = text.replace("add_executable(app src/main.cpp)", "add_executable(app src/main.cpp src/add.cpp)", 1)
+        if "add_executable(app src/main.cpp)\nadd_test" in text and "add_library(mathx" in text:
+            text = text.replace("add_executable(app src/main.cpp)\nadd_test", "add_executable(app src/main.cpp)\ntarget_link_libraries(app PRIVATE mathx)\nadd_test", 1)
+        text = text.replace("MathX::Core", "mathx")
+        cmake.write_text(text, encoding="utf-8")
+
+    scale_cpp = workspace / "src" / "scale.cpp"
+    if scale_cpp.exists():
+        scale_cpp.write_text(
+            '#include "mathx/scale.hpp"\n\nnamespace mathx {\ndouble scale(double value, double factor) {\n    return value * factor;\n}\n}\n',
+            encoding="utf-8",
+        )
+
     return {"steps": 1, "cost_usd": 0.0}
 
 

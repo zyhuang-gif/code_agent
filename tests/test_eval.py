@@ -442,3 +442,11 @@ def test_real_agent_factory_enriches_cmake_prompt(tmp_path: Path, monkeypatch):
 
     assert "CMake project context:" in captured["prompt"]
     assert "Build error summary:" in captured["prompt"]
+
+
+def test_discovers_cmake_tasks_with_cmake_profile():
+    tasks = discover(Path("eval/tasks_cmake"))
+
+    assert len(tasks) >= 5
+    assert all(task.profile.language == "cmake" for task in tasks)
+    assert all("cmake -S . -B build" in task.profile.test_cmd for task in tasks)
