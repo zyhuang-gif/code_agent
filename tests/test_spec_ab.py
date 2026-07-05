@@ -356,3 +356,64 @@ def test_run_spec_ab_records_generation_skip_without_result(tmp_path: Path):
     assert group_run.skipped[0].stdout == "out"
     assert group_run.skipped[0].stderr == "err"
     assert calls == []
+
+
+from eval.run_eval import EvalResult
+from eval.spec_ab import render_markdown_report, summarize_groups
+
+
+def test_summarize_groups_reports_mean_std_and_skips():
+    runs = {
+        "baseline": GroupRun(
+            group="baseline",
+            results=[
+                EvalResult("t1", "solved", 2, 0.10, trace_path="trace-a.jsonl", workspace_path="w1"),
+                EvalResult("t1", "failed", 4, 0.30, trace_path="trace-b.jsonl", workspace_path="w2"),
+                EvalResult("t2", "solved", 6, 0.50, trace_path="trace-c.jsonl", workspace_path="w3"),
+            ],
+            skipped=[
+                SkippedRun("baseline", "t2", 2, "w4", "skip reason", stdout="out", stderr="err"),
+            ],
+        )
+    }
+
+    summary = summarize_groups(runs)
+
+    group = summary["groups"]["baseline"]
+    assert group["base_summary"]["total"] == 3
+    assert group["skipped_runs"] == 1
+    assert group["metrics"]["pass_rate"]["mean"] == pytest.approx(2 / 3)
+    assert group["metrics"]["pass_rate"]["std"] == pytest.approx(0.4714045207)
+    assert group["metrics"]["steps"]["mean"] == pytest.approx(4.0)
+    assert group["metrics"]["steps"]["std"] == pytest.approx(1.6329931618)
+    assert group["tasks"]["t1"]["pass_rate"]["mean"] == 0.5
+    assert group["tasks"]["t1"]["pass_rate"]["std"] == 0.5
+    assert group["tasks"]["t1"]["steps"]["mean"] == 3.0
+    assert group["tasks"]["t1"]["cost_usd"]["mean"] == pytest.approx(0.2)
+    assert group["tasks"]["t2"]["skipped"] == 1
+    assert group["trace_samples"] == ["trace-a.jsonl"]
+    assert group["skips"][0]["stderr"] == "err"
+
+
+def test_render_markdown_report_includes_noise_warning_per_task_and_traces():
+    summary = summarize_groups(
+        {
+            "agentspec-full": GroupRun(
+                group="agentspec-full",
+                results=[
+                    EvalResult("task-a", "solved", 3, 0.2, trace_path="trace-a.jsonl", workspace_path="w1"),
+                ],
+                skipped=[],
+            )
+        }
+    )
+
+    markdown = render_markdown_report(summary)
+
+    assert "# AgentSpec A/B Evaluation Report" in markdown
+    assert "LLM evals are noisy" in markdown
+    assert "never draw conclusions from a single solution_rate" in markdown
+    assert "agentspec-full" in markdown
+    assert "task-a" in markdown
+    assert "trace-a.jsonl" in markdown
+    assert "mean±std" in markdown

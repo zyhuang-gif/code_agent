@@ -242,3 +242,131 @@ def run_spec_ab(
         runs[group] = GroupRun(group=group, results=results, skipped=skipped)
 
     return runs
+
+
+import statistics
+from typing import Iterable
+
+from eval.run_eval import summarize
+
+
+def _mean_std(values: Iterable[float]) -> dict[str, float]:
+    vals = list(values)
+    if not vals:
+        return {"mean": 0.0, "std": 0.0}
+    return {"mean": statistics.mean(vals), "std": statistics.pstdev(vals)}
+
+
+def _result_to_dict(result: EvalResult) -> dict[str, object]:
+    return {
+        "task_id": result.task_id,
+        "status": result.status,
+        "steps": result.steps,
+        "cost_usd": result.cost_usd,
+        "reason": result.reason,
+        "trace_path": result.trace_path,
+        "report_path": result.report_path,
+        "diff_path": result.diff_path,
+        "workspace_path": result.workspace_path,
+        "verify_output": result.verify_output,
+    }
+
+
+def _task_summary(task_id: str, results: list[EvalResult], skipped: list[SkippedRun]) -> dict[str, object]:
+    solved_flags = [1.0 if result.status == "solved" else 0.0 for result in results]
+    return {
+        "task_id": task_id,
+        "runs": len(results),
+        "skipped": len(skipped),
+        "pass_rate": _mean_std(solved_flags),
+        "steps": _mean_std(float(result.steps) for result in results),
+        "cost_usd": _mean_std(float(result.cost_usd) for result in results),
+        "results": [_result_to_dict(result) for result in results],
+        "skips": [asdict(skip) for skip in skipped],
+    }
+
+
+def summarize_groups(runs: dict[str, GroupRun]) -> dict[str, object]:
+    groups: dict[str, object] = {}
+    for group, group_run in runs.items():
+        results = group_run.results
+        skipped = group_run.skipped
+        task_ids = sorted({result.task_id for result in results} | {skip.task_id for skip in skipped})
+        tasks = {}
+        for task_id in task_ids:
+            task_results = [result for result in results if result.task_id == task_id]
+            task_skips = [skip for skip in skipped if skip.task_id == task_id]
+            tasks[task_id] = _task_summary(task_id, task_results, task_skips)
+
+        solved_flags = [1.0 if result.status == "solved" else 0.0 for result in results]
+        trace_samples = [result.trace_path for result in results if result.trace_path][:1]
+        groups[group] = {
+            "base_summary": summarize(results),
+            "metrics": {
+                "pass_rate": _mean_std(solved_flags),
+                "steps": _mean_std(float(result.steps) for result in results),
+                "cost_usd": _mean_std(float(result.cost_usd) for result in results),
+            },
+            "tasks": tasks,
+            "skipped_runs": len(skipped),
+            "skips": [asdict(skip) for skip in skipped],
+            "trace_samples": trace_samples,
+        }
+
+    return {
+        "noise_warning": "LLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.",
+        "groups": groups,
+    }
+
+
+def _metric_cell(metric: dict[str, float]) -> str:
+    return f"{metric['mean']:.3f}±{metric['std']:.3f}"
+
+
+def render_markdown_report(summary: dict[str, object]) -> str:
+    lines = [
+        "# AgentSpec A/B Evaluation Report",
+        "",
+        str(summary["noise_warning"]),
+        "",
+        "## Group Summary",
+        "",
+        "| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |",
+        "|---|---:|---:|---:|---:|---|",
+    ]
+    groups = summary["groups"]
+    for group_name, group_data in groups.items():
+        metrics = group_data["metrics"]
+        trace = ", ".join(group_data["trace_samples"]) or ""
+        lines.append(
+            f"| {group_name} | {_metric_cell(metrics['pass_rate'])} | "
+            f"{_metric_cell(metrics['steps'])} | {_metric_cell(metrics['cost_usd'])} | "
+            f"{group_data['skipped_runs']} | {trace} |"
+        )
+
+    lines.extend(["", "## Per Task", ""])
+    for group_name, group_data in groups.items():
+        lines.extend([f"### {group_name}", ""])
+        lines.append("| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |")
+        lines.append("|---|---:|---:|---:|---:|---:|")
+        for task_id, task_data in group_data["tasks"].items():
+            lines.append(
+                f"| {task_id} | {task_data['runs']} | {_metric_cell(task_data['pass_rate'])} | "
+                f"{_metric_cell(task_data['steps'])} | {_metric_cell(task_data['cost_usd'])} | "
+                f"{task_data['skipped']} |"
+            )
+        lines.append("")
+
+    lines.extend(["## Skipped Runs", ""])
+    any_skip = False
+    for group_name, group_data in groups.items():
+        for skip in group_data["skips"]:
+            any_skip = True
+            lines.append(
+                f"- {group_name}/{skip['task_id']}/run-{skip['run_index']}: {skip['reason']} "
+                f"workspace={skip['workspace_path']}"
+            )
+    if not any_skip:
+        lines.append("- none")
+    lines.append("")
+    return "\n".join(lines)
