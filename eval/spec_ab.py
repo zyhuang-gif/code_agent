@@ -7,11 +7,19 @@ from __future__ import annotations
 
 import re
 import shutil
+import subprocess
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any, Callable
+
+from agent.profile import ProjectProfile
+from eval.run_eval import AgentCallable
 
 
 PROMPT_INJECTION = "There is an AGENTS.md at repo root. Read it before you start."
+
+
+SubprocessRun = Callable[..., subprocess.CompletedProcess[str]]
 
 
 @dataclass(frozen=True)
@@ -33,6 +41,29 @@ MANAGED_BLOCK_RE = re.compile(
     r'<!-- agentspec:end name="(?P=name)" -->',
     re.DOTALL,
 )
+
+
+@dataclass(frozen=True)
+class AgentspecGeneration:
+    variant: str
+    agents_path: Path
+    stdout: str = ""
+    stderr: str = ""
+
+
+class SpecRunSkipped(RuntimeError):
+    def __init__(self, message: str, *, stdout: str = "", stderr: str = "") -> None:
+        super().__init__(message)
+        self.stdout = stdout
+        self.stderr = stderr
+
+
+def _text_or_empty(value: str | bytes | None) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, bytes):
+        return value.decode("utf-8", errors="replace")
+    return value
 
 
 def build_agentspec_command(work_root: Path, agentspec_project: Path) -> list[str]:
@@ -65,3 +96,80 @@ def cleanup_agentspec_side_outputs(work_root: Path) -> None:
     agent_dir = work_root / ".agent"
     if agent_dir.exists():
         shutil.rmtree(agent_dir)
+
+
+def run_agentspec_for_variant(
+    work_root: Path,
+    variant: SpecVariant,
+    *,
+    agentspec_project: Path,
+    timeout: int,
+    run: SubprocessRun = subprocess.run,
+) -> AgentspecGeneration:
+    if not variant.requires_agentspec:
+        raise ValueError("baseline does not generate AgentSpec output")
+
+    cmd = build_agentspec_command(work_root, agentspec_project)
+    try:
+        proc = run(cmd, text=True, capture_output=True, timeout=timeout)
+    except subprocess.TimeoutExpired as exc:
+        raise SpecRunSkipped(
+            f"AgentSpec generation timed out for {variant.name}",
+            stdout=_text_or_empty(exc.output),
+            stderr=_text_or_empty(exc.stderr),
+        ) from exc
+    except OSError as exc:
+        raise SpecRunSkipped(f"AgentSpec generation could not start for {variant.name}: {exc}") from exc
+
+    stdout = _text_or_empty(proc.stdout)
+    stderr = _text_or_empty(proc.stderr)
+    if proc.returncode != 0:
+        raise SpecRunSkipped(
+            f"AgentSpec generation failed for {variant.name} with exit code {proc.returncode}",
+            stdout=stdout,
+            stderr=stderr,
+        )
+
+    agents_path = work_root / "AGENTS.md"
+    if not agents_path.exists():
+        raise SpecRunSkipped(
+            f"AgentSpec generation completed for {variant.name} but AGENTS.md was not created",
+            stdout=stdout,
+            stderr=stderr,
+        )
+
+    if variant.minimal:
+        try:
+            agents_path.write_text(render_minimal_agents_md(agents_path.read_text(encoding="utf-8")), encoding="utf-8")
+        except ValueError as exc:
+            raise SpecRunSkipped(str(exc), stdout=stdout, stderr=stderr) from exc
+
+    cleanup_agentspec_side_outputs(work_root)
+    return AgentspecGeneration(variant=variant.name, agents_path=agents_path, stdout=stdout, stderr=stderr)
+
+
+def _remove_agents_outputs(work_root: Path) -> None:
+    agents_md = work_root / "AGENTS.md"
+    if agents_md.exists():
+        agents_md.unlink()
+    cleanup_agentspec_side_outputs(work_root)
+
+
+def variant_agent(
+    agent: AgentCallable,
+    variant: SpecVariant,
+    *,
+    generator: Callable[[Path, SpecVariant], AgentspecGeneration] | None,
+) -> AgentCallable:
+    def wrapped(work_root: Path, prompt: str, profile: ProjectProfile) -> dict[str, Any]:
+        if not variant.requires_agentspec:
+            _remove_agents_outputs(work_root)
+            return agent(work_root, prompt, profile) or {}
+
+        if generator is None:
+            raise SpecRunSkipped(f"No AgentSpec generator configured for {variant.name}")
+        generator(work_root, variant)
+        injected = f"{prompt.rstrip()}\n\n{PROMPT_INJECTION}"
+        return agent(work_root, injected, profile) or {}
+
+    return wrapped

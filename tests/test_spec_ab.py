@@ -102,3 +102,162 @@ def test_cleanup_agentspec_side_outputs_removes_only_generated_side_outputs(tmp_
     assert not (tmp_path / "CLAUDE.md").exists()
     assert not (tmp_path / ".agent").exists()
     assert (tmp_path / "src" / "code.py").exists()
+
+
+import subprocess
+
+from agent.profile import ProjectProfile
+from eval.spec_ab import (
+    AgentspecGeneration,
+    SpecRunSkipped,
+    run_agentspec_for_variant,
+    variant_agent,
+)
+
+
+def test_run_agentspec_for_full_invokes_cli_and_keeps_generated_agents(tmp_path: Path):
+    work_root = tmp_path / "work"
+    work_root.mkdir()
+    project = Path("D:/source/agent/agentspec")
+    calls = []
+
+    def fake_run(cmd, text, capture_output, timeout):
+        calls.append((cmd, text, capture_output, timeout))
+        (work_root / "AGENTS.md").write_text("# AGENTS.md\n\nfull\n", encoding="utf-8")
+        (work_root / "CLAUDE.md").write_text("side output\n", encoding="utf-8")
+        (work_root / ".agent").mkdir()
+        return subprocess.CompletedProcess(cmd, 0, stdout="ok", stderr="")
+
+    generation = run_agentspec_for_variant(
+        work_root,
+        VARIANTS["agentspec-full"],
+        agentspec_project=project,
+        timeout=77,
+        run=fake_run,
+    )
+
+    assert calls == [(build_agentspec_command(work_root, project), True, True, 77)]
+    assert generation.variant == "agentspec-full"
+    assert generation.agents_path == work_root / "AGENTS.md"
+    assert (work_root / "AGENTS.md").read_text(encoding="utf-8") == "# AGENTS.md\n\nfull\n"
+    assert not (work_root / "CLAUDE.md").exists()
+    assert not (work_root / ".agent").exists()
+
+
+def test_run_agentspec_for_minimal_trims_generated_agents(tmp_path: Path):
+    work_root = tmp_path / "work"
+    work_root.mkdir()
+
+    def fake_run(cmd, text, capture_output, timeout):
+        (work_root / "AGENTS.md").write_text(
+            """# AGENTS.md
+
+<!-- agentspec:managed name="overview" -->
+## Project Overview
+omit
+<!-- agentspec:end name="overview" -->
+
+<!-- agentspec:managed name="commands" -->
+## Commands
+- Use `pytest`.
+<!-- agentspec:end name="commands" -->
+
+<!-- agentspec:managed name="safety" -->
+## Safety
+- Ask before destructive commands.
+<!-- agentspec:end name="safety" -->
+""",
+            encoding="utf-8",
+        )
+        return subprocess.CompletedProcess(cmd, 0, stdout="ok", stderr="")
+
+    run_agentspec_for_variant(
+        work_root,
+        VARIANTS["agentspec-minimal"],
+        agentspec_project=Path("D:/source/agent/agentspec"),
+        timeout=60,
+        run=fake_run,
+    )
+
+    text = (work_root / "AGENTS.md").read_text(encoding="utf-8")
+    assert "## Commands" in text
+    assert "## Safety" in text
+    assert "Project Overview" not in text
+
+
+def test_run_agentspec_failure_raises_skipped_run(tmp_path: Path):
+    work_root = tmp_path / "work"
+    work_root.mkdir()
+
+    def fake_run(cmd, text, capture_output, timeout):
+        return subprocess.CompletedProcess(cmd, 23, stdout="out", stderr="boom")
+
+    with pytest.raises(SpecRunSkipped) as excinfo:
+        run_agentspec_for_variant(
+            work_root,
+            VARIANTS["agentspec-full"],
+            agentspec_project=Path("D:/source/agent/agentspec"),
+            timeout=60,
+            run=fake_run,
+        )
+
+    assert "AgentSpec generation failed" in str(excinfo.value)
+    assert excinfo.value.stdout == "out"
+    assert excinfo.value.stderr == "boom"
+
+
+def test_run_agentspec_timeout_raises_skipped_run(tmp_path: Path):
+    work_root = tmp_path / "work"
+    work_root.mkdir()
+
+    def fake_run(cmd, text, capture_output, timeout):
+        raise subprocess.TimeoutExpired(cmd, timeout, output="partial", stderr="slow")
+
+    with pytest.raises(SpecRunSkipped) as excinfo:
+        run_agentspec_for_variant(
+            work_root,
+            VARIANTS["agentspec-full"],
+            agentspec_project=Path("D:/source/agent/agentspec"),
+            timeout=12,
+            run=fake_run,
+        )
+
+    assert "timed out" in str(excinfo.value)
+    assert excinfo.value.stdout == "partial"
+    assert excinfo.value.stderr == "slow"
+
+
+def test_variant_agent_baseline_removes_stale_agents_and_keeps_prompt(tmp_path: Path):
+    (tmp_path / "AGENTS.md").write_text("stale", encoding="utf-8")
+    (tmp_path / "CLAUDE.md").write_text("stale", encoding="utf-8")
+    (tmp_path / ".agent").mkdir()
+    calls = []
+
+    def base_agent(workspace, prompt, profile):
+        calls.append((workspace, prompt, (workspace / "AGENTS.md").exists(), (workspace / "CLAUDE.md").exists()))
+        return {"steps": 1, "cost_usd": 0.0}
+
+    wrapped = variant_agent(base_agent, VARIANTS["baseline"], generator=None)
+    meta = wrapped(tmp_path, "fix this", ProjectProfile())
+
+    assert meta == {"steps": 1, "cost_usd": 0.0}
+    assert calls == [(tmp_path, "fix this", False, False)]
+    assert not (tmp_path / ".agent").exists()
+
+
+def test_variant_agent_generates_agents_and_injects_prompt(tmp_path: Path):
+    calls = []
+
+    def generator(workspace, variant):
+        (workspace / "AGENTS.md").write_text("# AGENTS.md\n", encoding="utf-8")
+        return AgentspecGeneration(variant=variant.name, agents_path=workspace / "AGENTS.md", stdout="ok", stderr="")
+
+    def base_agent(workspace, prompt, profile):
+        calls.append((workspace, prompt, (workspace / "AGENTS.md").exists()))
+        return {"steps": 2, "cost_usd": 0.1}
+
+    wrapped = variant_agent(base_agent, VARIANTS["agentspec-full"], generator=generator)
+    meta = wrapped(tmp_path, "fix this", ProjectProfile())
+
+    assert meta == {"steps": 2, "cost_usd": 0.1}
+    assert calls == [(tmp_path, f"fix this\n\n{PROMPT_INJECTION}", True)]
