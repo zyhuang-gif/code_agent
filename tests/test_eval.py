@@ -456,7 +456,18 @@ def test_discovers_cmake_tasks_with_cmake_profile():
 def test_discovers_real_inspired_cmake_tasks():
     tasks = discover(Path("eval/tasks_cmake_real"))
 
-    assert len(tasks) >= 2
+    assert {task.id for task in tasks} == {
+        "r01_poco_postgresql_imported_target",
+        "r02_nlohmann_json_config_missing",
+        "r03_boost_graph_include_missing",
+        "r04_gperftools_imported_target_missing",
+        "r05_petsc_offline_target_missing",
+        "r06_generated_config_include_missing",
+        "r07_ctest_working_directory",
+        "r08_local_library_source_omitted",
+        "r09_transitive_local_link_missing",
+        "r10_compile_definition_missing",
+    }
     assert all(task.profile.language == "cmake" for task in tasks)
 
 

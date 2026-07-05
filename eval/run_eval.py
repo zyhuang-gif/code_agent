@@ -205,6 +205,86 @@ def fake_agent(workspace: Path, prompt: str, profile: ProjectProfile) -> dict[st
         text = text.replace("find_package(nlohmann_json REQUIRED)", "add_subdirectory(third_party/json)")
         cmake.write_text(text, encoding="utf-8")
 
+    # r03 — add boost_graph include dir
+    if (workspace / "third_party" / "boost_graph" / "include").exists():
+        text = cmake.read_text(encoding="utf-8")
+        if "third_party/boost_graph/include" not in text:
+            text = text.replace(
+                "add_executable(app src/main.cpp)\n",
+                "add_executable(app src/main.cpp)\ntarget_include_directories(app PRIVATE third_party/boost_graph/include)\n",
+                1,
+            )
+            cmake.write_text(text, encoding="utf-8")
+
+    # r04 — include GperftoolsProfiler.cmake
+    if (workspace / "cmake" / "GperftoolsProfiler.cmake").exists():
+        text = cmake.read_text(encoding="utf-8")
+        if "include(cmake/GperftoolsProfiler.cmake)" not in text:
+            text = text.replace(
+                "project(R04Gperftools LANGUAGES CXX)\n\n",
+                "project(R04Gperftools LANGUAGES CXX)\n\ninclude(cmake/GperftoolsProfiler.cmake)\n\n",
+                1,
+            )
+            cmake.write_text(text, encoding="utf-8")
+
+    # r05 — replace pkg-config block with offline PETSc
+    if (workspace / "cmake" / "PETScOffline.cmake").exists():
+        text = cmake.read_text(encoding="utf-8")
+        text = text.replace(
+            "find_package(PkgConfig REQUIRED)\npkg_check_modules(PETSC REQUIRED IMPORTED_TARGET PETSc)\n\n",
+            "include(cmake/PETScOffline.cmake)\n\n",
+        )
+        text = text.replace("PkgConfig::PETSC", "PETSc::petsc")
+        cmake.write_text(text, encoding="utf-8")
+
+    # r06 — add ${CMAKE_CURRENT_BINARY_DIR} include
+    if (workspace / "config" / "app_config.hpp.in").exists():
+        text = cmake.read_text(encoding="utf-8")
+        if "${CMAKE_CURRENT_BINARY_DIR}" not in text:
+            text = text.replace(
+                "add_executable(app src/main.cpp)\n",
+                "add_executable(app src/main.cpp)\ntarget_include_directories(app PRIVATE ${CMAKE_CURRENT_BINARY_DIR})\n",
+                1,
+            )
+            cmake.write_text(text, encoding="utf-8")
+
+    # r07 — set WORKING_DIRECTORY for reads_fixture test
+    if (workspace / "data" / "value.txt").exists():
+        text = cmake.read_text(encoding="utf-8")
+        text = text.replace(
+            "add_test(NAME reads_fixture COMMAND app)",
+            "add_test(NAME reads_fixture COMMAND app)\nset_tests_properties(reads_fixture PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})",
+        )
+        cmake.write_text(text, encoding="utf-8")
+
+    # r08 — add src/add.cpp when R08LocalSourceOmitted
+    if (workspace / "src" / "add.cpp").exists() and "R08LocalSourceOmitted" in cmake.read_text(encoding="utf-8"):
+        text = cmake.read_text(encoding="utf-8")
+        text = text.replace("add_executable(app src/main.cpp)", "add_executable(app src/main.cpp src/add.cpp)", 1)
+        cmake.write_text(text, encoding="utf-8")
+
+    # r09 — link mathapp -> mathcore
+    if (workspace / "src" / "core.cpp").exists() and (workspace / "src" / "app_math.cpp").exists():
+        text = cmake.read_text(encoding="utf-8")
+        if "target_link_libraries(mathapp PUBLIC mathcore)" not in text:
+            text = text.replace(
+                "target_include_directories(mathapp PUBLIC include)\n",
+                "target_include_directories(mathapp PUBLIC include)\ntarget_link_libraries(mathapp PUBLIC mathcore)\n",
+                1,
+            )
+            cmake.write_text(text, encoding="utf-8")
+
+    # r10 — define ENABLE_FAST_PATH
+    if "R10CompileDefinition" in cmake.read_text(encoding="utf-8"):
+        text = cmake.read_text(encoding="utf-8")
+        if "ENABLE_FAST_PATH" not in text:
+            text = text.replace(
+                "add_executable(app src/main.cpp)\n",
+                "add_executable(app src/main.cpp)\ntarget_compile_definitions(app PRIVATE ENABLE_FAST_PATH)\n",
+                1,
+            )
+            cmake.write_text(text, encoding="utf-8")
+
     return {"steps": 1, "cost_usd": 0.0}
 
 
