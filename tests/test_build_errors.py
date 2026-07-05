@@ -51,3 +51,88 @@ def test_render_repair_hints_mentions_target_based_cmake_for_link_errors(tmp_pat
     assert "Repair hints:" in hints
     assert "target_link_libraries" in hints
     assert "CMakeLists.txt" in hints
+
+
+def test_classifies_msvc_missing_header():
+    output = 'src\\main.cpp(3): fatal error C1083: Cannot open include file: \'mathx/add.hpp\': No such file or directory'
+
+    summary = classify_build_output(output, phase="build", command="cmake --build build")
+
+    assert summary.error_type == "missing_header"
+    assert summary.missing_header == "mathx/add.hpp"
+    assert summary.phase == "build"
+    assert summary.failing_command == "cmake --build build"
+    assert summary.source_file == "src/main.cpp"
+
+
+def test_classifies_cmake_could_not_find_package():
+    output = (
+        "CMake Error at CMakeLists.txt:7 (find_package):\n"
+        "  Could NOT find Gperftools (missing: GPERFTOOLS_LIBRARIES)"
+    )
+
+    summary = classify_build_output(output, phase="configure")
+
+    assert summary.error_type == "missing_package"
+    assert summary.missing_package == "Gperftools"
+    assert summary.phase == "configure"
+
+
+def test_classifies_missing_link_library_from_gnu_linker():
+    output = (
+        "C:/mingw/bin/ld.exe: cannot find -lprofiler: No such file or directory\n"
+        "collect2.exe: error: ld returned 1 exit status"
+    )
+
+    summary = classify_build_output(output, phase="build")
+
+    assert summary.error_type == "link_library_missing"
+    assert summary.missing_library == "profiler"
+    assert summary.phase == "build"
+
+
+def test_classifies_missing_link_library_from_msvc_linker():
+    output = "LINK : fatal error LNK1104: cannot open file 'profiler.lib'"
+
+    summary = classify_build_output(output, phase="build")
+
+    assert summary.error_type == "link_library_missing"
+    assert summary.missing_library == "profiler.lib"
+
+
+def test_classifies_msvc_unresolved_external():
+    output = (
+        'main.obj : error LNK2019: unresolved external symbol '
+        '"int __cdecl mathx::add(int,int)" referenced in function main'
+    )
+
+    summary = classify_build_output(output, phase="build")
+
+    assert summary.error_type == "unresolved_external"
+    assert "mathx::add" in summary.missing_symbol
+
+
+def test_classifies_missing_source_from_ninja_output():
+    output = (
+        "ninja: error: 'src/generated.cpp', needed by "
+        "'CMakeFiles/app.dir/src/generated.cpp.obj', missing and no known rule to make it"
+    )
+
+    summary = classify_build_output(output, phase="build")
+
+    assert summary.error_type == "missing_source"
+    assert summary.missing_source == "src/generated.cpp"
+
+
+def test_classifies_ctest_named_failure():
+    output = (
+        "The following tests FAILED:\n"
+        "\t  1 - scale_test (Failed)\n"
+        "Errors while running CTest"
+    )
+
+    summary = classify_build_output(output, phase="test")
+
+    assert summary.error_type == "test_failure"
+    assert summary.test_name == "scale_test"
+    assert summary.phase == "test"

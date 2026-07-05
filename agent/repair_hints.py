@@ -56,6 +56,28 @@ def render_repair_hints(summary: BuildErrorSummary, context: CMakeContext | None
                 "- Prefer fixing local logic over weakening tests unless the task clearly asks for tolerance.",
             ]
         )
+    elif summary.error_type == "unresolved_external":
+        lines.extend(
+            [
+                f"- Check whether the symbol implementation is compiled or linked through {cmake_files}.",
+                "- Prefer adding the missing source to the producing target or linking the local library target.",
+            ]
+        )
+    elif summary.error_type == "link_library_missing":
+        lines.extend(
+            [
+                f"- Check target_link_libraries entries in {cmake_files}.",
+                "- Prefer a local imported target or vendored target already present in the repository.",
+                "- Do not install system libraries or fetch packages from the network.",
+            ]
+        )
+    elif summary.error_type == "missing_source":
+        lines.extend(
+            [
+                f"- Check target source lists in {cmake_files}.",
+                "- Remove stale generated source references or add the existing source file to the correct target.",
+            ]
+        )
     else:
         lines.extend(
             [
