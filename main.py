@@ -70,9 +70,9 @@ def main(argv: list[str] | None = None) -> int:
         from agent.cmake_prompt import build_cmake_task_prompt
         from agent.tools import default_runner
 
-        attempts = run_cmake_verification(workspace, profile, ctx.runner or default_runner, trace)
-        initial_output = "\n".join(attempt.output_preview for attempt in attempts)
-        task = build_cmake_task_prompt(args.task, workspace, profile, initial_output, trace, initial_attempts=attempts)
+        initial_attempts = run_cmake_verification(workspace, profile, ctx.runner or default_runner, trace)
+        initial_output = "\n".join(attempt.output_preview for attempt in initial_attempts)
+        task = build_cmake_task_prompt(args.task, workspace, profile, initial_output, trace, initial_attempts=initial_attempts)
     result = AgentLoop(llm, build_default_registry()).run(task, ctx)
     if profile.language == "cmake":
         from agent.build_runner import run_cmake_verification
@@ -81,7 +81,7 @@ def main(argv: list[str] | None = None) -> int:
 
         attempts = run_cmake_verification(workspace, profile, ctx.runner or default_runner, trace)
         final_output = "\n".join(attempt.output_preview for attempt in attempts)
-        report = build_fix_report(args.task, result, attempts, workspace, initial_output, final_output)
+        report = build_fix_report(args.task, result, attempts, workspace, initial_output, final_output, initial_attempts=initial_attempts)
         write_fix_report(report, workspace / "fix_report.md", trace)
         print(f"fix_report={workspace / 'fix_report.md'}")
     diff_path = workspace / "final.diff"

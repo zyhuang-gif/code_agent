@@ -313,15 +313,15 @@ def _llm_env_kwargs(prefix: str) -> dict[str, str]:
 def _has_llm_env(prefix: str) -> bool:
     return bool(os.environ.get(f"{prefix}_MODEL") or os.environ.get(f"{prefix}_REASONING_EFFORT"))
 
-def _maybe_enrich_prompt(workspace: Path, prompt: str, profile: ProjectProfile, runner: CommandRunner, trace=None) -> tuple[str, str]:
+def _maybe_enrich_prompt(workspace: Path, prompt: str, profile: ProjectProfile, runner: CommandRunner, trace=None) -> tuple[str, str, list]:
     if profile.language != "cmake":
-        return prompt, ""
+        return prompt, "", []
     from agent.build_runner import run_cmake_verification
     from agent.cmake_prompt import build_cmake_task_prompt
 
     attempts = run_cmake_verification(workspace, profile, runner, trace)
     initial_output = "\n".join(attempt.output_preview for attempt in attempts)
-    return build_cmake_task_prompt(prompt, workspace, profile, initial_output, trace, initial_attempts=attempts), initial_output
+    return build_cmake_task_prompt(prompt, workspace, profile, initial_output, trace, initial_attempts=attempts), initial_output, attempts
 
 
 def real_agent_factory() -> AgentCallable:
@@ -336,7 +336,7 @@ def real_agent_factory() -> AgentCallable:
 
         trace = Trace(workspace.parent / f"{workspace.name}.trace.jsonl")
         ctx = RunContext(workspace, profile, trace, Budget(), GrepLocator(workspace, profile), SearchReplaceEditor(profile))
-        task_prompt, initial_output = _maybe_enrich_prompt(workspace, prompt, profile, ctx.runner or default_command_runner, trace)
+        task_prompt, initial_output, initial_attempts = _maybe_enrich_prompt(workspace, prompt, profile, ctx.runner or default_command_runner, trace)
         result = AgentLoop(LLMClient(trace=trace, **_llm_env_kwargs("DEEPSEEK")), build_default_registry()).run(task_prompt, ctx)
         if profile.language == "cmake":
             from agent.build_runner import run_cmake_verification
@@ -344,7 +344,7 @@ def real_agent_factory() -> AgentCallable:
 
             attempts = run_cmake_verification(workspace, profile, ctx.runner or default_command_runner, trace)
             final_output = "\n".join(attempt.output_preview for attempt in attempts)
-            report = build_fix_report(prompt, result, attempts, workspace, initial_output, final_output)
+            report = build_fix_report(prompt, result, attempts, workspace, initial_output, final_output, initial_attempts=initial_attempts)
             write_fix_report(report, workspace / "fix_report.md", trace)
         (workspace / "final.diff").write_text(getattr(result, "diff", ""), encoding="utf-8")
         return {"steps": ctx.budget.steps, "cost_usd": result.cost_usd, "reason": result.reason}
@@ -369,7 +369,7 @@ def multi_agent_factory() -> AgentCallable:
             role_llms["planner_llm"] = LLMClient(trace=trace, **_llm_env_kwargs("PLANNER"))
         if _has_llm_env("REVIEWER"):
             role_llms["reviewer_llm"] = LLMClient(trace=trace, **_llm_env_kwargs("REVIEWER"))
-        task_prompt, initial_output = _maybe_enrich_prompt(workspace, prompt, profile, ctx.runner or default_command_runner, trace)
+        task_prompt, initial_output, initial_attempts = _maybe_enrich_prompt(workspace, prompt, profile, ctx.runner or default_command_runner, trace)
         result = MultiAgentOrchestrator(llm, build_default_registry(), **role_llms).run(task_prompt, ctx)
         if profile.language == "cmake":
             from agent.build_runner import run_cmake_verification
@@ -377,7 +377,7 @@ def multi_agent_factory() -> AgentCallable:
 
             attempts = run_cmake_verification(workspace, profile, ctx.runner or default_command_runner, trace)
             final_output = "\n".join(attempt.output_preview for attempt in attempts)
-            report = build_fix_report(prompt, result, attempts, workspace, initial_output, final_output)
+            report = build_fix_report(prompt, result, attempts, workspace, initial_output, final_output, initial_attempts=initial_attempts)
             write_fix_report(report, workspace / "fix_report.md", trace)
         (workspace / "final.diff").write_text(getattr(result, "diff", ""), encoding="utf-8")
         return {"steps": result.steps, "cost_usd": result.cost_usd, "reason": result.reason}

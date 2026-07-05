@@ -44,6 +44,7 @@ def build_fix_report(
     workspace: Path,
     initial_output: str = "",
     final_output: str = "",
+    initial_attempts: list[BuildAttempt] | None = None,
 ) -> FixReport:
     status = "not_run"
     if attempts:
@@ -58,7 +59,13 @@ def build_fix_report(
 
     initial_attempt = attempts[0] if attempts else None
     final_attempt = attempts[-1] if attempts else None
-    initial_summary = classify_build_output(initial_output)
+    # use initial_attempts to find the first failing attempt for accurate phase/command
+    initial_failure = next((a for a in (initial_attempts or []) if a.exit_code != 0), None)
+    initial_summary = classify_build_output(
+        initial_output,
+        phase=initial_failure.phase if initial_failure else None,
+        command=initial_failure.command if initial_failure else None,
+    )
     final_summary = classify_build_output(
         final_output,
         phase=final_attempt.phase if final_attempt else None,

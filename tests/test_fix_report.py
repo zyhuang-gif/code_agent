@@ -68,6 +68,39 @@ def test_build_fix_report_records_initial_and_final_failures(tmp_path: Path):
     assert "mathx::add" in "\n".join(report.final_evidence)
 
 
+def test_build_fix_report_uses_initial_attempts_for_phase_and_command(tmp_path: Path):
+    result = RunResult(
+        reason="finished_with_failing_tests",
+        diff="",
+        messages=[],
+        cost_usd=0.0,
+        finish_summary="tried fixing include",
+        steps=3,
+    )
+    final_attempts = [BuildAttempt("cmake --build build", "build", 1, "undefined reference to `y'")]
+    initial_attempts = [
+        BuildAttempt("cmake -S . -B build", "configure", 0, "configured"),
+        BuildAttempt("cmake --build build", "build", 1, "fatal error: mathx/add.hpp: No such file or directory"),
+    ]
+    initial_output = "configured\nfatal error: mathx/add.hpp: No such file or directory"
+    final_output = "undefined reference to `y'"
+
+    report = build_fix_report(
+        "Fix build",
+        result,
+        final_attempts,
+        tmp_path,
+        initial_output,
+        final_output,
+        initial_attempts=initial_attempts,
+    )
+
+    assert report.initial_phase == "build"
+    assert report.initial_error_type == "missing_header"
+    assert report.final_error_type == "undefined_reference"
+    assert report.final_phase == "build"
+
+
 def test_write_fix_report_includes_initial_and_final_sections(tmp_path: Path):
     report = FixReport(
         task="Fix build",
