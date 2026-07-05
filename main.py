@@ -72,7 +72,7 @@ def main(argv: list[str] | None = None) -> int:
 
         attempts = run_cmake_verification(workspace, profile, ctx.runner or default_runner, trace)
         initial_output = "\n".join(attempt.output_preview for attempt in attempts)
-        task = build_cmake_task_prompt(args.task, workspace, profile, initial_output, trace)
+        task = build_cmake_task_prompt(args.task, workspace, profile, initial_output, trace, initial_attempts=attempts)
     result = AgentLoop(llm, build_default_registry()).run(task, ctx)
     if profile.language == "cmake":
         from agent.build_runner import run_cmake_verification

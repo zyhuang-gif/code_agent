@@ -40,3 +40,19 @@ def test_run_cmake_verification_stops_after_failure_and_records_trace(tmp_path: 
     rows = [json.loads(line) for line in (tmp_path / "trace.jsonl").read_text(encoding="utf-8-sig").splitlines()]
     assert rows[-1]["t"] == "build_attempt"
     assert rows[-1]["phase"] == "configure"
+
+
+def test_summarize_cmake_attempts_reports_first_failure():
+    from agent.build_runner import BuildAttempt, summarize_cmake_attempts
+
+    attempts = [
+        BuildAttempt("cmake -S . -B build", "configure", 0, "configured"),
+        BuildAttempt("cmake --build build", "build", 1, "fatal error: x.hpp: No such file or directory"),
+    ]
+
+    summary = summarize_cmake_attempts(attempts)
+
+    assert summary["status"] == "failed"
+    assert summary["first_failure"]["phase"] == "build"
+    assert summary["first_failure"]["exit_code"] == 1
+    assert summary["combined_output"] == "configured\nfatal error: x.hpp: No such file or directory"

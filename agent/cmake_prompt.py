@@ -5,14 +5,15 @@ from __future__ import annotations
 from pathlib import Path
 
 from agent.build_errors import BuildErrorSummary, classify_build_output
+from agent.build_runner import BuildAttempt, summarize_cmake_attempts
 from agent.cmake_context import CMakeContext, render_cmake_context, scan_cmake_context
 from agent.profile import ProjectProfile
 from agent.repair_hints import render_repair_hints
 from agent.trace import Trace
 
 
-def _render_error_summary(output: str) -> str:
-    summary = classify_build_output(output)
+def _render_error_summary(output: str, phase: str | None = None, command: str | None = None) -> str:
+    summary = classify_build_output(output, phase=phase, command=command)
     lines = [
         "Build error summary:",
         f"- type: {summary.error_type}",
@@ -30,6 +31,24 @@ def _render_error_summary(output: str) -> str:
         lines.append("- evidence:")
         lines.extend(f"  - {line}" for line in summary.evidence_lines[:5])
     return "\n".join(lines)
+
+
+def _render_attempts(attempts: list[BuildAttempt]) -> str:
+    if not attempts:
+        return "Initial verification attempts: none"
+    lines = ["Initial verification attempts:"]
+    for attempt in attempts:
+        lines.append(f"- {attempt.phase}: exit_code={attempt.exit_code} command={attempt.command}")
+        if attempt.output_preview:
+            lines.append(f"  output: {attempt.output_preview}")
+    return "\n".join(lines)
+
+
+def _write_attempt_trace(attempts: list[BuildAttempt], trace: Trace | None) -> None:
+    if trace is None:
+        return
+    summary = summarize_cmake_attempts(attempts)
+    trace.write({"t": "cmake_attempt_summary", **summary})
 
 
 def _write_context_trace(context: CMakeContext, trace: Trace | None) -> None:
@@ -70,16 +89,31 @@ def build_cmake_task_prompt(
     profile: ProjectProfile,
     initial_output: str = "",
     trace: Trace | None = None,
+    initial_attempts: list[BuildAttempt] | None = None,
 ) -> str:
     context = scan_cmake_context(Path(workspace), profile)
-    summary = classify_build_output(initial_output)
+    attempts = initial_attempts or []
+    if attempts and not initial_output:
+        initial_output = summarize_cmake_attempts(attempts)["combined_output"]
+    first_failure = next((attempt for attempt in attempts if attempt.exit_code != 0), None)
+    summary = classify_build_output(
+        initial_output,
+        phase=first_failure.phase if first_failure else None,
+        command=first_failure.command if first_failure else None,
+    )
     _write_context_trace(context, trace)
     _write_error_trace(summary, trace)
+    _write_attempt_trace(attempts, trace)
     return "\n\n".join(
         [
             f"Task: {task}",
             render_cmake_context(context),
-            _render_error_summary(initial_output),
+            _render_attempts(attempts),
+            _render_error_summary(
+                initial_output,
+                phase=first_failure.phase if first_failure else None,
+                command=first_failure.command if first_failure else None,
+            ),
             render_repair_hints(summary, context),
             (
                 "CMake Build-Fix rules:\n"

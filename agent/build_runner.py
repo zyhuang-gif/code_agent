@@ -64,3 +64,28 @@ def run_cmake_verification(
         if exit_code != 0:
             break
     return attempts
+
+
+def summarize_cmake_attempts(attempts: list[BuildAttempt]) -> dict[str, Any]:
+    first_failure = next((attempt for attempt in attempts if attempt.exit_code != 0), None)
+    return {
+        "status": "passed" if attempts and attempts[-1].exit_code == 0 else "failed" if attempts else "not_run",
+        "attempts": [
+            {
+                "phase": attempt.phase,
+                "command": attempt.command,
+                "exit_code": attempt.exit_code,
+                "output_preview": attempt.output_preview,
+            }
+            for attempt in attempts
+        ],
+        "first_failure": None
+        if first_failure is None
+        else {
+            "phase": first_failure.phase,
+            "command": first_failure.command,
+            "exit_code": first_failure.exit_code,
+            "output_preview": first_failure.output_preview,
+        },
+        "combined_output": "\n".join(attempt.output_preview for attempt in attempts if attempt.output_preview),
+    }

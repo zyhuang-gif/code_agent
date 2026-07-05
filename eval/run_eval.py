@@ -205,7 +205,7 @@ def _maybe_enrich_prompt(workspace: Path, prompt: str, profile: ProjectProfile, 
 
     attempts = run_cmake_verification(workspace, profile, runner, trace)
     initial_output = "\n".join(attempt.output_preview for attempt in attempts)
-    return build_cmake_task_prompt(prompt, workspace, profile, initial_output, trace), initial_output
+    return build_cmake_task_prompt(prompt, workspace, profile, initial_output, trace, initial_attempts=attempts), initial_output
 
 
 def real_agent_factory() -> AgentCallable:
