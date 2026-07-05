@@ -261,3 +261,98 @@ def test_variant_agent_generates_agents_and_injects_prompt(tmp_path: Path):
 
     assert meta == {"steps": 2, "cost_usd": 0.1}
     assert calls == [(tmp_path, f"fix this\n\n{PROMPT_INJECTION}", True)]
+
+
+from eval.spec_ab import GroupRun, SkippedRun, load_tasks, run_spec_ab
+
+
+def make_tiny_eval_task(task_dir: Path) -> Path:
+    repo = task_dir / "repo"
+    repo.mkdir(parents=True)
+    (repo / "greeting.py").write_text("def greet(name):\n    return 'bad'\n", encoding="utf-8")
+    (task_dir / "prompt.md").write_text("fix greeting", encoding="utf-8")
+    (task_dir / "verify.py").write_text(
+        "import greeting\n"
+        "raise SystemExit(0 if greeting.greet('Ada') == 'Hello, Ada!' else 1)\n",
+        encoding="utf-8",
+    )
+    return task_dir
+
+
+def test_load_tasks_filters_by_task_id(tmp_path: Path):
+    make_tiny_eval_task(tmp_path / "tasks" / "keep")
+    make_tiny_eval_task(tmp_path / "tasks" / "drop")
+
+    tasks = load_tasks([tmp_path / "tasks"], task_ids={"keep"})
+
+    assert [task.id for task in tasks] == ["keep"]
+
+
+def test_run_spec_ab_runs_all_groups_repeats_and_isolated_workspaces(tmp_path: Path):
+    make_tiny_eval_task(tmp_path / "tasks" / "hello")
+    calls = []
+
+    def generator(workspace, variant):
+        (workspace / "AGENTS.md").write_text(f"# {variant.name}\n", encoding="utf-8")
+        return AgentspecGeneration(variant=variant.name, agents_path=workspace / "AGENTS.md")
+
+    def solving_agent(workspace, prompt, profile):
+        calls.append((workspace, prompt, (workspace / "AGENTS.md").exists()))
+        (workspace / "greeting.py").write_text("def greet(name):\n    return f'Hello, {name}!'\n", encoding="utf-8")
+        return {"steps": 3, "cost_usd": 0.25, "reason": "fixed"}
+
+    runs = run_spec_ab(
+        [tmp_path / "tasks"],
+        groups=["baseline", "agentspec-minimal", "agentspec-full"],
+        repeat=2,
+        agent=solving_agent,
+        work_root=tmp_path / "work",
+        generator=generator,
+    )
+
+    assert list(runs) == ["baseline", "agentspec-minimal", "agentspec-full"]
+    assert all(isinstance(group_run, GroupRun) for group_run in runs.values())
+    assert {group: len(group_run.results) for group, group_run in runs.items()} == {
+        "baseline": 2,
+        "agentspec-minimal": 2,
+        "agentspec-full": 2,
+    }
+    assert all(not group_run.skipped for group_run in runs.values())
+    baseline_calls = [call for call in calls if call[0].parts[-3] == "baseline"]
+    treated_calls = [call for call in calls if call[0].parts[-3] != "baseline"]
+    assert all(call[1] == "fix greeting" and call[2] is False for call in baseline_calls)
+    assert all(call[1].endswith(PROMPT_INJECTION) and call[2] is True for call in treated_calls)
+    assert (tmp_path / "work" / "agentspec-full" / "hello" / "run-2" / "AGENTS.md").exists()
+
+
+def test_run_spec_ab_records_generation_skip_without_result(tmp_path: Path):
+    make_tiny_eval_task(tmp_path / "tasks" / "hello")
+    calls = []
+
+    def generator(workspace, variant):
+        raise SpecRunSkipped("AgentSpec generation failed for test", stdout="out", stderr="err")
+
+    def solving_agent(workspace, prompt, profile):
+        calls.append((workspace, prompt))
+        (workspace / "greeting.py").write_text("def greet(name):\n    return f'Hello, {name}!'\n", encoding="utf-8")
+        return {"steps": 1, "cost_usd": 0.0}
+
+    runs = run_spec_ab(
+        [tmp_path / "tasks"],
+        groups=["agentspec-full"],
+        repeat=1,
+        agent=solving_agent,
+        work_root=tmp_path / "work",
+        generator=generator,
+    )
+
+    group_run = runs["agentspec-full"]
+    assert group_run.results == []
+    assert len(group_run.skipped) == 1
+    assert isinstance(group_run.skipped[0], SkippedRun)
+    assert group_run.skipped[0].task_id == "hello"
+    assert group_run.skipped[0].run_index == 1
+    assert "generation failed" in group_run.skipped[0].reason
+    assert group_run.skipped[0].stdout == "out"
+    assert group_run.skipped[0].stderr == "err"
+    assert calls == []

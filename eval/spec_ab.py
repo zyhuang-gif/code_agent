@@ -8,12 +8,12 @@ from __future__ import annotations
 import re
 import shutil
 import subprocess
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import Any, Callable
 
 from agent.profile import ProjectProfile
-from eval.run_eval import AgentCallable
+from eval.run_eval import AgentCallable, EvalResult, EvalTask, discover, run_task
 
 
 PROMPT_INJECTION = "There is an AGENTS.md at repo root. Read it before you start."
@@ -56,6 +56,24 @@ class SpecRunSkipped(RuntimeError):
         super().__init__(message)
         self.stdout = stdout
         self.stderr = stderr
+
+
+@dataclass(frozen=True)
+class SkippedRun:
+    group: str
+    task_id: str
+    run_index: int
+    workspace_path: str
+    reason: str
+    stdout: str = ""
+    stderr: str = ""
+
+
+@dataclass(frozen=True)
+class GroupRun:
+    group: str
+    results: list[EvalResult]
+    skipped: list[SkippedRun]
 
 
 def _text_or_empty(value: str | bytes | None) -> str:
@@ -173,3 +191,54 @@ def variant_agent(
         return agent(work_root, injected, profile) or {}
 
     return wrapped
+
+
+def load_tasks(task_roots: list[Path], task_ids: set[str] | None = None) -> list[EvalTask]:
+    tasks: list[EvalTask] = []
+    for root in task_roots:
+        for task in discover(root):
+            if task_ids is None or task.id in task_ids:
+                tasks.append(task)
+    return tasks
+
+
+def run_spec_ab(
+    task_roots: list[Path],
+    *,
+    groups: list[str],
+    repeat: int,
+    agent: AgentCallable,
+    work_root: Path,
+    generator: Callable[[Path, SpecVariant], AgentspecGeneration] | None,
+    task_ids: set[str] | None = None,
+) -> dict[str, GroupRun]:
+    if repeat < 1:
+        raise ValueError("repeat must be >= 1")
+    tasks = load_tasks(task_roots, task_ids)
+    runs: dict[str, GroupRun] = {}
+
+    for group in groups:
+        variant = VARIANTS[group]
+        wrapped = variant_agent(agent, variant, generator=generator)
+        results: list[EvalResult] = []
+        skipped: list[SkippedRun] = []
+        for task in tasks:
+            for run_index in range(1, repeat + 1):
+                run_root = work_root / group / task.id / f"run-{run_index}"
+                try:
+                    results.append(run_task(task, wrapped, run_root))
+                except SpecRunSkipped as exc:
+                    skipped.append(
+                        SkippedRun(
+                            group=group,
+                            task_id=task.id,
+                            run_index=run_index,
+                            workspace_path=str(run_root),
+                            reason=str(exc),
+                            stdout=exc.stdout,
+                            stderr=exc.stderr,
+                        )
+                    )
+        runs[group] = GroupRun(group=group, results=results, skipped=skipped)
+
+    return runs
