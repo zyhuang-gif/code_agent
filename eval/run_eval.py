@@ -150,6 +150,25 @@ def fake_agent(workspace: Path, prompt: str, profile: ProjectProfile) -> dict[st
             encoding="utf-8",
         )
 
+    # Real-inspired task: r01 — include local PostgreSQLClient.cmake
+    pg_client = workspace / "cmake" / "PostgreSQLClient.cmake"
+    if pg_client.exists():
+        text = cmake.read_text(encoding="utf-8")
+        if "include(cmake/PostgreSQLClient.cmake)" not in text:
+            text = text.replace(
+                "project(R01PocoPostgreSQL LANGUAGES CXX)\n\nenable_testing()",
+                "project(R01PocoPostgreSQL LANGUAGES CXX)\n\ninclude(cmake/PostgreSQLClient.cmake)\n\nenable_testing()",
+                1,
+            )
+            cmake.write_text(text, encoding="utf-8")
+
+    # Real-inspired task: r02 — use add_subdirectory instead of find_package
+    json_cmake = workspace / "third_party" / "json" / "CMakeLists.txt"
+    if json_cmake.exists():
+        text = cmake.read_text(encoding="utf-8")
+        text = text.replace("find_package(nlohmann_json REQUIRED)", "add_subdirectory(third_party/json)")
+        cmake.write_text(text, encoding="utf-8")
+
     return {"steps": 1, "cost_usd": 0.0}
 
 

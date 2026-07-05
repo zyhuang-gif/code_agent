@@ -450,3 +450,10 @@ def test_discovers_cmake_tasks_with_cmake_profile():
     assert len(tasks) >= 5
     assert all(task.profile.language == "cmake" for task in tasks)
     assert all("cmake -S . -B build" in task.profile.test_cmd for task in tasks)
+
+
+def test_discovers_real_inspired_cmake_tasks():
+    tasks = discover(Path("eval/tasks_cmake_real"))
+
+    assert len(tasks) >= 2
+    assert all(task.profile.language == "cmake" for task in tasks)
