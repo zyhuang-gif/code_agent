@@ -270,6 +270,9 @@ def make_tiny_eval_task(task_dir: Path) -> Path:
     repo = task_dir / "repo"
     repo.mkdir(parents=True)
     (repo / "greeting.py").write_text("def greet(name):\n    return 'bad'\n", encoding="utf-8")
+    # fake_agent in run_eval.py reads CMakeLists.txt unconditionally (line 278);
+    # provide a minimal one so integration tests pass without touching run_eval.py.
+    (repo / "CMakeLists.txt").write_text("", encoding="utf-8")
     (task_dir / "prompt.md").write_text("fix greeting", encoding="utf-8")
     (task_dir / "verify.py").write_text(
         "import greeting\n"
@@ -417,3 +420,104 @@ def test_render_markdown_report_includes_noise_warning_per_task_and_traces():
     assert "task-a" in markdown
     assert "trace-a.jsonl" in markdown
     assert "mean±std" in markdown
+
+
+import json
+
+from eval.spec_ab import default_task_roots, main
+
+
+def test_default_task_roots_are_real_and_swebench():
+    roots = default_task_roots(Path("eval"))
+
+    assert roots == [Path("eval") / "tasks_real", Path("eval") / "tasks_swebench"]
+
+
+def test_main_without_fake_requires_deepseek_key(tmp_path: Path, monkeypatch, capsys):
+    monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
+    make_tiny_eval_task(tmp_path / "tasks" / "hello")
+
+    code = main(
+        ["--tasks", str(tmp_path / "tasks"), "--groups", "baseline"],
+        work_root=tmp_path / "work",
+    )
+
+    captured = capsys.readouterr()
+    assert code == 2
+    assert "DEEPSEEK_API_KEY" in captured.err
+
+
+def test_main_fake_writes_json_and_markdown_for_all_groups(tmp_path: Path, monkeypatch):
+    make_tiny_eval_task(tmp_path / "tasks" / "hello")
+    summary_path = tmp_path / "summary.json"
+    report_path = tmp_path / "report.md"
+
+    def generator(workspace, variant):
+        (workspace / "AGENTS.md").write_text(
+            """# AGENTS.md
+
+<!-- agentspec:managed name="commands" -->
+## Commands
+- Use `python`.
+<!-- agentspec:end name="commands" -->
+
+<!-- agentspec:managed name="safety" -->
+## Safety
+- Ask before destructive commands.
+<!-- agentspec:end name="safety" -->
+""",
+            encoding="utf-8",
+        )
+        return AgentspecGeneration(variant=variant.name, agents_path=workspace / "AGENTS.md")
+
+    code = main(
+        [
+            "--fake",
+            "--tasks",
+            str(tmp_path / "tasks"),
+            "--repeat",
+            "1",
+            "--groups",
+            "baseline",
+            "agentspec-minimal",
+            "agentspec-full",
+            "--json-summary",
+            str(summary_path),
+            "--markdown-report",
+            str(report_path),
+        ],
+        work_root=tmp_path / "work",
+        generator=generator,
+    )
+
+    assert code == 0
+    data = json.loads(summary_path.read_text(encoding="utf-8"))
+    assert set(data["groups"]) == {"baseline", "agentspec-minimal", "agentspec-full"}
+    assert data["groups"]["baseline"]["tasks"]["hello"]["runs"] == 1
+    assert data["groups"]["agentspec-minimal"]["tasks"]["hello"]["runs"] == 1
+    assert "LLM evals are noisy" in report_path.read_text(encoding="utf-8")
+    assert not (tmp_path / "tasks" / "hello" / "repo" / "AGENTS.md").exists()
+    assert not (tmp_path / "work" / "baseline" / "hello" / "run-1" / "AGENTS.md").exists()
+    assert (tmp_path / "work" / "agentspec-minimal" / "hello" / "run-1" / "AGENTS.md").exists()
+
+
+def test_main_task_id_filters_fake_run(tmp_path: Path):
+    make_tiny_eval_task(tmp_path / "tasks" / "keep")
+    make_tiny_eval_task(tmp_path / "tasks" / "drop")
+
+    code = main(
+        [
+            "--fake",
+            "--tasks",
+            str(tmp_path / "tasks"),
+            "--task-id",
+            "keep",
+            "--groups",
+            "baseline",
+        ],
+        work_root=tmp_path / "work",
+    )
+
+    assert code == 0
+    assert (tmp_path / "work" / "baseline" / "keep" / "run-1").exists()
+    assert not (tmp_path / "work" / "baseline" / "drop").exists()

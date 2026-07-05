@@ -370,3 +370,102 @@ def render_markdown_report(summary: dict[str, object]) -> str:
         lines.append("- none")
     lines.append("")
     return "\n".join(lines)
+
+
+import argparse
+import json
+import os
+import sys
+
+from eval.run_eval import fake_agent, multi_agent_factory, real_agent_factory
+
+
+def default_task_roots(eval_dir: Path | None = None) -> list[Path]:
+    root = eval_dir or Path(__file__).resolve().parent
+    return [root / "tasks_real", root / "tasks_swebench"]
+
+
+def _parse_args(argv: list[str] | None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Run AgentSpec A/B/C evals on code_agent tasks.")
+    parser.add_argument("--tasks", type=Path, action="append", default=None)
+    parser.add_argument("--task-id", action="append", default=[])
+    parser.add_argument("--groups", nargs="+", choices=list(VARIANTS), default=list(VARIANTS))
+    parser.add_argument("--fake", action="store_true")
+    parser.add_argument("--multi", action="store_true")
+    parser.add_argument("--repeat", type=int, default=1)
+    parser.add_argument("--work-root", type=Path, default=Path("workspace") / "spec-ab")
+    parser.add_argument("--agentspec-project", type=Path, default=Path(os.environ.get("AGENTSPEC_PROJECT", "D:/source/agent/agentspec")))
+    parser.add_argument("--agentspec-timeout", type=int, default=120)
+    parser.add_argument("--json-summary", type=Path)
+    parser.add_argument("--markdown-report", type=Path)
+    return parser.parse_args(argv)
+
+
+def _json_default(value: object) -> object:
+    if isinstance(value, Path):
+        return str(value)
+    raise TypeError(f"Object of type {type(value).__name__} is not JSON serializable")
+
+
+def main(
+    argv: list[str] | None = None,
+    *,
+    agent_factory: Callable[[], AgentCallable] | None = None,
+    work_root: Path | None = None,
+    generator: Callable[[Path, SpecVariant], AgentspecGeneration] | None = None,
+) -> int:
+    args = _parse_args(argv)
+    if args.repeat < 1:
+        print("--repeat must be >= 1", file=sys.stderr)
+        return 2
+
+    task_roots = args.tasks or default_task_roots()
+    selected_task_ids = set(args.task_id) if args.task_id else None
+
+    if args.fake:
+        agent = fake_agent
+    else:
+        if agent_factory is None and not os.environ.get("DEEPSEEK_API_KEY"):
+            print("DEEPSEEK_API_KEY is required for non-fake spec_ab runs", file=sys.stderr)
+            return 2
+        factory = agent_factory or (multi_agent_factory if args.multi else real_agent_factory)
+        agent = factory()
+
+    def default_generator(workspace: Path, variant: SpecVariant) -> AgentspecGeneration:
+        return run_agentspec_for_variant(
+            workspace,
+            variant,
+            agentspec_project=args.agentspec_project,
+            timeout=args.agentspec_timeout,
+        )
+
+    runs = run_spec_ab(
+        task_roots,
+        groups=args.groups,
+        repeat=args.repeat,
+        agent=agent,
+        work_root=work_root or args.work_root,
+        generator=generator or default_generator,
+        task_ids=selected_task_ids,
+    )
+    summary = summarize_groups(runs)
+    markdown = render_markdown_report(summary)
+
+    if args.json_summary:
+        args.json_summary.parent.mkdir(parents=True, exist_ok=True)
+        args.json_summary.write_text(json.dumps(summary, indent=2, sort_keys=True, default=_json_default), encoding="utf-8")
+    if args.markdown_report:
+        args.markdown_report.parent.mkdir(parents=True, exist_ok=True)
+        args.markdown_report.write_text(markdown, encoding="utf-8")
+
+    print(markdown)
+    any_failed = any(
+        result.status != "solved"
+        for group_run in runs.values()
+        for result in group_run.results
+    )
+    return 1 if any_failed else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
