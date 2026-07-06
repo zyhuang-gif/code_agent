@@ -1,0 +1,263 @@
+{
+  "groups": {
+    "agentspec-full": {
+      "base_summary": {
+        "avg_cost_usd": 0.0007502152000000001,
+        "avg_steps": 8.0,
+        "mean_solution_rate": 1.0,
+        "solution_rate": 1.0,
+        "solved": 1,
+        "std_solution_rate": 0.0,
+        "tasks": {
+          "click_t2_option_prefix_parsing": {
+            "avg_cost_usd": 0.0007502152000000001,
+            "avg_steps": 8.0,
+            "pass_rate": 1.0,
+            "results": [
+              {
+                "cost_usd": 0.0007502152000000001,
+                "diff_path": "workspace\\spec-ab\\agentspec-full\\click_t2_option_prefix_parsing\\run-1\\final.diff",
+                "reason": "finished",
+                "report_path": "",
+                "status": "solved",
+                "steps": 8,
+                "trace_path": "workspace\\spec-ab\\agentspec-full\\click_t2_option_prefix_parsing\\run-1.trace.jsonl",
+                "verify_output": ".......                                                                  [100%]\n7 passed in 0.03s\n",
+                "workspace_path": "workspace\\spec-ab\\agentspec-full\\click_t2_option_prefix_parsing\\run-1"
+              }
+            ],
+            "runs": 1,
+            "solved": 1
+          }
+        },
+        "total": 1
+      },
+      "metrics": {
+        "cost_usd": {
+          "mean": 0.0007502152000000001,
+          "std": 0.0
+        },
+        "pass_rate": {
+          "mean": 1.0,
+          "std": 0.0
+        },
+        "steps": {
+          "mean": 8.0,
+          "std": 0.0
+        }
+      },
+      "skipped_runs": 0,
+      "skips": [],
+      "tasks": {
+        "click_t2_option_prefix_parsing": {
+          "cost_usd": {
+            "mean": 0.0007502152000000001,
+            "std": 0.0
+          },
+          "pass_rate": {
+            "mean": 1.0,
+            "std": 0.0
+          },
+          "results": [
+            {
+              "cost_usd": 0.0007502152000000001,
+              "diff_path": "workspace\\spec-ab\\agentspec-full\\click_t2_option_prefix_parsing\\run-1\\final.diff",
+              "reason": "finished",
+              "report_path": "",
+              "status": "solved",
+              "steps": 8,
+              "task_id": "click_t2_option_prefix_parsing",
+              "trace_path": "workspace\\spec-ab\\agentspec-full\\click_t2_option_prefix_parsing\\run-1.trace.jsonl",
+              "verify_output": ".......                                                                  [100%]\n7 passed in 0.03s\n",
+              "workspace_path": "workspace\\spec-ab\\agentspec-full\\click_t2_option_prefix_parsing\\run-1"
+            }
+          ],
+          "runs": 1,
+          "skipped": 0,
+          "skips": [],
+          "steps": {
+            "mean": 8.0,
+            "std": 0.0
+          },
+          "task_id": "click_t2_option_prefix_parsing"
+        }
+      },
+      "trace_samples": [
+        "workspace\\spec-ab\\agentspec-full\\click_t2_option_prefix_parsing\\run-1.trace.jsonl"
+      ]
+    },
+    "agentspec-minimal": {
+      "base_summary": {
+        "avg_cost_usd": 0.0006079920000000001,
+        "avg_steps": 7.0,
+        "mean_solution_rate": 1.0,
+        "solution_rate": 1.0,
+        "solved": 1,
+        "std_solution_rate": 0.0,
+        "tasks": {
+          "click_t2_option_prefix_parsing": {
+            "avg_cost_usd": 0.0006079920000000001,
+            "avg_steps": 7.0,
+            "pass_rate": 1.0,
+            "results": [
+              {
+                "cost_usd": 0.0006079920000000001,
+                "diff_path": "workspace\\spec-ab\\agentspec-minimal\\click_t2_option_prefix_parsing\\run-1\\final.diff",
+                "reason": "finished",
+                "report_path": "",
+                "status": "solved",
+                "steps": 7,
+                "trace_path": "workspace\\spec-ab\\agentspec-minimal\\click_t2_option_prefix_parsing\\run-1.trace.jsonl",
+                "verify_output": ".......                                                                  [100%]\n7 passed in 0.03s\n",
+                "workspace_path": "workspace\\spec-ab\\agentspec-minimal\\click_t2_option_prefix_parsing\\run-1"
+              }
+            ],
+            "runs": 1,
+            "solved": 1
+          }
+        },
+        "total": 1
+      },
+      "metrics": {
+        "cost_usd": {
+          "mean": 0.0006079920000000001,
+          "std": 0.0
+        },
+        "pass_rate": {
+          "mean": 1.0,
+          "std": 0.0
+        },
+        "steps": {
+          "mean": 7.0,
+          "std": 0.0
+        }
+      },
+      "skipped_runs": 0,
+      "skips": [],
+      "tasks": {
+        "click_t2_option_prefix_parsing": {
+          "cost_usd": {
+            "mean": 0.0006079920000000001,
+            "std": 0.0
+          },
+          "pass_rate": {
+            "mean": 1.0,
+            "std": 0.0
+          },
+          "results": [
+            {
+              "cost_usd": 0.0006079920000000001,
+              "diff_path": "workspace\\spec-ab\\agentspec-minimal\\click_t2_option_prefix_parsing\\run-1\\final.diff",
+              "reason": "finished",
+              "report_path": "",
+              "status": "solved",
+              "steps": 7,
+              "task_id": "click_t2_option_prefix_parsing",
+              "trace_path": "workspace\\spec-ab\\agentspec-minimal\\click_t2_option_prefix_parsing\\run-1.trace.jsonl",
+              "verify_output": ".......                                                                  [100%]\n7 passed in 0.03s\n",
+              "workspace_path": "workspace\\spec-ab\\agentspec-minimal\\click_t2_option_prefix_parsing\\run-1"
+            }
+          ],
+          "runs": 1,
+          "skipped": 0,
+          "skips": [],
+          "steps": {
+            "mean": 7.0,
+            "std": 0.0
+          },
+          "task_id": "click_t2_option_prefix_parsing"
+        }
+      },
+      "trace_samples": [
+        "workspace\\spec-ab\\agentspec-minimal\\click_t2_option_prefix_parsing\\run-1.trace.jsonl"
+      ]
+    },
+    "baseline": {
+      "base_summary": {
+        "avg_cost_usd": 0.0009829904000000001,
+        "avg_steps": 7.0,
+        "mean_solution_rate": 1.0,
+        "solution_rate": 1.0,
+        "solved": 1,
+        "std_solution_rate": 0.0,
+        "tasks": {
+          "click_t2_option_prefix_parsing": {
+            "avg_cost_usd": 0.0009829904000000001,
+            "avg_steps": 7.0,
+            "pass_rate": 1.0,
+            "results": [
+              {
+                "cost_usd": 0.0009829904000000001,
+                "diff_path": "workspace\\spec-ab\\baseline\\click_t2_option_prefix_parsing\\run-1\\final.diff",
+                "reason": "finished",
+                "report_path": "",
+                "status": "solved",
+                "steps": 7,
+                "trace_path": "workspace\\spec-ab\\baseline\\click_t2_option_prefix_parsing\\run-1.trace.jsonl",
+                "verify_output": ".......                                                                  [100%]\n7 passed in 0.04s\n",
+                "workspace_path": "workspace\\spec-ab\\baseline\\click_t2_option_prefix_parsing\\run-1"
+              }
+            ],
+            "runs": 1,
+            "solved": 1
+          }
+        },
+        "total": 1
+      },
+      "metrics": {
+        "cost_usd": {
+          "mean": 0.0009829904000000001,
+          "std": 0.0
+        },
+        "pass_rate": {
+          "mean": 1.0,
+          "std": 0.0
+        },
+        "steps": {
+          "mean": 7.0,
+          "std": 0.0
+        }
+      },
+      "skipped_runs": 0,
+      "skips": [],
+      "tasks": {
+        "click_t2_option_prefix_parsing": {
+          "cost_usd": {
+            "mean": 0.0009829904000000001,
+            "std": 0.0
+          },
+          "pass_rate": {
+            "mean": 1.0,
+            "std": 0.0
+          },
+          "results": [
+            {
+              "cost_usd": 0.0009829904000000001,
+              "diff_path": "workspace\\spec-ab\\baseline\\click_t2_option_prefix_parsing\\run-1\\final.diff",
+              "reason": "finished",
+              "report_path": "",
+              "status": "solved",
+              "steps": 7,
+              "task_id": "click_t2_option_prefix_parsing",
+              "trace_path": "workspace\\spec-ab\\baseline\\click_t2_option_prefix_parsing\\run-1.trace.jsonl",
+              "verify_output": ".......                                                                  [100%]\n7 passed in 0.04s\n",
+              "workspace_path": "workspace\\spec-ab\\baseline\\click_t2_option_prefix_parsing\\run-1"
+            }
+          ],
+          "runs": 1,
+          "skipped": 0,
+          "skips": [],
+          "steps": {
+            "mean": 7.0,
+            "std": 0.0
+          },
+          "task_id": "click_t2_option_prefix_parsing"
+        }
+      },
+      "trace_samples": [
+        "workspace\\spec-ab\\baseline\\click_t2_option_prefix_parsing\\run-1.trace.jsonl"
+      ]
+    }
+  },
+  "noise_warning": "LLM evals are noisy: never draw conclusions from a single solution_rate. Use mean\u00b1std and inspect traces."
+}

@@ -1,0 +1,263 @@
+{
+  "groups": {
+    "agentspec-full": {
+      "base_summary": {
+        "avg_cost_usd": 0.0017853303999999998,
+        "avg_steps": 8.0,
+        "mean_solution_rate": 1.0,
+        "solution_rate": 1.0,
+        "solved": 1,
+        "std_solution_rate": 0.0,
+        "tasks": {
+          "click_t1_short_help_truncation": {
+            "avg_cost_usd": 0.0017853303999999998,
+            "avg_steps": 8.0,
+            "pass_rate": 1.0,
+            "results": [
+              {
+                "cost_usd": 0.0017853303999999998,
+                "diff_path": "workspace\\spec-ab-smoke\\agentspec-full\\click_t1_short_help_truncation\\run-1\\final.diff",
+                "reason": "finished",
+                "report_path": "",
+                "status": "solved",
+                "steps": 8,
+                "trace_path": "workspace\\spec-ab-smoke\\agentspec-full\\click_t1_short_help_truncation\\run-1.trace.jsonl",
+                "verify_output": "..............                                                           [100%]\n14 passed in 0.04s\n",
+                "workspace_path": "workspace\\spec-ab-smoke\\agentspec-full\\click_t1_short_help_truncation\\run-1"
+              }
+            ],
+            "runs": 1,
+            "solved": 1
+          }
+        },
+        "total": 1
+      },
+      "metrics": {
+        "cost_usd": {
+          "mean": 0.0017853303999999998,
+          "std": 0.0
+        },
+        "pass_rate": {
+          "mean": 1.0,
+          "std": 0.0
+        },
+        "steps": {
+          "mean": 8.0,
+          "std": 0.0
+        }
+      },
+      "skipped_runs": 0,
+      "skips": [],
+      "tasks": {
+        "click_t1_short_help_truncation": {
+          "cost_usd": {
+            "mean": 0.0017853303999999998,
+            "std": 0.0
+          },
+          "pass_rate": {
+            "mean": 1.0,
+            "std": 0.0
+          },
+          "results": [
+            {
+              "cost_usd": 0.0017853303999999998,
+              "diff_path": "workspace\\spec-ab-smoke\\agentspec-full\\click_t1_short_help_truncation\\run-1\\final.diff",
+              "reason": "finished",
+              "report_path": "",
+              "status": "solved",
+              "steps": 8,
+              "task_id": "click_t1_short_help_truncation",
+              "trace_path": "workspace\\spec-ab-smoke\\agentspec-full\\click_t1_short_help_truncation\\run-1.trace.jsonl",
+              "verify_output": "..............                                                           [100%]\n14 passed in 0.04s\n",
+              "workspace_path": "workspace\\spec-ab-smoke\\agentspec-full\\click_t1_short_help_truncation\\run-1"
+            }
+          ],
+          "runs": 1,
+          "skipped": 0,
+          "skips": [],
+          "steps": {
+            "mean": 8.0,
+            "std": 0.0
+          },
+          "task_id": "click_t1_short_help_truncation"
+        }
+      },
+      "trace_samples": [
+        "workspace\\spec-ab-smoke\\agentspec-full\\click_t1_short_help_truncation\\run-1.trace.jsonl"
+      ]
+    },
+    "agentspec-minimal": {
+      "base_summary": {
+        "avg_cost_usd": 0.002201052,
+        "avg_steps": 8.0,
+        "mean_solution_rate": 1.0,
+        "solution_rate": 1.0,
+        "solved": 1,
+        "std_solution_rate": 0.0,
+        "tasks": {
+          "click_t1_short_help_truncation": {
+            "avg_cost_usd": 0.002201052,
+            "avg_steps": 8.0,
+            "pass_rate": 1.0,
+            "results": [
+              {
+                "cost_usd": 0.002201052,
+                "diff_path": "workspace\\spec-ab-smoke\\agentspec-minimal\\click_t1_short_help_truncation\\run-1\\final.diff",
+                "reason": "finished",
+                "report_path": "",
+                "status": "solved",
+                "steps": 8,
+                "trace_path": "workspace\\spec-ab-smoke\\agentspec-minimal\\click_t1_short_help_truncation\\run-1.trace.jsonl",
+                "verify_output": "..............                                                           [100%]\n14 passed in 0.04s\n",
+                "workspace_path": "workspace\\spec-ab-smoke\\agentspec-minimal\\click_t1_short_help_truncation\\run-1"
+              }
+            ],
+            "runs": 1,
+            "solved": 1
+          }
+        },
+        "total": 1
+      },
+      "metrics": {
+        "cost_usd": {
+          "mean": 0.002201052,
+          "std": 0.0
+        },
+        "pass_rate": {
+          "mean": 1.0,
+          "std": 0.0
+        },
+        "steps": {
+          "mean": 8.0,
+          "std": 0.0
+        }
+      },
+      "skipped_runs": 0,
+      "skips": [],
+      "tasks": {
+        "click_t1_short_help_truncation": {
+          "cost_usd": {
+            "mean": 0.002201052,
+            "std": 0.0
+          },
+          "pass_rate": {
+            "mean": 1.0,
+            "std": 0.0
+          },
+          "results": [
+            {
+              "cost_usd": 0.002201052,
+              "diff_path": "workspace\\spec-ab-smoke\\agentspec-minimal\\click_t1_short_help_truncation\\run-1\\final.diff",
+              "reason": "finished",
+              "report_path": "",
+              "status": "solved",
+              "steps": 8,
+              "task_id": "click_t1_short_help_truncation",
+              "trace_path": "workspace\\spec-ab-smoke\\agentspec-minimal\\click_t1_short_help_truncation\\run-1.trace.jsonl",
+              "verify_output": "..............                                                           [100%]\n14 passed in 0.04s\n",
+              "workspace_path": "workspace\\spec-ab-smoke\\agentspec-minimal\\click_t1_short_help_truncation\\run-1"
+            }
+          ],
+          "runs": 1,
+          "skipped": 0,
+          "skips": [],
+          "steps": {
+            "mean": 8.0,
+            "std": 0.0
+          },
+          "task_id": "click_t1_short_help_truncation"
+        }
+      },
+      "trace_samples": [
+        "workspace\\spec-ab-smoke\\agentspec-minimal\\click_t1_short_help_truncation\\run-1.trace.jsonl"
+      ]
+    },
+    "baseline": {
+      "base_summary": {
+        "avg_cost_usd": 0.0027509496000000006,
+        "avg_steps": 12.0,
+        "mean_solution_rate": 1.0,
+        "solution_rate": 1.0,
+        "solved": 1,
+        "std_solution_rate": 0.0,
+        "tasks": {
+          "click_t1_short_help_truncation": {
+            "avg_cost_usd": 0.0027509496000000006,
+            "avg_steps": 12.0,
+            "pass_rate": 1.0,
+            "results": [
+              {
+                "cost_usd": 0.0027509496000000006,
+                "diff_path": "workspace\\spec-ab-smoke\\baseline\\click_t1_short_help_truncation\\run-1\\final.diff",
+                "reason": "finished",
+                "report_path": "",
+                "status": "solved",
+                "steps": 12,
+                "trace_path": "workspace\\spec-ab-smoke\\baseline\\click_t1_short_help_truncation\\run-1.trace.jsonl",
+                "verify_output": "..............                                                           [100%]\n14 passed in 0.04s\n",
+                "workspace_path": "workspace\\spec-ab-smoke\\baseline\\click_t1_short_help_truncation\\run-1"
+              }
+            ],
+            "runs": 1,
+            "solved": 1
+          }
+        },
+        "total": 1
+      },
+      "metrics": {
+        "cost_usd": {
+          "mean": 0.0027509496000000006,
+          "std": 0.0
+        },
+        "pass_rate": {
+          "mean": 1.0,
+          "std": 0.0
+        },
+        "steps": {
+          "mean": 12.0,
+          "std": 0.0
+        }
+      },
+      "skipped_runs": 0,
+      "skips": [],
+      "tasks": {
+        "click_t1_short_help_truncation": {
+          "cost_usd": {
+            "mean": 0.0027509496000000006,
+            "std": 0.0
+          },
+          "pass_rate": {
+            "mean": 1.0,
+            "std": 0.0
+          },
+          "results": [
+            {
+              "cost_usd": 0.0027509496000000006,
+              "diff_path": "workspace\\spec-ab-smoke\\baseline\\click_t1_short_help_truncation\\run-1\\final.diff",
+              "reason": "finished",
+              "report_path": "",
+              "status": "solved",
+              "steps": 12,
+              "task_id": "click_t1_short_help_truncation",
+              "trace_path": "workspace\\spec-ab-smoke\\baseline\\click_t1_short_help_truncation\\run-1.trace.jsonl",
+              "verify_output": "..............                                                           [100%]\n14 passed in 0.04s\n",
+              "workspace_path": "workspace\\spec-ab-smoke\\baseline\\click_t1_short_help_truncation\\run-1"
+            }
+          ],
+          "runs": 1,
+          "skipped": 0,
+          "skips": [],
+          "steps": {
+            "mean": 12.0,
+            "std": 0.0
+          },
+          "task_id": "click_t1_short_help_truncation"
+        }
+      },
+      "trace_samples": [
+        "workspace\\spec-ab-smoke\\baseline\\click_t1_short_help_truncation\\run-1.trace.jsonl"
+      ]
+    }
+  },
+  "noise_warning": "LLM evals are noisy: never draw conclusions from a single solution_rate. Use mean\u00b1std and inspect traces."
+}

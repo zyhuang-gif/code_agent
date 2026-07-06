@@ -1,0 +1,1283 @@
+{
+  "groups": {
+    "agentspec-full": {
+      "base_summary": {
+        "avg_cost_usd": 0.0036511612666666675,
+        "avg_steps": 15.083333333333334,
+        "mean_solution_rate": 1.0,
+        "solution_rate": 1.0,
+        "solved": 12,
+        "std_solution_rate": 0.0,
+        "tasks": {
+          "click_t1_short_help_truncation": {
+            "avg_cost_usd": 0.002284723466666667,
+            "avg_steps": 8.666666666666666,
+            "pass_rate": 1.0,
+            "results": [
+              {
+                "cost_usd": 0.0021480592000000004,
+                "diff_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t1_short_help_truncation\\run-1\\final.diff",
+                "reason": "finished",
+                "report_path": "",
+                "status": "solved",
+                "steps": 7,
+                "trace_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t1_short_help_truncation\\run-1.trace.jsonl",
+                "verify_output": "..............                                                           [100%]\n14 passed in 0.04s\n",
+                "workspace_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t1_short_help_truncation\\run-1"
+              },
+              {
+                "cost_usd": 0.0019008752000000003,
+                "diff_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t1_short_help_truncation\\run-2\\final.diff",
+                "reason": "finished",
+                "report_path": "",
+                "status": "solved",
+                "steps": 8,
+                "trace_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t1_short_help_truncation\\run-2.trace.jsonl",
+                "verify_output": "..............                                                           [100%]\n14 passed in 0.05s\n",
+                "workspace_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t1_short_help_truncation\\run-2"
+              },
+              {
+                "cost_usd": 0.002805236,
+                "diff_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t1_short_help_truncation\\run-3\\final.diff",
+                "reason": "finished",
+                "report_path": "",
+                "status": "solved",
+                "steps": 11,
+                "trace_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t1_short_help_truncation\\run-3.trace.jsonl",
+                "verify_output": "..............                                                           [100%]\n14 passed in 0.04s\n",
+                "workspace_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t1_short_help_truncation\\run-3"
+              }
+            ],
+            "runs": 3,
+            "solved": 3
+          },
+          "click_t2_option_prefix_parsing": {
+            "avg_cost_usd": 0.0011358088,
+            "avg_steps": 9.0,
+            "pass_rate": 1.0,
+            "results": [
+              {
+                "cost_usd": 0.000896532,
+                "diff_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t2_option_prefix_parsing\\run-1\\final.diff",
+                "reason": "finished",
+                "report_path": "",
+                "status": "solved",
+                "steps": 7,
+                "trace_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t2_option_prefix_parsing\\run-1.trace.jsonl",
+                "verify_output": ".......                                                                  [100%]\n7 passed in 0.03s\n",
+                "workspace_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t2_option_prefix_parsing\\run-1"
+              },
+              {
+                "cost_usd": 0.0013784904000000001,
+                "diff_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t2_option_prefix_parsing\\run-2\\final.diff",
+                "reason": "finished",
+                "report_path": "",
+                "status": "solved",
+                "steps": 10,
+                "trace_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t2_option_prefix_parsing\\run-2.trace.jsonl",
+                "verify_output": ".......                                                                  [100%]\n7 passed in 0.03s\n",
+                "workspace_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t2_option_prefix_parsing\\run-2"
+              },
+              {
+                "cost_usd": 0.001132404,
+                "diff_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t2_option_prefix_parsing\\run-3\\final.diff",
+                "reason": "finished",
+                "report_path": "",
+                "status": "solved",
+                "steps": 10,
+                "trace_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t2_option_prefix_parsing\\run-3.trace.jsonl",
+                "verify_output": ".......                                                                  [100%]\n7 passed in 0.03s\n",
+                "workspace_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t2_option_prefix_parsing\\run-3"
+              }
+            ],
+            "runs": 3,
+            "solved": 3
+          },
+          "click_t3_preserve_paragraph_wrapping": {
+            "avg_cost_usd": 0.005779480000000001,
+            "avg_steps": 22.666666666666668,
+            "pass_rate": 1.0,
+            "results": [
+              {
+                "cost_usd": 0.0065050440000000015,
+                "diff_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t3_preserve_paragraph_wrapping\\run-1\\final.diff",
+                "reason": "finished",
+                "report_path": "",
+                "status": "solved",
+                "steps": 26,
+                "trace_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t3_preserve_paragraph_wrapping\\run-1.trace.jsonl",
+                "verify_output": ".................                                                        [100%]\n17 passed in 0.05s\n",
+                "workspace_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t3_preserve_paragraph_wrapping\\run-1"
+              },
+              {
+                "cost_usd": 0.006368096,
+                "diff_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t3_preserve_paragraph_wrapping\\run-2\\final.diff",
+                "reason": "budget_exceeded",
+                "report_path": "",
+                "status": "solved",
+                "steps": 26,
+                "trace_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t3_preserve_paragraph_wrapping\\run-2.trace.jsonl",
+                "verify_output": ".................                                                        [100%]\n17 passed in 0.05s\n",
+                "workspace_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t3_preserve_paragraph_wrapping\\run-2"
+              },
+              {
+                "cost_usd": 0.0044653,
+                "diff_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t3_preserve_paragraph_wrapping\\run-3\\final.diff",
+                "reason": "finished",
+                "report_path": "",
+                "status": "solved",
+                "steps": 16,
+                "trace_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t3_preserve_paragraph_wrapping\\run-3.trace.jsonl",
+                "verify_output": ".................                                                        [100%]\n17 passed in 0.05s\n",
+                "workspace_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t3_preserve_paragraph_wrapping\\run-3"
+              }
+            ],
+            "runs": 3,
+            "solved": 3
+          },
+          "sympy__sympy-24443": {
+            "avg_cost_usd": 0.005404632800000001,
+            "avg_steps": 20.0,
+            "pass_rate": 1.0,
+            "results": [
+              {
+                "cost_usd": 0.005118422400000001,
+                "diff_path": "workspace\\spec-ab-runs\\agentspec-full\\sympy__sympy-24443\\run-1\\final.diff",
+                "reason": "finished",
+                "report_path": "",
+                "status": "solved",
+                "steps": 21,
+                "trace_path": "workspace\\spec-ab-runs\\agentspec-full\\sympy__sympy-24443\\run-1.trace.jsonl",
+                "verify_output": "..                                                                       [100%]\n============================== warnings summary ===============================\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\ctx_mp.py:35\n  D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\mpmath\\ctx_mp.py:35: DeprecationWarning: mpnumeric is deprecated\n    warnings.warn(f\"{name} is deprecated\", DeprecationWarning)\n\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n  D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4: DeprecationWarning: the rational private module is deprecated\n    warnings.warn(\"the rational private module is deprecated\",\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n2 passed, 4 warnings in 0.45s\n",
+                "workspace_path": "workspace\\spec-ab-runs\\agentspec-full\\sympy__sympy-24443\\run-1"
+              },
+              {
+                "cost_usd": 0.0037064272000000005,
+                "diff_path": "workspace\\spec-ab-runs\\agentspec-full\\sympy__sympy-24443\\run-2\\final.diff",
+                "reason": "finished",
+                "report_path": "",
+                "status": "solved",
+                "steps": 14,
+                "trace_path": "workspace\\spec-ab-runs\\agentspec-full\\sympy__sympy-24443\\run-2.trace.jsonl",
+                "verify_output": "..                                                                       [100%]\n============================== warnings summary ===============================\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\ctx_mp.py:35\n  D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\mpmath\\ctx_mp.py:35: DeprecationWarning: mpnumeric is deprecated\n    warnings.warn(f\"{name} is deprecated\", DeprecationWarning)\n\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n  D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4: DeprecationWarning: the rational private module is deprecated\n    warnings.warn(\"the rational private module is deprecated\",\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n2 passed, 4 warnings in 0.47s\n",
+                "workspace_path": "workspace\\spec-ab-runs\\agentspec-full\\sympy__sympy-24443\\run-2"
+              },
+              {
+                "cost_usd": 0.007389048800000001,
+                "diff_path": "workspace\\spec-ab-runs\\agentspec-full\\sympy__sympy-24443\\run-3\\final.diff",
+                "reason": "finished",
+                "report_path": "",
+                "status": "solved",
+                "steps": 25,
+                "trace_path": "workspace\\spec-ab-runs\\agentspec-full\\sympy__sympy-24443\\run-3.trace.jsonl",
+                "verify_output": "..                                                                       [100%]\n============================== warnings summary ===============================\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\ctx_mp.py:35\n  D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\mpmath\\ctx_mp.py:35: DeprecationWarning: mpnumeric is deprecated\n    warnings.warn(f\"{name} is deprecated\", DeprecationWarning)\n\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n  D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4: DeprecationWarning: the rational private module is deprecated\n    warnings.warn(\"the rational private module is deprecated\",\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n2 passed, 4 warnings in 0.47s\n",
+                "workspace_path": "workspace\\spec-ab-runs\\agentspec-full\\sympy__sympy-24443\\run-3"
+              }
+            ],
+            "runs": 3,
+            "solved": 3
+          }
+        },
+        "total": 12
+      },
+      "metrics": {
+        "cost_usd": {
+          "mean": 0.003651161266666667,
+          "std": 0.0021880827942645674
+        },
+        "pass_rate": {
+          "mean": 1.0,
+          "std": 0.0
+        },
+        "steps": {
+          "mean": 15.083333333333334,
+          "std": 7.204840194079409
+        }
+      },
+      "skipped_runs": 0,
+      "skips": [],
+      "tasks": {
+        "click_t1_short_help_truncation": {
+          "cost_usd": {
+            "mean": 0.002284723466666667,
+            "std": 0.0003816411538621179
+          },
+          "pass_rate": {
+            "mean": 1.0,
+            "std": 0.0
+          },
+          "results": [
+            {
+              "cost_usd": 0.0021480592000000004,
+              "diff_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t1_short_help_truncation\\run-1\\final.diff",
+              "reason": "finished",
+              "report_path": "",
+              "status": "solved",
+              "steps": 7,
+              "task_id": "click_t1_short_help_truncation",
+              "trace_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t1_short_help_truncation\\run-1.trace.jsonl",
+              "verify_output": "..............                                                           [100%]\n14 passed in 0.04s\n",
+              "workspace_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t1_short_help_truncation\\run-1"
+            },
+            {
+              "cost_usd": 0.0019008752000000003,
+              "diff_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t1_short_help_truncation\\run-2\\final.diff",
+              "reason": "finished",
+              "report_path": "",
+              "status": "solved",
+              "steps": 8,
+              "task_id": "click_t1_short_help_truncation",
+              "trace_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t1_short_help_truncation\\run-2.trace.jsonl",
+              "verify_output": "..............                                                           [100%]\n14 passed in 0.05s\n",
+              "workspace_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t1_short_help_truncation\\run-2"
+            },
+            {
+              "cost_usd": 0.002805236,
+              "diff_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t1_short_help_truncation\\run-3\\final.diff",
+              "reason": "finished",
+              "report_path": "",
+              "status": "solved",
+              "steps": 11,
+              "task_id": "click_t1_short_help_truncation",
+              "trace_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t1_short_help_truncation\\run-3.trace.jsonl",
+              "verify_output": "..............                                                           [100%]\n14 passed in 0.04s\n",
+              "workspace_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t1_short_help_truncation\\run-3"
+            }
+          ],
+          "runs": 3,
+          "skipped": 0,
+          "skips": [],
+          "steps": {
+            "mean": 8.666666666666666,
+            "std": 1.699673171197595
+          },
+          "task_id": "click_t1_short_help_truncation"
+        },
+        "click_t2_option_prefix_parsing": {
+          "cost_usd": {
+            "mean": 0.0011358088000000001,
+            "std": 0.00019677342186708046
+          },
+          "pass_rate": {
+            "mean": 1.0,
+            "std": 0.0
+          },
+          "results": [
+            {
+              "cost_usd": 0.000896532,
+              "diff_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t2_option_prefix_parsing\\run-1\\final.diff",
+              "reason": "finished",
+              "report_path": "",
+              "status": "solved",
+              "steps": 7,
+              "task_id": "click_t2_option_prefix_parsing",
+              "trace_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t2_option_prefix_parsing\\run-1.trace.jsonl",
+              "verify_output": ".......                                                                  [100%]\n7 passed in 0.03s\n",
+              "workspace_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t2_option_prefix_parsing\\run-1"
+            },
+            {
+              "cost_usd": 0.0013784904000000001,
+              "diff_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t2_option_prefix_parsing\\run-2\\final.diff",
+              "reason": "finished",
+              "report_path": "",
+              "status": "solved",
+              "steps": 10,
+              "task_id": "click_t2_option_prefix_parsing",
+              "trace_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t2_option_prefix_parsing\\run-2.trace.jsonl",
+              "verify_output": ".......                                                                  [100%]\n7 passed in 0.03s\n",
+              "workspace_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t2_option_prefix_parsing\\run-2"
+            },
+            {
+              "cost_usd": 0.001132404,
+              "diff_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t2_option_prefix_parsing\\run-3\\final.diff",
+              "reason": "finished",
+              "report_path": "",
+              "status": "solved",
+              "steps": 10,
+              "task_id": "click_t2_option_prefix_parsing",
+              "trace_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t2_option_prefix_parsing\\run-3.trace.jsonl",
+              "verify_output": ".......                                                                  [100%]\n7 passed in 0.03s\n",
+              "workspace_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t2_option_prefix_parsing\\run-3"
+            }
+          ],
+          "runs": 3,
+          "skipped": 0,
+          "skips": [],
+          "steps": {
+            "mean": 9.0,
+            "std": 1.4142135623730951
+          },
+          "task_id": "click_t2_option_prefix_parsing"
+        },
+        "click_t3_preserve_paragraph_wrapping": {
+          "cost_usd": {
+            "mean": 0.005779480000000001,
+            "std": 0.0009309459321843924
+          },
+          "pass_rate": {
+            "mean": 1.0,
+            "std": 0.0
+          },
+          "results": [
+            {
+              "cost_usd": 0.0065050440000000015,
+              "diff_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t3_preserve_paragraph_wrapping\\run-1\\final.diff",
+              "reason": "finished",
+              "report_path": "",
+              "status": "solved",
+              "steps": 26,
+              "task_id": "click_t3_preserve_paragraph_wrapping",
+              "trace_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t3_preserve_paragraph_wrapping\\run-1.trace.jsonl",
+              "verify_output": ".................                                                        [100%]\n17 passed in 0.05s\n",
+              "workspace_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t3_preserve_paragraph_wrapping\\run-1"
+            },
+            {
+              "cost_usd": 0.006368096,
+              "diff_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t3_preserve_paragraph_wrapping\\run-2\\final.diff",
+              "reason": "budget_exceeded",
+              "report_path": "",
+              "status": "solved",
+              "steps": 26,
+              "task_id": "click_t3_preserve_paragraph_wrapping",
+              "trace_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t3_preserve_paragraph_wrapping\\run-2.trace.jsonl",
+              "verify_output": ".................                                                        [100%]\n17 passed in 0.05s\n",
+              "workspace_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t3_preserve_paragraph_wrapping\\run-2"
+            },
+            {
+              "cost_usd": 0.0044653,
+              "diff_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t3_preserve_paragraph_wrapping\\run-3\\final.diff",
+              "reason": "finished",
+              "report_path": "",
+              "status": "solved",
+              "steps": 16,
+              "task_id": "click_t3_preserve_paragraph_wrapping",
+              "trace_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t3_preserve_paragraph_wrapping\\run-3.trace.jsonl",
+              "verify_output": ".................                                                        [100%]\n17 passed in 0.05s\n",
+              "workspace_path": "workspace\\spec-ab-runs\\agentspec-full\\click_t3_preserve_paragraph_wrapping\\run-3"
+            }
+          ],
+          "runs": 3,
+          "skipped": 0,
+          "skips": [],
+          "steps": {
+            "mean": 22.666666666666668,
+            "std": 4.714045207910317
+          },
+          "task_id": "click_t3_preserve_paragraph_wrapping"
+        },
+        "sympy__sympy-24443": {
+          "cost_usd": {
+            "mean": 0.005404632800000001,
+            "std": 0.0015169844554241507
+          },
+          "pass_rate": {
+            "mean": 1.0,
+            "std": 0.0
+          },
+          "results": [
+            {
+              "cost_usd": 0.005118422400000001,
+              "diff_path": "workspace\\spec-ab-runs\\agentspec-full\\sympy__sympy-24443\\run-1\\final.diff",
+              "reason": "finished",
+              "report_path": "",
+              "status": "solved",
+              "steps": 21,
+              "task_id": "sympy__sympy-24443",
+              "trace_path": "workspace\\spec-ab-runs\\agentspec-full\\sympy__sympy-24443\\run-1.trace.jsonl",
+              "verify_output": "..                                                                       [100%]\n============================== warnings summary ===============================\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\ctx_mp.py:35\n  D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\mpmath\\ctx_mp.py:35: DeprecationWarning: mpnumeric is deprecated\n    warnings.warn(f\"{name} is deprecated\", DeprecationWarning)\n\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n  D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4: DeprecationWarning: the rational private module is deprecated\n    warnings.warn(\"the rational private module is deprecated\",\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n2 passed, 4 warnings in 0.45s\n",
+              "workspace_path": "workspace\\spec-ab-runs\\agentspec-full\\sympy__sympy-24443\\run-1"
+            },
+            {
+              "cost_usd": 0.0037064272000000005,
+              "diff_path": "workspace\\spec-ab-runs\\agentspec-full\\sympy__sympy-24443\\run-2\\final.diff",
+              "reason": "finished",
+              "report_path": "",
+              "status": "solved",
+              "steps": 14,
+              "task_id": "sympy__sympy-24443",
+              "trace_path": "workspace\\spec-ab-runs\\agentspec-full\\sympy__sympy-24443\\run-2.trace.jsonl",
+              "verify_output": "..                                                                       [100%]\n============================== warnings summary ===============================\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\ctx_mp.py:35\n  D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\mpmath\\ctx_mp.py:35: DeprecationWarning: mpnumeric is deprecated\n    warnings.warn(f\"{name} is deprecated\", DeprecationWarning)\n\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n  D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4: DeprecationWarning: the rational private module is deprecated\n    warnings.warn(\"the rational private module is deprecated\",\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n2 passed, 4 warnings in 0.47s\n",
+              "workspace_path": "workspace\\spec-ab-runs\\agentspec-full\\sympy__sympy-24443\\run-2"
+            },
+            {
+              "cost_usd": 0.007389048800000001,
+              "diff_path": "workspace\\spec-ab-runs\\agentspec-full\\sympy__sympy-24443\\run-3\\final.diff",
+              "reason": "finished",
+              "report_path": "",
+              "status": "solved",
+              "steps": 25,
+              "task_id": "sympy__sympy-24443",
+              "trace_path": "workspace\\spec-ab-runs\\agentspec-full\\sympy__sympy-24443\\run-3.trace.jsonl",
+              "verify_output": "..                                                                       [100%]\n============================== warnings summary ===============================\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\ctx_mp.py:35\n  D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\mpmath\\ctx_mp.py:35: DeprecationWarning: mpnumeric is deprecated\n    warnings.warn(f\"{name} is deprecated\", DeprecationWarning)\n\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n  D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4: DeprecationWarning: the rational private module is deprecated\n    warnings.warn(\"the rational private module is deprecated\",\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n2 passed, 4 warnings in 0.47s\n",
+              "workspace_path": "workspace\\spec-ab-runs\\agentspec-full\\sympy__sympy-24443\\run-3"
+            }
+          ],
+          "runs": 3,
+          "skipped": 0,
+          "skips": [],
+          "steps": {
+            "mean": 20.0,
+            "std": 4.546060565661952
+          },
+          "task_id": "sympy__sympy-24443"
+        }
+      },
+      "trace_samples": [
+        "workspace\\spec-ab-runs\\agentspec-full\\click_t1_short_help_truncation\\run-1.trace.jsonl"
+      ]
+    },
+    "agentspec-minimal": {
+      "base_summary": {
+        "avg_cost_usd": 0.0037742796,
+        "avg_steps": 14.833333333333334,
+        "mean_solution_rate": 1.0,
+        "solution_rate": 1.0,
+        "solved": 12,
+        "std_solution_rate": 0.0,
+        "tasks": {
+          "click_t1_short_help_truncation": {
+            "avg_cost_usd": 0.0020745125333333334,
+            "avg_steps": 9.0,
+            "pass_rate": 1.0,
+            "results": [
+              {
+                "cost_usd": 0.0019212872,
+                "diff_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t1_short_help_truncation\\run-1\\final.diff",
+                "reason": "finished",
+                "report_path": "",
+                "status": "solved",
+                "steps": 8,
+                "trace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t1_short_help_truncation\\run-1.trace.jsonl",
+                "verify_output": "..............                                                           [100%]\n14 passed in 0.04s\n",
+                "workspace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t1_short_help_truncation\\run-1"
+              },
+              {
+                "cost_usd": 0.0025317824000000004,
+                "diff_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t1_short_help_truncation\\run-2\\final.diff",
+                "reason": "finished",
+                "report_path": "",
+                "status": "solved",
+                "steps": 9,
+                "trace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t1_short_help_truncation\\run-2.trace.jsonl",
+                "verify_output": "..............                                                           [100%]\n14 passed in 0.04s\n",
+                "workspace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t1_short_help_truncation\\run-2"
+              },
+              {
+                "cost_usd": 0.001770468,
+                "diff_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t1_short_help_truncation\\run-3\\final.diff",
+                "reason": "finished",
+                "report_path": "",
+                "status": "solved",
+                "steps": 10,
+                "trace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t1_short_help_truncation\\run-3.trace.jsonl",
+                "verify_output": "..............                                                           [100%]\n14 passed in 0.05s\n",
+                "workspace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t1_short_help_truncation\\run-3"
+              }
+            ],
+            "runs": 3,
+            "solved": 3
+          },
+          "click_t2_option_prefix_parsing": {
+            "avg_cost_usd": 0.0010516034666666666,
+            "avg_steps": 7.666666666666667,
+            "pass_rate": 1.0,
+            "results": [
+              {
+                "cost_usd": 0.0016325512,
+                "diff_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t2_option_prefix_parsing\\run-1\\final.diff",
+                "reason": "finished",
+                "report_path": "",
+                "status": "solved",
+                "steps": 9,
+                "trace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t2_option_prefix_parsing\\run-1.trace.jsonl",
+                "verify_output": ".......                                                                  [100%]\n7 passed in 0.03s\n",
+                "workspace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t2_option_prefix_parsing\\run-1"
+              },
+              {
+                "cost_usd": 0.0008687672,
+                "diff_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t2_option_prefix_parsing\\run-2\\final.diff",
+                "reason": "finished",
+                "report_path": "",
+                "status": "solved",
+                "steps": 7,
+                "trace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t2_option_prefix_parsing\\run-2.trace.jsonl",
+                "verify_output": ".......                                                                  [100%]\n7 passed in 0.03s\n",
+                "workspace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t2_option_prefix_parsing\\run-2"
+              },
+              {
+                "cost_usd": 0.000653492,
+                "diff_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t2_option_prefix_parsing\\run-3\\final.diff",
+                "reason": "finished",
+                "report_path": "",
+                "status": "solved",
+                "steps": 7,
+                "trace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t2_option_prefix_parsing\\run-3.trace.jsonl",
+                "verify_output": ".......                                                                  [100%]\n7 passed in 0.03s\n",
+                "workspace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t2_option_prefix_parsing\\run-3"
+              }
+            ],
+            "runs": 3,
+            "solved": 3
+          },
+          "click_t3_preserve_paragraph_wrapping": {
+            "avg_cost_usd": 0.006127450933333334,
+            "avg_steps": 23.0,
+            "pass_rate": 1.0,
+            "results": [
+              {
+                "cost_usd": 0.004799171999999999,
+                "diff_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t3_preserve_paragraph_wrapping\\run-1\\final.diff",
+                "reason": "finished",
+                "report_path": "",
+                "status": "solved",
+                "steps": 21,
+                "trace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t3_preserve_paragraph_wrapping\\run-1.trace.jsonl",
+                "verify_output": ".................                                                        [100%]\n17 passed in 0.05s\n",
+                "workspace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t3_preserve_paragraph_wrapping\\run-1"
+              },
+              {
+                "cost_usd": 0.0063087023999999995,
+                "diff_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t3_preserve_paragraph_wrapping\\run-2\\final.diff",
+                "reason": "budget_exceeded",
+                "report_path": "",
+                "status": "solved",
+                "steps": 24,
+                "trace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t3_preserve_paragraph_wrapping\\run-2.trace.jsonl",
+                "verify_output": ".................                                                        [100%]\n17 passed in 0.05s\n",
+                "workspace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t3_preserve_paragraph_wrapping\\run-2"
+              },
+              {
+                "cost_usd": 0.007274478400000001,
+                "diff_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t3_preserve_paragraph_wrapping\\run-3\\final.diff",
+                "reason": "budget_exceeded",
+                "report_path": "",
+                "status": "solved",
+                "steps": 24,
+                "trace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t3_preserve_paragraph_wrapping\\run-3.trace.jsonl",
+                "verify_output": ".................                                                        [100%]\n17 passed in 0.05s\n",
+                "workspace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t3_preserve_paragraph_wrapping\\run-3"
+              }
+            ],
+            "runs": 3,
+            "solved": 3
+          },
+          "sympy__sympy-24443": {
+            "avg_cost_usd": 0.005843551466666666,
+            "avg_steps": 19.666666666666668,
+            "pass_rate": 1.0,
+            "results": [
+              {
+                "cost_usd": 0.0038438008000000004,
+                "diff_path": "workspace\\spec-ab-runs\\agentspec-minimal\\sympy__sympy-24443\\run-1\\final.diff",
+                "reason": "finished",
+                "report_path": "",
+                "status": "solved",
+                "steps": 13,
+                "trace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\sympy__sympy-24443\\run-1.trace.jsonl",
+                "verify_output": "..                                                                       [100%]\n============================== warnings summary ===============================\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\ctx_mp.py:35\n  D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\mpmath\\ctx_mp.py:35: DeprecationWarning: mpnumeric is deprecated\n    warnings.warn(f\"{name} is deprecated\", DeprecationWarning)\n\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n  D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4: DeprecationWarning: the rational private module is deprecated\n    warnings.warn(\"the rational private module is deprecated\",\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n2 passed, 4 warnings in 0.46s\n",
+                "workspace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\sympy__sympy-24443\\run-1"
+              },
+              {
+                "cost_usd": 0.0067646208,
+                "diff_path": "workspace\\spec-ab-runs\\agentspec-minimal\\sympy__sympy-24443\\run-2\\final.diff",
+                "reason": "budget_exceeded",
+                "report_path": "",
+                "status": "solved",
+                "steps": 22,
+                "trace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\sympy__sympy-24443\\run-2.trace.jsonl",
+                "verify_output": "..                                                                       [100%]\n============================== warnings summary ===============================\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\ctx_mp.py:35\n  D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\mpmath\\ctx_mp.py:35: DeprecationWarning: mpnumeric is deprecated\n    warnings.warn(f\"{name} is deprecated\", DeprecationWarning)\n\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n  D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4: DeprecationWarning: the rational private module is deprecated\n    warnings.warn(\"the rational private module is deprecated\",\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n2 passed, 4 warnings in 0.43s\n",
+                "workspace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\sympy__sympy-24443\\run-2"
+              },
+              {
+                "cost_usd": 0.006922232799999999,
+                "diff_path": "workspace\\spec-ab-runs\\agentspec-minimal\\sympy__sympy-24443\\run-3\\final.diff",
+                "reason": "budget_exceeded",
+                "report_path": "",
+                "status": "solved",
+                "steps": 24,
+                "trace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\sympy__sympy-24443\\run-3.trace.jsonl",
+                "verify_output": "..                                                                       [100%]\n============================== warnings summary ===============================\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\ctx_mp.py:35\n  D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\mpmath\\ctx_mp.py:35: DeprecationWarning: mpnumeric is deprecated\n    warnings.warn(f\"{name} is deprecated\", DeprecationWarning)\n\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n  D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4: DeprecationWarning: the rational private module is deprecated\n    warnings.warn(\"the rational private module is deprecated\",\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n2 passed, 4 warnings in 0.44s\n",
+                "workspace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\sympy__sympy-24443\\run-3"
+              }
+            ],
+            "runs": 3,
+            "solved": 3
+          }
+        },
+        "total": 12
+      },
+      "metrics": {
+        "cost_usd": {
+          "mean": 0.0037742796,
+          "std": 0.002421133294972804
+        },
+        "pass_rate": {
+          "mean": 1.0,
+          "std": 0.0
+        },
+        "steps": {
+          "mean": 14.833333333333334,
+          "std": 7.104380495315705
+        }
+      },
+      "skipped_runs": 0,
+      "skips": [],
+      "tasks": {
+        "click_t1_short_help_truncation": {
+          "cost_usd": {
+            "mean": 0.0020745125333333334,
+            "std": 0.000329148807272307
+          },
+          "pass_rate": {
+            "mean": 1.0,
+            "std": 0.0
+          },
+          "results": [
+            {
+              "cost_usd": 0.0019212872,
+              "diff_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t1_short_help_truncation\\run-1\\final.diff",
+              "reason": "finished",
+              "report_path": "",
+              "status": "solved",
+              "steps": 8,
+              "task_id": "click_t1_short_help_truncation",
+              "trace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t1_short_help_truncation\\run-1.trace.jsonl",
+              "verify_output": "..............                                                           [100%]\n14 passed in 0.04s\n",
+              "workspace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t1_short_help_truncation\\run-1"
+            },
+            {
+              "cost_usd": 0.0025317824000000004,
+              "diff_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t1_short_help_truncation\\run-2\\final.diff",
+              "reason": "finished",
+              "report_path": "",
+              "status": "solved",
+              "steps": 9,
+              "task_id": "click_t1_short_help_truncation",
+              "trace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t1_short_help_truncation\\run-2.trace.jsonl",
+              "verify_output": "..............                                                           [100%]\n14 passed in 0.04s\n",
+              "workspace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t1_short_help_truncation\\run-2"
+            },
+            {
+              "cost_usd": 0.001770468,
+              "diff_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t1_short_help_truncation\\run-3\\final.diff",
+              "reason": "finished",
+              "report_path": "",
+              "status": "solved",
+              "steps": 10,
+              "task_id": "click_t1_short_help_truncation",
+              "trace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t1_short_help_truncation\\run-3.trace.jsonl",
+              "verify_output": "..............                                                           [100%]\n14 passed in 0.05s\n",
+              "workspace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t1_short_help_truncation\\run-3"
+            }
+          ],
+          "runs": 3,
+          "skipped": 0,
+          "skips": [],
+          "steps": {
+            "mean": 9.0,
+            "std": 0.816496580927726
+          },
+          "task_id": "click_t1_short_help_truncation"
+        },
+        "click_t2_option_prefix_parsing": {
+          "cost_usd": {
+            "mean": 0.0010516034666666666,
+            "std": 0.00042008812931146827
+          },
+          "pass_rate": {
+            "mean": 1.0,
+            "std": 0.0
+          },
+          "results": [
+            {
+              "cost_usd": 0.0016325512,
+              "diff_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t2_option_prefix_parsing\\run-1\\final.diff",
+              "reason": "finished",
+              "report_path": "",
+              "status": "solved",
+              "steps": 9,
+              "task_id": "click_t2_option_prefix_parsing",
+              "trace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t2_option_prefix_parsing\\run-1.trace.jsonl",
+              "verify_output": ".......                                                                  [100%]\n7 passed in 0.03s\n",
+              "workspace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t2_option_prefix_parsing\\run-1"
+            },
+            {
+              "cost_usd": 0.0008687672,
+              "diff_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t2_option_prefix_parsing\\run-2\\final.diff",
+              "reason": "finished",
+              "report_path": "",
+              "status": "solved",
+              "steps": 7,
+              "task_id": "click_t2_option_prefix_parsing",
+              "trace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t2_option_prefix_parsing\\run-2.trace.jsonl",
+              "verify_output": ".......                                                                  [100%]\n7 passed in 0.03s\n",
+              "workspace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t2_option_prefix_parsing\\run-2"
+            },
+            {
+              "cost_usd": 0.000653492,
+              "diff_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t2_option_prefix_parsing\\run-3\\final.diff",
+              "reason": "finished",
+              "report_path": "",
+              "status": "solved",
+              "steps": 7,
+              "task_id": "click_t2_option_prefix_parsing",
+              "trace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t2_option_prefix_parsing\\run-3.trace.jsonl",
+              "verify_output": ".......                                                                  [100%]\n7 passed in 0.03s\n",
+              "workspace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t2_option_prefix_parsing\\run-3"
+            }
+          ],
+          "runs": 3,
+          "skipped": 0,
+          "skips": [],
+          "steps": {
+            "mean": 7.666666666666667,
+            "std": 0.9428090415820634
+          },
+          "task_id": "click_t2_option_prefix_parsing"
+        },
+        "click_t3_preserve_paragraph_wrapping": {
+          "cost_usd": {
+            "mean": 0.006127450933333333,
+            "std": 0.001018634548172816
+          },
+          "pass_rate": {
+            "mean": 1.0,
+            "std": 0.0
+          },
+          "results": [
+            {
+              "cost_usd": 0.004799171999999999,
+              "diff_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t3_preserve_paragraph_wrapping\\run-1\\final.diff",
+              "reason": "finished",
+              "report_path": "",
+              "status": "solved",
+              "steps": 21,
+              "task_id": "click_t3_preserve_paragraph_wrapping",
+              "trace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t3_preserve_paragraph_wrapping\\run-1.trace.jsonl",
+              "verify_output": ".................                                                        [100%]\n17 passed in 0.05s\n",
+              "workspace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t3_preserve_paragraph_wrapping\\run-1"
+            },
+            {
+              "cost_usd": 0.0063087023999999995,
+              "diff_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t3_preserve_paragraph_wrapping\\run-2\\final.diff",
+              "reason": "budget_exceeded",
+              "report_path": "",
+              "status": "solved",
+              "steps": 24,
+              "task_id": "click_t3_preserve_paragraph_wrapping",
+              "trace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t3_preserve_paragraph_wrapping\\run-2.trace.jsonl",
+              "verify_output": ".................                                                        [100%]\n17 passed in 0.05s\n",
+              "workspace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t3_preserve_paragraph_wrapping\\run-2"
+            },
+            {
+              "cost_usd": 0.007274478400000001,
+              "diff_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t3_preserve_paragraph_wrapping\\run-3\\final.diff",
+              "reason": "budget_exceeded",
+              "report_path": "",
+              "status": "solved",
+              "steps": 24,
+              "task_id": "click_t3_preserve_paragraph_wrapping",
+              "trace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t3_preserve_paragraph_wrapping\\run-3.trace.jsonl",
+              "verify_output": ".................                                                        [100%]\n17 passed in 0.05s\n",
+              "workspace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\click_t3_preserve_paragraph_wrapping\\run-3"
+            }
+          ],
+          "runs": 3,
+          "skipped": 0,
+          "skips": [],
+          "steps": {
+            "mean": 23.0,
+            "std": 1.4142135623730951
+          },
+          "task_id": "click_t3_preserve_paragraph_wrapping"
+        },
+        "sympy__sympy-24443": {
+          "cost_usd": {
+            "mean": 0.005843551466666666,
+            "std": 0.0014155004844603743
+          },
+          "pass_rate": {
+            "mean": 1.0,
+            "std": 0.0
+          },
+          "results": [
+            {
+              "cost_usd": 0.0038438008000000004,
+              "diff_path": "workspace\\spec-ab-runs\\agentspec-minimal\\sympy__sympy-24443\\run-1\\final.diff",
+              "reason": "finished",
+              "report_path": "",
+              "status": "solved",
+              "steps": 13,
+              "task_id": "sympy__sympy-24443",
+              "trace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\sympy__sympy-24443\\run-1.trace.jsonl",
+              "verify_output": "..                                                                       [100%]\n============================== warnings summary ===============================\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\ctx_mp.py:35\n  D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\mpmath\\ctx_mp.py:35: DeprecationWarning: mpnumeric is deprecated\n    warnings.warn(f\"{name} is deprecated\", DeprecationWarning)\n\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n  D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4: DeprecationWarning: the rational private module is deprecated\n    warnings.warn(\"the rational private module is deprecated\",\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n2 passed, 4 warnings in 0.46s\n",
+              "workspace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\sympy__sympy-24443\\run-1"
+            },
+            {
+              "cost_usd": 0.0067646208,
+              "diff_path": "workspace\\spec-ab-runs\\agentspec-minimal\\sympy__sympy-24443\\run-2\\final.diff",
+              "reason": "budget_exceeded",
+              "report_path": "",
+              "status": "solved",
+              "steps": 22,
+              "task_id": "sympy__sympy-24443",
+              "trace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\sympy__sympy-24443\\run-2.trace.jsonl",
+              "verify_output": "..                                                                       [100%]\n============================== warnings summary ===============================\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\ctx_mp.py:35\n  D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\mpmath\\ctx_mp.py:35: DeprecationWarning: mpnumeric is deprecated\n    warnings.warn(f\"{name} is deprecated\", DeprecationWarning)\n\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n  D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4: DeprecationWarning: the rational private module is deprecated\n    warnings.warn(\"the rational private module is deprecated\",\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n2 passed, 4 warnings in 0.43s\n",
+              "workspace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\sympy__sympy-24443\\run-2"
+            },
+            {
+              "cost_usd": 0.006922232799999999,
+              "diff_path": "workspace\\spec-ab-runs\\agentspec-minimal\\sympy__sympy-24443\\run-3\\final.diff",
+              "reason": "budget_exceeded",
+              "report_path": "",
+              "status": "solved",
+              "steps": 24,
+              "task_id": "sympy__sympy-24443",
+              "trace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\sympy__sympy-24443\\run-3.trace.jsonl",
+              "verify_output": "..                                                                       [100%]\n============================== warnings summary ===============================\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\ctx_mp.py:35\n  D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\mpmath\\ctx_mp.py:35: DeprecationWarning: mpnumeric is deprecated\n    warnings.warn(f\"{name} is deprecated\", DeprecationWarning)\n\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n  D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4: DeprecationWarning: the rational private module is deprecated\n    warnings.warn(\"the rational private module is deprecated\",\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n2 passed, 4 warnings in 0.44s\n",
+              "workspace_path": "workspace\\spec-ab-runs\\agentspec-minimal\\sympy__sympy-24443\\run-3"
+            }
+          ],
+          "runs": 3,
+          "skipped": 0,
+          "skips": [],
+          "steps": {
+            "mean": 19.666666666666668,
+            "std": 4.784233364802441
+          },
+          "task_id": "sympy__sympy-24443"
+        }
+      },
+      "trace_samples": [
+        "workspace\\spec-ab-runs\\agentspec-minimal\\click_t1_short_help_truncation\\run-1.trace.jsonl"
+      ]
+    },
+    "baseline": {
+      "base_summary": {
+        "avg_cost_usd": 0.003523678666666667,
+        "avg_steps": 14.75,
+        "mean_solution_rate": 0.9166666666666666,
+        "solution_rate": 0.9166666666666666,
+        "solved": 11,
+        "std_solution_rate": 0.14433756729740646,
+        "tasks": {
+          "click_t1_short_help_truncation": {
+            "avg_cost_usd": 0.0020883986666666667,
+            "avg_steps": 8.0,
+            "pass_rate": 1.0,
+            "results": [
+              {
+                "cost_usd": 0.0014801136000000003,
+                "diff_path": "workspace\\spec-ab-runs\\baseline\\click_t1_short_help_truncation\\run-1\\final.diff",
+                "reason": "finished",
+                "report_path": "",
+                "status": "solved",
+                "steps": 7,
+                "trace_path": "workspace\\spec-ab-runs\\baseline\\click_t1_short_help_truncation\\run-1.trace.jsonl",
+                "verify_output": "..............                                                           [100%]\n14 passed in 0.04s\n",
+                "workspace_path": "workspace\\spec-ab-runs\\baseline\\click_t1_short_help_truncation\\run-1"
+              },
+              {
+                "cost_usd": 0.0026912648000000003,
+                "diff_path": "workspace\\spec-ab-runs\\baseline\\click_t1_short_help_truncation\\run-2\\final.diff",
+                "reason": "finished",
+                "report_path": "",
+                "status": "solved",
+                "steps": 11,
+                "trace_path": "workspace\\spec-ab-runs\\baseline\\click_t1_short_help_truncation\\run-2.trace.jsonl",
+                "verify_output": "..............                                                           [100%]\n14 passed in 0.05s\n",
+                "workspace_path": "workspace\\spec-ab-runs\\baseline\\click_t1_short_help_truncation\\run-2"
+              },
+              {
+                "cost_usd": 0.0020938176,
+                "diff_path": "workspace\\spec-ab-runs\\baseline\\click_t1_short_help_truncation\\run-3\\final.diff",
+                "reason": "finished",
+                "report_path": "",
+                "status": "solved",
+                "steps": 6,
+                "trace_path": "workspace\\spec-ab-runs\\baseline\\click_t1_short_help_truncation\\run-3.trace.jsonl",
+                "verify_output": "..............                                                           [100%]\n14 passed in 0.05s\n",
+                "workspace_path": "workspace\\spec-ab-runs\\baseline\\click_t1_short_help_truncation\\run-3"
+              }
+            ],
+            "runs": 3,
+            "solved": 3
+          },
+          "click_t2_option_prefix_parsing": {
+            "avg_cost_usd": 0.0013404440000000003,
+            "avg_steps": 8.333333333333334,
+            "pass_rate": 1.0,
+            "results": [
+              {
+                "cost_usd": 0.0011426352,
+                "diff_path": "workspace\\spec-ab-runs\\baseline\\click_t2_option_prefix_parsing\\run-1\\final.diff",
+                "reason": "finished",
+                "report_path": "",
+                "status": "solved",
+                "steps": 7,
+                "trace_path": "workspace\\spec-ab-runs\\baseline\\click_t2_option_prefix_parsing\\run-1.trace.jsonl",
+                "verify_output": ".......                                                                  [100%]\n7 passed in 0.02s\n",
+                "workspace_path": "workspace\\spec-ab-runs\\baseline\\click_t2_option_prefix_parsing\\run-1"
+              },
+              {
+                "cost_usd": 0.0017017000000000002,
+                "diff_path": "workspace\\spec-ab-runs\\baseline\\click_t2_option_prefix_parsing\\run-2\\final.diff",
+                "reason": "finished",
+                "report_path": "",
+                "status": "solved",
+                "steps": 9,
+                "trace_path": "workspace\\spec-ab-runs\\baseline\\click_t2_option_prefix_parsing\\run-2.trace.jsonl",
+                "verify_output": ".......                                                                  [100%]\n7 passed in 0.03s\n",
+                "workspace_path": "workspace\\spec-ab-runs\\baseline\\click_t2_option_prefix_parsing\\run-2"
+              },
+              {
+                "cost_usd": 0.0011769968,
+                "diff_path": "workspace\\spec-ab-runs\\baseline\\click_t2_option_prefix_parsing\\run-3\\final.diff",
+                "reason": "finished",
+                "report_path": "",
+                "status": "solved",
+                "steps": 9,
+                "trace_path": "workspace\\spec-ab-runs\\baseline\\click_t2_option_prefix_parsing\\run-3.trace.jsonl",
+                "verify_output": ".......                                                                  [100%]\n7 passed in 0.03s\n",
+                "workspace_path": "workspace\\spec-ab-runs\\baseline\\click_t2_option_prefix_parsing\\run-3"
+              }
+            ],
+            "runs": 3,
+            "solved": 3
+          },
+          "click_t3_preserve_paragraph_wrapping": {
+            "avg_cost_usd": 0.006126166666666666,
+            "avg_steps": 25.0,
+            "pass_rate": 0.6666666666666666,
+            "results": [
+              {
+                "cost_usd": 0.005814250399999999,
+                "diff_path": "workspace\\spec-ab-runs\\baseline\\click_t3_preserve_paragraph_wrapping\\run-1\\final.diff",
+                "reason": "budget_exceeded",
+                "report_path": "",
+                "status": "failed",
+                "steps": 27,
+                "trace_path": "workspace\\spec-ab-runs\\baseline\\click_t3_preserve_paragraph_wrapping\\run-1.trace.jsonl",
+                "verify_output": "F..........F.....                                                        [100%]\n================================== FAILURES ===================================\n__________________________ test_basic_functionality ___________________________\n\nrunner = <click.testing.CliRunner object at 0x000001788F212CF0>\n\n    def test_basic_functionality(runner):\n        @click.command()\n        def cli():\n            \"\"\"First paragraph.\n    \n            This is a very long second\n            paragraph and not correctly\n            wrapped but it will be rewrapped.\n    \n            \\b\n            This is\n            a paragraph\n            without rewrapping.\n    \n            \\b\n            1\n             2\n              3\n    \n            And this is a paragraph\n            that will be rewrapped again.\n            \"\"\"\n    \n        result = runner.invoke(cli, [\"--help\"], terminal_width=60)\n        assert not result.exception\n>       assert result.output.splitlines() == [\n            \"Usage: cli [OPTIONS]\",\n            \"\",\n            \"  First paragraph.\",\n            \"\",\n            \"  This is a very long second paragraph and not correctly\",\n            \"  wrapped but it will be rewrapped.\",\n            \"\",\n            \"  This is\",\n            \"  a paragraph\",\n            \"  without rewrapping.\",\n            \"\",\n            \"  1\",\n            \"   2\",\n            \"    3\",\n            \"\",\n            \"  And this is a paragraph that will be rewrapped again.\",\n            \"\",\n            \"Options:\",\n            \"  --help  Show this message and exit.\",\n        ]\nE       AssertionError: assert ['Usage: cli ...rrectly', ...] == ['Usage: cli ...rapped.', ...]\nE         \nE         At index 4 diff: '  This is a very long second' != '  This is a very long second paragraph and not correctly'\nE         Left contains 2 more items, first extra item: 'Options:'\nE         Use -v to get more diff\n\ntests\\test_formatting.py:29: AssertionError\n__________________________ test_truncating_docstring __________________________\n\nrunner = <click.testing.CliRunner object at 0x000001788F322120>\n\n    def test_truncating_docstring(runner):\n        @click.command()\n        @click.pass_context\n        def cli(ctx):\n            \"\"\"First paragraph.\n    \n            This is a very long second\n            paragraph and not correctly\n            wrapped but it will be rewrapped.\n            \\f\n    \n            :param click.core.Context ctx: Click context.\n            \"\"\"\n    \n        result = runner.invoke(cli, [\"--help\"], terminal_width=60)\n        assert not result.exception\n>       assert result.output.splitlines() == [\n            \"Usage: cli [OPTIONS]\",\n            \"\",\n            \"  First paragraph.\",\n            \"\",\n            \"  This is a very long second paragraph and not correctly\",\n            \"  wrapped but it will be rewrapped.\",\n            \"\",\n            \"Options:\",\n            \"  --help  Show this message and exit.\",\n        ]\nE       AssertionError: assert ['Usage: cli ...rrectly', ...] == ['Usage: cli ...rapped.', ...]\nE         \nE         At index 4 diff: '  This is a very long second' != '  This is a very long second paragraph and not correctly'\nE         Left contains one more item: '  --help  Show this message and exit.'\nE         Use -v to get more diff\n\ntests\\test_formatting.py:286: AssertionError\n=========================== short test summary info ===========================\nFAILED tests/test_formatting.py::test_basic_functionality - AssertionError: a...\nFAILED tests/test_formatting.py::test_truncating_docstring - AssertionError: ...\n2 failed, 15 passed in 0.13s\n",
+                "workspace_path": "workspace\\spec-ab-runs\\baseline\\click_t3_preserve_paragraph_wrapping\\run-1"
+              },
+              {
+                "cost_usd": 0.006765472,
+                "diff_path": "workspace\\spec-ab-runs\\baseline\\click_t3_preserve_paragraph_wrapping\\run-2\\final.diff",
+                "reason": "finished",
+                "report_path": "",
+                "status": "solved",
+                "steps": 23,
+                "trace_path": "workspace\\spec-ab-runs\\baseline\\click_t3_preserve_paragraph_wrapping\\run-2.trace.jsonl",
+                "verify_output": ".................                                                        [100%]\n17 passed in 0.04s\n",
+                "workspace_path": "workspace\\spec-ab-runs\\baseline\\click_t3_preserve_paragraph_wrapping\\run-2"
+              },
+              {
+                "cost_usd": 0.0057987776,
+                "diff_path": "workspace\\spec-ab-runs\\baseline\\click_t3_preserve_paragraph_wrapping\\run-3\\final.diff",
+                "reason": "finished",
+                "report_path": "",
+                "status": "solved",
+                "steps": 25,
+                "trace_path": "workspace\\spec-ab-runs\\baseline\\click_t3_preserve_paragraph_wrapping\\run-3.trace.jsonl",
+                "verify_output": ".................                                                        [100%]\n17 passed in 0.05s\n",
+                "workspace_path": "workspace\\spec-ab-runs\\baseline\\click_t3_preserve_paragraph_wrapping\\run-3"
+              }
+            ],
+            "runs": 3,
+            "solved": 2
+          },
+          "sympy__sympy-24443": {
+            "avg_cost_usd": 0.004539705333333333,
+            "avg_steps": 17.666666666666668,
+            "pass_rate": 1.0,
+            "results": [
+              {
+                "cost_usd": 0.006879431999999999,
+                "diff_path": "workspace\\spec-ab-runs\\baseline\\sympy__sympy-24443\\run-1\\final.diff",
+                "reason": "finished",
+                "report_path": "",
+                "status": "solved",
+                "steps": 28,
+                "trace_path": "workspace\\spec-ab-runs\\baseline\\sympy__sympy-24443\\run-1.trace.jsonl",
+                "verify_output": "..                                                                       [100%]\n============================== warnings summary ===============================\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\ctx_mp.py:35\n  D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\mpmath\\ctx_mp.py:35: DeprecationWarning: mpnumeric is deprecated\n    warnings.warn(f\"{name} is deprecated\", DeprecationWarning)\n\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n  D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4: DeprecationWarning: the rational private module is deprecated\n    warnings.warn(\"the rational private module is deprecated\",\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n2 passed, 4 warnings in 0.44s\n",
+                "workspace_path": "workspace\\spec-ab-runs\\baseline\\sympy__sympy-24443\\run-1"
+              },
+              {
+                "cost_usd": 0.0038572016000000004,
+                "diff_path": "workspace\\spec-ab-runs\\baseline\\sympy__sympy-24443\\run-2\\final.diff",
+                "reason": "finished",
+                "report_path": "",
+                "status": "solved",
+                "steps": 13,
+                "trace_path": "workspace\\spec-ab-runs\\baseline\\sympy__sympy-24443\\run-2.trace.jsonl",
+                "verify_output": "..                                                                       [100%]\n============================== warnings summary ===============================\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\ctx_mp.py:35\n  D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\mpmath\\ctx_mp.py:35: DeprecationWarning: mpnumeric is deprecated\n    warnings.warn(f\"{name} is deprecated\", DeprecationWarning)\n\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n  D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4: DeprecationWarning: the rational private module is deprecated\n    warnings.warn(\"the rational private module is deprecated\",\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n2 passed, 4 warnings in 0.42s\n",
+                "workspace_path": "workspace\\spec-ab-runs\\baseline\\sympy__sympy-24443\\run-2"
+              },
+              {
+                "cost_usd": 0.0028824824,
+                "diff_path": "workspace\\spec-ab-runs\\baseline\\sympy__sympy-24443\\run-3\\final.diff",
+                "reason": "finished",
+                "report_path": "",
+                "status": "solved",
+                "steps": 12,
+                "trace_path": "workspace\\spec-ab-runs\\baseline\\sympy__sympy-24443\\run-3.trace.jsonl",
+                "verify_output": "..                                                                       [100%]\n============================== warnings summary ===============================\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\ctx_mp.py:35\n  D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\mpmath\\ctx_mp.py:35: DeprecationWarning: mpnumeric is deprecated\n    warnings.warn(f\"{name} is deprecated\", DeprecationWarning)\n\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n  D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4: DeprecationWarning: the rational private module is deprecated\n    warnings.warn(\"the rational private module is deprecated\",\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n2 passed, 4 warnings in 0.43s\n",
+                "workspace_path": "workspace\\spec-ab-runs\\baseline\\sympy__sympy-24443\\run-3"
+              }
+            ],
+            "runs": 3,
+            "solved": 3
+          }
+        },
+        "total": 12
+      },
+      "metrics": {
+        "cost_usd": {
+          "mean": 0.0035236786666666665,
+          "std": 0.0021237728300527643
+        },
+        "pass_rate": {
+          "mean": 0.9166666666666666,
+          "std": 0.2763853991962833
+        },
+        "steps": {
+          "mean": 14.75,
+          "std": 8.09449401342254
+        }
+      },
+      "skipped_runs": 0,
+      "skips": [],
+      "tasks": {
+        "click_t1_short_help_truncation": {
+          "cost_usd": {
+            "mean": 0.002088398666666667,
+            "std": 0.0004944652538815465
+          },
+          "pass_rate": {
+            "mean": 1.0,
+            "std": 0.0
+          },
+          "results": [
+            {
+              "cost_usd": 0.0014801136000000003,
+              "diff_path": "workspace\\spec-ab-runs\\baseline\\click_t1_short_help_truncation\\run-1\\final.diff",
+              "reason": "finished",
+              "report_path": "",
+              "status": "solved",
+              "steps": 7,
+              "task_id": "click_t1_short_help_truncation",
+              "trace_path": "workspace\\spec-ab-runs\\baseline\\click_t1_short_help_truncation\\run-1.trace.jsonl",
+              "verify_output": "..............                                                           [100%]\n14 passed in 0.04s\n",
+              "workspace_path": "workspace\\spec-ab-runs\\baseline\\click_t1_short_help_truncation\\run-1"
+            },
+            {
+              "cost_usd": 0.0026912648000000003,
+              "diff_path": "workspace\\spec-ab-runs\\baseline\\click_t1_short_help_truncation\\run-2\\final.diff",
+              "reason": "finished",
+              "report_path": "",
+              "status": "solved",
+              "steps": 11,
+              "task_id": "click_t1_short_help_truncation",
+              "trace_path": "workspace\\spec-ab-runs\\baseline\\click_t1_short_help_truncation\\run-2.trace.jsonl",
+              "verify_output": "..............                                                           [100%]\n14 passed in 0.05s\n",
+              "workspace_path": "workspace\\spec-ab-runs\\baseline\\click_t1_short_help_truncation\\run-2"
+            },
+            {
+              "cost_usd": 0.0020938176,
+              "diff_path": "workspace\\spec-ab-runs\\baseline\\click_t1_short_help_truncation\\run-3\\final.diff",
+              "reason": "finished",
+              "report_path": "",
+              "status": "solved",
+              "steps": 6,
+              "task_id": "click_t1_short_help_truncation",
+              "trace_path": "workspace\\spec-ab-runs\\baseline\\click_t1_short_help_truncation\\run-3.trace.jsonl",
+              "verify_output": "..............                                                           [100%]\n14 passed in 0.05s\n",
+              "workspace_path": "workspace\\spec-ab-runs\\baseline\\click_t1_short_help_truncation\\run-3"
+            }
+          ],
+          "runs": 3,
+          "skipped": 0,
+          "skips": [],
+          "steps": {
+            "mean": 8.0,
+            "std": 2.160246899469287
+          },
+          "task_id": "click_t1_short_help_truncation"
+        },
+        "click_t2_option_prefix_parsing": {
+          "cost_usd": {
+            "mean": 0.001340444,
+            "std": 0.0002558314588951615
+          },
+          "pass_rate": {
+            "mean": 1.0,
+            "std": 0.0
+          },
+          "results": [
+            {
+              "cost_usd": 0.0011426352,
+              "diff_path": "workspace\\spec-ab-runs\\baseline\\click_t2_option_prefix_parsing\\run-1\\final.diff",
+              "reason": "finished",
+              "report_path": "",
+              "status": "solved",
+              "steps": 7,
+              "task_id": "click_t2_option_prefix_parsing",
+              "trace_path": "workspace\\spec-ab-runs\\baseline\\click_t2_option_prefix_parsing\\run-1.trace.jsonl",
+              "verify_output": ".......                                                                  [100%]\n7 passed in 0.02s\n",
+              "workspace_path": "workspace\\spec-ab-runs\\baseline\\click_t2_option_prefix_parsing\\run-1"
+            },
+            {
+              "cost_usd": 0.0017017000000000002,
+              "diff_path": "workspace\\spec-ab-runs\\baseline\\click_t2_option_prefix_parsing\\run-2\\final.diff",
+              "reason": "finished",
+              "report_path": "",
+              "status": "solved",
+              "steps": 9,
+              "task_id": "click_t2_option_prefix_parsing",
+              "trace_path": "workspace\\spec-ab-runs\\baseline\\click_t2_option_prefix_parsing\\run-2.trace.jsonl",
+              "verify_output": ".......                                                                  [100%]\n7 passed in 0.03s\n",
+              "workspace_path": "workspace\\spec-ab-runs\\baseline\\click_t2_option_prefix_parsing\\run-2"
+            },
+            {
+              "cost_usd": 0.0011769968,
+              "diff_path": "workspace\\spec-ab-runs\\baseline\\click_t2_option_prefix_parsing\\run-3\\final.diff",
+              "reason": "finished",
+              "report_path": "",
+              "status": "solved",
+              "steps": 9,
+              "task_id": "click_t2_option_prefix_parsing",
+              "trace_path": "workspace\\spec-ab-runs\\baseline\\click_t2_option_prefix_parsing\\run-3.trace.jsonl",
+              "verify_output": ".......                                                                  [100%]\n7 passed in 0.03s\n",
+              "workspace_path": "workspace\\spec-ab-runs\\baseline\\click_t2_option_prefix_parsing\\run-3"
+            }
+          ],
+          "runs": 3,
+          "skipped": 0,
+          "skips": [],
+          "steps": {
+            "mean": 8.333333333333334,
+            "std": 0.9428090415820634
+          },
+          "task_id": "click_t2_option_prefix_parsing"
+        },
+        "click_t3_preserve_paragraph_wrapping": {
+          "cost_usd": {
+            "mean": 0.006126166666666666,
+            "std": 0.0004521012672741167
+          },
+          "pass_rate": {
+            "mean": 0.6666666666666666,
+            "std": 0.4714045207910317
+          },
+          "results": [
+            {
+              "cost_usd": 0.005814250399999999,
+              "diff_path": "workspace\\spec-ab-runs\\baseline\\click_t3_preserve_paragraph_wrapping\\run-1\\final.diff",
+              "reason": "budget_exceeded",
+              "report_path": "",
+              "status": "failed",
+              "steps": 27,
+              "task_id": "click_t3_preserve_paragraph_wrapping",
+              "trace_path": "workspace\\spec-ab-runs\\baseline\\click_t3_preserve_paragraph_wrapping\\run-1.trace.jsonl",
+              "verify_output": "F..........F.....                                                        [100%]\n================================== FAILURES ===================================\n__________________________ test_basic_functionality ___________________________\n\nrunner = <click.testing.CliRunner object at 0x000001788F212CF0>\n\n    def test_basic_functionality(runner):\n        @click.command()\n        def cli():\n            \"\"\"First paragraph.\n    \n            This is a very long second\n            paragraph and not correctly\n            wrapped but it will be rewrapped.\n    \n            \\b\n            This is\n            a paragraph\n            without rewrapping.\n    \n            \\b\n            1\n             2\n              3\n    \n            And this is a paragraph\n            that will be rewrapped again.\n            \"\"\"\n    \n        result = runner.invoke(cli, [\"--help\"], terminal_width=60)\n        assert not result.exception\n>       assert result.output.splitlines() == [\n            \"Usage: cli [OPTIONS]\",\n            \"\",\n            \"  First paragraph.\",\n            \"\",\n            \"  This is a very long second paragraph and not correctly\",\n            \"  wrapped but it will be rewrapped.\",\n            \"\",\n            \"  This is\",\n            \"  a paragraph\",\n            \"  without rewrapping.\",\n            \"\",\n            \"  1\",\n            \"   2\",\n            \"    3\",\n            \"\",\n            \"  And this is a paragraph that will be rewrapped again.\",\n            \"\",\n            \"Options:\",\n            \"  --help  Show this message and exit.\",\n        ]\nE       AssertionError: assert ['Usage: cli ...rrectly', ...] == ['Usage: cli ...rapped.', ...]\nE         \nE         At index 4 diff: '  This is a very long second' != '  This is a very long second paragraph and not correctly'\nE         Left contains 2 more items, first extra item: 'Options:'\nE         Use -v to get more diff\n\ntests\\test_formatting.py:29: AssertionError\n__________________________ test_truncating_docstring __________________________\n\nrunner = <click.testing.CliRunner object at 0x000001788F322120>\n\n    def test_truncating_docstring(runner):\n        @click.command()\n        @click.pass_context\n        def cli(ctx):\n            \"\"\"First paragraph.\n    \n            This is a very long second\n            paragraph and not correctly\n            wrapped but it will be rewrapped.\n            \\f\n    \n            :param click.core.Context ctx: Click context.\n            \"\"\"\n    \n        result = runner.invoke(cli, [\"--help\"], terminal_width=60)\n        assert not result.exception\n>       assert result.output.splitlines() == [\n            \"Usage: cli [OPTIONS]\",\n            \"\",\n            \"  First paragraph.\",\n            \"\",\n            \"  This is a very long second paragraph and not correctly\",\n            \"  wrapped but it will be rewrapped.\",\n            \"\",\n            \"Options:\",\n            \"  --help  Show this message and exit.\",\n        ]\nE       AssertionError: assert ['Usage: cli ...rrectly', ...] == ['Usage: cli ...rapped.', ...]\nE         \nE         At index 4 diff: '  This is a very long second' != '  This is a very long second paragraph and not correctly'\nE         Left contains one more item: '  --help  Show this message and exit.'\nE         Use -v to get more diff\n\ntests\\test_formatting.py:286: AssertionError\n=========================== short test summary info ===========================\nFAILED tests/test_formatting.py::test_basic_functionality - AssertionError: a...\nFAILED tests/test_formatting.py::test_truncating_docstring - AssertionError: ...\n2 failed, 15 passed in 0.13s\n",
+              "workspace_path": "workspace\\spec-ab-runs\\baseline\\click_t3_preserve_paragraph_wrapping\\run-1"
+            },
+            {
+              "cost_usd": 0.006765472,
+              "diff_path": "workspace\\spec-ab-runs\\baseline\\click_t3_preserve_paragraph_wrapping\\run-2\\final.diff",
+              "reason": "finished",
+              "report_path": "",
+              "status": "solved",
+              "steps": 23,
+              "task_id": "click_t3_preserve_paragraph_wrapping",
+              "trace_path": "workspace\\spec-ab-runs\\baseline\\click_t3_preserve_paragraph_wrapping\\run-2.trace.jsonl",
+              "verify_output": ".................                                                        [100%]\n17 passed in 0.04s\n",
+              "workspace_path": "workspace\\spec-ab-runs\\baseline\\click_t3_preserve_paragraph_wrapping\\run-2"
+            },
+            {
+              "cost_usd": 0.0057987776,
+              "diff_path": "workspace\\spec-ab-runs\\baseline\\click_t3_preserve_paragraph_wrapping\\run-3\\final.diff",
+              "reason": "finished",
+              "report_path": "",
+              "status": "solved",
+              "steps": 25,
+              "task_id": "click_t3_preserve_paragraph_wrapping",
+              "trace_path": "workspace\\spec-ab-runs\\baseline\\click_t3_preserve_paragraph_wrapping\\run-3.trace.jsonl",
+              "verify_output": ".................                                                        [100%]\n17 passed in 0.05s\n",
+              "workspace_path": "workspace\\spec-ab-runs\\baseline\\click_t3_preserve_paragraph_wrapping\\run-3"
+            }
+          ],
+          "runs": 3,
+          "skipped": 0,
+          "skips": [],
+          "steps": {
+            "mean": 25.0,
+            "std": 1.632993161855452
+          },
+          "task_id": "click_t3_preserve_paragraph_wrapping"
+        },
+        "sympy__sympy-24443": {
+          "cost_usd": {
+            "mean": 0.004539705333333333,
+            "std": 0.0017016188440708434
+          },
+          "pass_rate": {
+            "mean": 1.0,
+            "std": 0.0
+          },
+          "results": [
+            {
+              "cost_usd": 0.006879431999999999,
+              "diff_path": "workspace\\spec-ab-runs\\baseline\\sympy__sympy-24443\\run-1\\final.diff",
+              "reason": "finished",
+              "report_path": "",
+              "status": "solved",
+              "steps": 28,
+              "task_id": "sympy__sympy-24443",
+              "trace_path": "workspace\\spec-ab-runs\\baseline\\sympy__sympy-24443\\run-1.trace.jsonl",
+              "verify_output": "..                                                                       [100%]\n============================== warnings summary ===============================\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\ctx_mp.py:35\n  D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\mpmath\\ctx_mp.py:35: DeprecationWarning: mpnumeric is deprecated\n    warnings.warn(f\"{name} is deprecated\", DeprecationWarning)\n\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n  D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4: DeprecationWarning: the rational private module is deprecated\n    warnings.warn(\"the rational private module is deprecated\",\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n2 passed, 4 warnings in 0.44s\n",
+              "workspace_path": "workspace\\spec-ab-runs\\baseline\\sympy__sympy-24443\\run-1"
+            },
+            {
+              "cost_usd": 0.0038572016000000004,
+              "diff_path": "workspace\\spec-ab-runs\\baseline\\sympy__sympy-24443\\run-2\\final.diff",
+              "reason": "finished",
+              "report_path": "",
+              "status": "solved",
+              "steps": 13,
+              "task_id": "sympy__sympy-24443",
+              "trace_path": "workspace\\spec-ab-runs\\baseline\\sympy__sympy-24443\\run-2.trace.jsonl",
+              "verify_output": "..                                                                       [100%]\n============================== warnings summary ===============================\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\ctx_mp.py:35\n  D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\mpmath\\ctx_mp.py:35: DeprecationWarning: mpnumeric is deprecated\n    warnings.warn(f\"{name} is deprecated\", DeprecationWarning)\n\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n  D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4: DeprecationWarning: the rational private module is deprecated\n    warnings.warn(\"the rational private module is deprecated\",\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n2 passed, 4 warnings in 0.42s\n",
+              "workspace_path": "workspace\\spec-ab-runs\\baseline\\sympy__sympy-24443\\run-2"
+            },
+            {
+              "cost_usd": 0.0028824824,
+              "diff_path": "workspace\\spec-ab-runs\\baseline\\sympy__sympy-24443\\run-3\\final.diff",
+              "reason": "finished",
+              "report_path": "",
+              "status": "solved",
+              "steps": 12,
+              "task_id": "sympy__sympy-24443",
+              "trace_path": "workspace\\spec-ab-runs\\baseline\\sympy__sympy-24443\\run-3.trace.jsonl",
+              "verify_output": "..                                                                       [100%]\n============================== warnings summary ===============================\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\ctx_mp.py:35\n  D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\mpmath\\ctx_mp.py:35: DeprecationWarning: mpnumeric is deprecated\n    warnings.warn(f\"{name} is deprecated\", DeprecationWarning)\n\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n..\\..\\..\\..\\..\\..\\..\\..\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4\n  D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\mpmath\\rational.py:4: DeprecationWarning: the rational private module is deprecated\n    warnings.warn(\"the rational private module is deprecated\",\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n2 passed, 4 warnings in 0.43s\n",
+              "workspace_path": "workspace\\spec-ab-runs\\baseline\\sympy__sympy-24443\\run-3"
+            }
+          ],
+          "runs": 3,
+          "skipped": 0,
+          "skips": [],
+          "steps": {
+            "mean": 17.666666666666668,
+            "std": 7.3181661333667165
+          },
+          "task_id": "sympy__sympy-24443"
+        }
+      },
+      "trace_samples": [
+        "workspace\\spec-ab-runs\\baseline\\click_t1_short_help_truncation\\run-1.trace.jsonl"
+      ]
+    }
+  },
+  "noise_warning": "LLM evals are noisy: never draw conclusions from a single solution_rate. Use mean\u00b1std and inspect traces."
+}

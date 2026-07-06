@@ -1,0 +1,257 @@
+{
+  "groups": {
+    "agentspec-full": {
+      "base_summary": {
+        "avg_cost_usd": 0.0,
+        "avg_steps": 1.0,
+        "mean_solution_rate": 0.0,
+        "solution_rate": 0.0,
+        "solved": 0,
+        "std_solution_rate": 0.0,
+        "tasks": {
+          "click_t1_short_help_truncation": {
+            "avg_cost_usd": 0.0,
+            "avg_steps": 1.0,
+            "pass_rate": 0.0,
+            "results": [
+              {
+                "cost_usd": 0.0,
+                "diff_path": "",
+                "reason": "",
+                "report_path": "",
+                "status": "failed",
+                "steps": 1,
+                "trace_path": "",
+                "verify_output": ".FFFFFF.FFFFFF                                                           [100%]\n================================== FAILURES ===================================\n_____________ test_make_default_short_help[-equal length, no dot] _____________\n\nvalue = '123 567 90', max_length = 10, alter = None, expect = '123 567 90'\n\n    @pytest.mark.parametrize(\n        (\"value\", \"max_length\", \"expect\"),\n        [\n            pytest.param(\"\", 10, \"\", id=\"empty\"),\n            pytest.param(\"123 567 90\", 10, \"123 567 90\", id=\"equal length, no dot\"),\n            pytest.param(\"123 567 9. aaaa bbb\", 10, \"123 567 9.\", id=\"sentence < max\"),\n            pytest.param(\"123 567\\n\\n 9. aaaa bbb\", 10, \"123 567\", id=\"paragraph < max\"),\n            pytest.param(\"123 567 90123.\", 10, \"123 567...\", id=\"truncate\"),\n            pytest.param(\"123 5678 xxxxxx\", 10, \"123...\", id=\"length includes suffix\"),\n            pytest.param(\n                \"token in ~/.netrc ciao ciao\",\n                20,\n                \"token in ~/.netrc...\",\n                id=\"ignore dot in word\",\n            ),\n        ],\n    )\n    @pytest.mark.parametrize(\n        \"alter\",\n        [\n            pytest.param(None, id=\"\"),\n            pytest.param(\n                lambda text: \"\\n\\b\\n\" + \"  \".join(text.split(\" \")) + \"\\n\", id=\"no-wrap mark\"\n            ),\n        ],\n    )\n    def test_make_default_short_help(value, max_length, alter, expect):\n        assert len(expect) <= max_length\n    \n        if alter:\n            value = alter(value)\n    \n        out = click.utils.make_default_short_help(value, max_length)\n>       assert out == expect\nE       AssertionError: assert '123' == '123 567 90'\nE         \nE         - 123 567 90\nE         + 123\n\ntests\\test_utils.py:507: AssertionError\n________________ test_make_default_short_help[-sentence < max] ________________\n\nvalue = '123 567 9. aaaa bbb', max_length = 10, alter = None\nexpect = '123 567 9.'\n\n    @pytest.mark.parametrize(\n        (\"value\", \"max_length\", \"expect\"),\n        [\n            pytest.param(\"\", 10, \"\", id=\"empty\"),\n            pytest.param(\"123 567 90\", 10, \"123 567 90\", id=\"equal length, no dot\"),\n            pytest.param(\"123 567 9. aaaa bbb\", 10, \"123 567 9.\", id=\"sentence < max\"),\n            pytest.param(\"123 567\\n\\n 9. aaaa bbb\", 10, \"123 567\", id=\"paragraph < max\"),\n            pytest.param(\"123 567 90123.\", 10, \"123 567...\", id=\"truncate\"),\n            pytest.param(\"123 5678 xxxxxx\", 10, \"123...\", id=\"length includes suffix\"),\n            pytest.param(\n                \"token in ~/.netrc ciao ciao\",\n                20,\n                \"token in ~/.netrc...\",\n                id=\"ignore dot in word\",\n            ),\n        ],\n    )\n    @pytest.mark.parametrize(\n        \"alter\",\n        [\n            pytest.param(None, id=\"\"),\n            pytest.param(\n                lambda text: \"\\n\\b\\n\" + \"  \".join(text.split(\" \")) + \"\\n\", id=\"no-wrap mark\"\n            ),\n        ],\n    )\n    def test_make_default_short_help(value, max_length, alter, expect):\n        assert len(expect) <= max_length\n    \n        if alter:\n            value = alter(value)\n    \n        out = click.utils.make_default_short_help(value, max_length)\n>       assert out == expect\nE       AssertionError: assert '123' == '123 567 9.'\nE         \nE         - 123 567 9.\nE         + 123\n\ntests\\test_utils.py:507: AssertionError\n_______________ test_make_default_short_help[-paragraph < max] ________________\n\nvalue = '123 567\\n\\n 9. aaaa bbb', max_length = 10, alter = None\nexpect = '123 567'\n\n    @pytest.mark.parametrize(\n        (\"value\", \"max_length\", \"expect\"),\n        [\n            pytest.param(\"\", 10, \"\", id=\"empty\"),\n            pytest.param(\"123 567 90\", 10, \"123 567 90\", id=\"equal length, no dot\"),\n            pytest.param(\"123 567 9. aaaa bbb\", 10, \"123 567 9.\", id=\"sentence < max\"),\n            pytest.param(\"123 567\\n\\n 9. aaaa bbb\", 10, \"123 567\", id=\"paragraph < max\"),\n            pytest.param(\"123 567 90123.\", 10, \"123 567...\", id=\"truncate\"),\n            pytest.",
+                "workspace_path": "workspace\\spec-ab\\agentspec-full\\click_t1_short_help_truncation\\run-1"
+              }
+            ],
+            "runs": 1,
+            "solved": 0
+          }
+        },
+        "total": 1
+      },
+      "metrics": {
+        "cost_usd": {
+          "mean": 0.0,
+          "std": 0.0
+        },
+        "pass_rate": {
+          "mean": 0.0,
+          "std": 0.0
+        },
+        "steps": {
+          "mean": 1.0,
+          "std": 0.0
+        }
+      },
+      "skipped_runs": 0,
+      "skips": [],
+      "tasks": {
+        "click_t1_short_help_truncation": {
+          "cost_usd": {
+            "mean": 0.0,
+            "std": 0.0
+          },
+          "pass_rate": {
+            "mean": 0.0,
+            "std": 0.0
+          },
+          "results": [
+            {
+              "cost_usd": 0.0,
+              "diff_path": "",
+              "reason": "",
+              "report_path": "",
+              "status": "failed",
+              "steps": 1,
+              "task_id": "click_t1_short_help_truncation",
+              "trace_path": "",
+              "verify_output": ".FFFFFF.FFFFFF                                                           [100%]\n================================== FAILURES ===================================\n_____________ test_make_default_short_help[-equal length, no dot] _____________\n\nvalue = '123 567 90', max_length = 10, alter = None, expect = '123 567 90'\n\n    @pytest.mark.parametrize(\n        (\"value\", \"max_length\", \"expect\"),\n        [\n            pytest.param(\"\", 10, \"\", id=\"empty\"),\n            pytest.param(\"123 567 90\", 10, \"123 567 90\", id=\"equal length, no dot\"),\n            pytest.param(\"123 567 9. aaaa bbb\", 10, \"123 567 9.\", id=\"sentence < max\"),\n            pytest.param(\"123 567\\n\\n 9. aaaa bbb\", 10, \"123 567\", id=\"paragraph < max\"),\n            pytest.param(\"123 567 90123.\", 10, \"123 567...\", id=\"truncate\"),\n            pytest.param(\"123 5678 xxxxxx\", 10, \"123...\", id=\"length includes suffix\"),\n            pytest.param(\n                \"token in ~/.netrc ciao ciao\",\n                20,\n                \"token in ~/.netrc...\",\n                id=\"ignore dot in word\",\n            ),\n        ],\n    )\n    @pytest.mark.parametrize(\n        \"alter\",\n        [\n            pytest.param(None, id=\"\"),\n            pytest.param(\n                lambda text: \"\\n\\b\\n\" + \"  \".join(text.split(\" \")) + \"\\n\", id=\"no-wrap mark\"\n            ),\n        ],\n    )\n    def test_make_default_short_help(value, max_length, alter, expect):\n        assert len(expect) <= max_length\n    \n        if alter:\n            value = alter(value)\n    \n        out = click.utils.make_default_short_help(value, max_length)\n>       assert out == expect\nE       AssertionError: assert '123' == '123 567 90'\nE         \nE         - 123 567 90\nE         + 123\n\ntests\\test_utils.py:507: AssertionError\n________________ test_make_default_short_help[-sentence < max] ________________\n\nvalue = '123 567 9. aaaa bbb', max_length = 10, alter = None\nexpect = '123 567 9.'\n\n    @pytest.mark.parametrize(\n        (\"value\", \"max_length\", \"expect\"),\n        [\n            pytest.param(\"\", 10, \"\", id=\"empty\"),\n            pytest.param(\"123 567 90\", 10, \"123 567 90\", id=\"equal length, no dot\"),\n            pytest.param(\"123 567 9. aaaa bbb\", 10, \"123 567 9.\", id=\"sentence < max\"),\n            pytest.param(\"123 567\\n\\n 9. aaaa bbb\", 10, \"123 567\", id=\"paragraph < max\"),\n            pytest.param(\"123 567 90123.\", 10, \"123 567...\", id=\"truncate\"),\n            pytest.param(\"123 5678 xxxxxx\", 10, \"123...\", id=\"length includes suffix\"),\n            pytest.param(\n                \"token in ~/.netrc ciao ciao\",\n                20,\n                \"token in ~/.netrc...\",\n                id=\"ignore dot in word\",\n            ),\n        ],\n    )\n    @pytest.mark.parametrize(\n        \"alter\",\n        [\n            pytest.param(None, id=\"\"),\n            pytest.param(\n                lambda text: \"\\n\\b\\n\" + \"  \".join(text.split(\" \")) + \"\\n\", id=\"no-wrap mark\"\n            ),\n        ],\n    )\n    def test_make_default_short_help(value, max_length, alter, expect):\n        assert len(expect) <= max_length\n    \n        if alter:\n            value = alter(value)\n    \n        out = click.utils.make_default_short_help(value, max_length)\n>       assert out == expect\nE       AssertionError: assert '123' == '123 567 9.'\nE         \nE         - 123 567 9.\nE         + 123\n\ntests\\test_utils.py:507: AssertionError\n_______________ test_make_default_short_help[-paragraph < max] ________________\n\nvalue = '123 567\\n\\n 9. aaaa bbb', max_length = 10, alter = None\nexpect = '123 567'\n\n    @pytest.mark.parametrize(\n        (\"value\", \"max_length\", \"expect\"),\n        [\n            pytest.param(\"\", 10, \"\", id=\"empty\"),\n            pytest.param(\"123 567 90\", 10, \"123 567 90\", id=\"equal length, no dot\"),\n            pytest.param(\"123 567 9. aaaa bbb\", 10, \"123 567 9.\", id=\"sentence < max\"),\n            pytest.param(\"123 567\\n\\n 9. aaaa bbb\", 10, \"123 567\", id=\"paragraph < max\"),\n            pytest.param(\"123 567 90123.\", 10, \"123 567...\", id=\"truncate\"),\n            pytest.",
+              "workspace_path": "workspace\\spec-ab\\agentspec-full\\click_t1_short_help_truncation\\run-1"
+            }
+          ],
+          "runs": 1,
+          "skipped": 0,
+          "skips": [],
+          "steps": {
+            "mean": 1.0,
+            "std": 0.0
+          },
+          "task_id": "click_t1_short_help_truncation"
+        }
+      },
+      "trace_samples": []
+    },
+    "agentspec-minimal": {
+      "base_summary": {
+        "avg_cost_usd": 0.0,
+        "avg_steps": 1.0,
+        "mean_solution_rate": 0.0,
+        "solution_rate": 0.0,
+        "solved": 0,
+        "std_solution_rate": 0.0,
+        "tasks": {
+          "click_t1_short_help_truncation": {
+            "avg_cost_usd": 0.0,
+            "avg_steps": 1.0,
+            "pass_rate": 0.0,
+            "results": [
+              {
+                "cost_usd": 0.0,
+                "diff_path": "",
+                "reason": "",
+                "report_path": "",
+                "status": "failed",
+                "steps": 1,
+                "trace_path": "",
+                "verify_output": ".FFFFFF.FFFFFF                                                           [100%]\n================================== FAILURES ===================================\n_____________ test_make_default_short_help[-equal length, no dot] _____________\n\nvalue = '123 567 90', max_length = 10, alter = None, expect = '123 567 90'\n\n    @pytest.mark.parametrize(\n        (\"value\", \"max_length\", \"expect\"),\n        [\n            pytest.param(\"\", 10, \"\", id=\"empty\"),\n            pytest.param(\"123 567 90\", 10, \"123 567 90\", id=\"equal length, no dot\"),\n            pytest.param(\"123 567 9. aaaa bbb\", 10, \"123 567 9.\", id=\"sentence < max\"),\n            pytest.param(\"123 567\\n\\n 9. aaaa bbb\", 10, \"123 567\", id=\"paragraph < max\"),\n            pytest.param(\"123 567 90123.\", 10, \"123 567...\", id=\"truncate\"),\n            pytest.param(\"123 5678 xxxxxx\", 10, \"123...\", id=\"length includes suffix\"),\n            pytest.param(\n                \"token in ~/.netrc ciao ciao\",\n                20,\n                \"token in ~/.netrc...\",\n                id=\"ignore dot in word\",\n            ),\n        ],\n    )\n    @pytest.mark.parametrize(\n        \"alter\",\n        [\n            pytest.param(None, id=\"\"),\n            pytest.param(\n                lambda text: \"\\n\\b\\n\" + \"  \".join(text.split(\" \")) + \"\\n\", id=\"no-wrap mark\"\n            ),\n        ],\n    )\n    def test_make_default_short_help(value, max_length, alter, expect):\n        assert len(expect) <= max_length\n    \n        if alter:\n            value = alter(value)\n    \n        out = click.utils.make_default_short_help(value, max_length)\n>       assert out == expect\nE       AssertionError: assert '123' == '123 567 90'\nE         \nE         - 123 567 90\nE         + 123\n\ntests\\test_utils.py:507: AssertionError\n________________ test_make_default_short_help[-sentence < max] ________________\n\nvalue = '123 567 9. aaaa bbb', max_length = 10, alter = None\nexpect = '123 567 9.'\n\n    @pytest.mark.parametrize(\n        (\"value\", \"max_length\", \"expect\"),\n        [\n            pytest.param(\"\", 10, \"\", id=\"empty\"),\n            pytest.param(\"123 567 90\", 10, \"123 567 90\", id=\"equal length, no dot\"),\n            pytest.param(\"123 567 9. aaaa bbb\", 10, \"123 567 9.\", id=\"sentence < max\"),\n            pytest.param(\"123 567\\n\\n 9. aaaa bbb\", 10, \"123 567\", id=\"paragraph < max\"),\n            pytest.param(\"123 567 90123.\", 10, \"123 567...\", id=\"truncate\"),\n            pytest.param(\"123 5678 xxxxxx\", 10, \"123...\", id=\"length includes suffix\"),\n            pytest.param(\n                \"token in ~/.netrc ciao ciao\",\n                20,\n                \"token in ~/.netrc...\",\n                id=\"ignore dot in word\",\n            ),\n        ],\n    )\n    @pytest.mark.parametrize(\n        \"alter\",\n        [\n            pytest.param(None, id=\"\"),\n            pytest.param(\n                lambda text: \"\\n\\b\\n\" + \"  \".join(text.split(\" \")) + \"\\n\", id=\"no-wrap mark\"\n            ),\n        ],\n    )\n    def test_make_default_short_help(value, max_length, alter, expect):\n        assert len(expect) <= max_length\n    \n        if alter:\n            value = alter(value)\n    \n        out = click.utils.make_default_short_help(value, max_length)\n>       assert out == expect\nE       AssertionError: assert '123' == '123 567 9.'\nE         \nE         - 123 567 9.\nE         + 123\n\ntests\\test_utils.py:507: AssertionError\n_______________ test_make_default_short_help[-paragraph < max] ________________\n\nvalue = '123 567\\n\\n 9. aaaa bbb', max_length = 10, alter = None\nexpect = '123 567'\n\n    @pytest.mark.parametrize(\n        (\"value\", \"max_length\", \"expect\"),\n        [\n            pytest.param(\"\", 10, \"\", id=\"empty\"),\n            pytest.param(\"123 567 90\", 10, \"123 567 90\", id=\"equal length, no dot\"),\n            pytest.param(\"123 567 9. aaaa bbb\", 10, \"123 567 9.\", id=\"sentence < max\"),\n            pytest.param(\"123 567\\n\\n 9. aaaa bbb\", 10, \"123 567\", id=\"paragraph < max\"),\n            pytest.param(\"123 567 90123.\", 10, \"123 567...\", id=\"truncate\"),\n            pytest.",
+                "workspace_path": "workspace\\spec-ab\\agentspec-minimal\\click_t1_short_help_truncation\\run-1"
+              }
+            ],
+            "runs": 1,
+            "solved": 0
+          }
+        },
+        "total": 1
+      },
+      "metrics": {
+        "cost_usd": {
+          "mean": 0.0,
+          "std": 0.0
+        },
+        "pass_rate": {
+          "mean": 0.0,
+          "std": 0.0
+        },
+        "steps": {
+          "mean": 1.0,
+          "std": 0.0
+        }
+      },
+      "skipped_runs": 0,
+      "skips": [],
+      "tasks": {
+        "click_t1_short_help_truncation": {
+          "cost_usd": {
+            "mean": 0.0,
+            "std": 0.0
+          },
+          "pass_rate": {
+            "mean": 0.0,
+            "std": 0.0
+          },
+          "results": [
+            {
+              "cost_usd": 0.0,
+              "diff_path": "",
+              "reason": "",
+              "report_path": "",
+              "status": "failed",
+              "steps": 1,
+              "task_id": "click_t1_short_help_truncation",
+              "trace_path": "",
+              "verify_output": ".FFFFFF.FFFFFF                                                           [100%]\n================================== FAILURES ===================================\n_____________ test_make_default_short_help[-equal length, no dot] _____________\n\nvalue = '123 567 90', max_length = 10, alter = None, expect = '123 567 90'\n\n    @pytest.mark.parametrize(\n        (\"value\", \"max_length\", \"expect\"),\n        [\n            pytest.param(\"\", 10, \"\", id=\"empty\"),\n            pytest.param(\"123 567 90\", 10, \"123 567 90\", id=\"equal length, no dot\"),\n            pytest.param(\"123 567 9. aaaa bbb\", 10, \"123 567 9.\", id=\"sentence < max\"),\n            pytest.param(\"123 567\\n\\n 9. aaaa bbb\", 10, \"123 567\", id=\"paragraph < max\"),\n            pytest.param(\"123 567 90123.\", 10, \"123 567...\", id=\"truncate\"),\n            pytest.param(\"123 5678 xxxxxx\", 10, \"123...\", id=\"length includes suffix\"),\n            pytest.param(\n                \"token in ~/.netrc ciao ciao\",\n                20,\n                \"token in ~/.netrc...\",\n                id=\"ignore dot in word\",\n            ),\n        ],\n    )\n    @pytest.mark.parametrize(\n        \"alter\",\n        [\n            pytest.param(None, id=\"\"),\n            pytest.param(\n                lambda text: \"\\n\\b\\n\" + \"  \".join(text.split(\" \")) + \"\\n\", id=\"no-wrap mark\"\n            ),\n        ],\n    )\n    def test_make_default_short_help(value, max_length, alter, expect):\n        assert len(expect) <= max_length\n    \n        if alter:\n            value = alter(value)\n    \n        out = click.utils.make_default_short_help(value, max_length)\n>       assert out == expect\nE       AssertionError: assert '123' == '123 567 90'\nE         \nE         - 123 567 90\nE         + 123\n\ntests\\test_utils.py:507: AssertionError\n________________ test_make_default_short_help[-sentence < max] ________________\n\nvalue = '123 567 9. aaaa bbb', max_length = 10, alter = None\nexpect = '123 567 9.'\n\n    @pytest.mark.parametrize(\n        (\"value\", \"max_length\", \"expect\"),\n        [\n            pytest.param(\"\", 10, \"\", id=\"empty\"),\n            pytest.param(\"123 567 90\", 10, \"123 567 90\", id=\"equal length, no dot\"),\n            pytest.param(\"123 567 9. aaaa bbb\", 10, \"123 567 9.\", id=\"sentence < max\"),\n            pytest.param(\"123 567\\n\\n 9. aaaa bbb\", 10, \"123 567\", id=\"paragraph < max\"),\n            pytest.param(\"123 567 90123.\", 10, \"123 567...\", id=\"truncate\"),\n            pytest.param(\"123 5678 xxxxxx\", 10, \"123...\", id=\"length includes suffix\"),\n            pytest.param(\n                \"token in ~/.netrc ciao ciao\",\n                20,\n                \"token in ~/.netrc...\",\n                id=\"ignore dot in word\",\n            ),\n        ],\n    )\n    @pytest.mark.parametrize(\n        \"alter\",\n        [\n            pytest.param(None, id=\"\"),\n            pytest.param(\n                lambda text: \"\\n\\b\\n\" + \"  \".join(text.split(\" \")) + \"\\n\", id=\"no-wrap mark\"\n            ),\n        ],\n    )\n    def test_make_default_short_help(value, max_length, alter, expect):\n        assert len(expect) <= max_length\n    \n        if alter:\n            value = alter(value)\n    \n        out = click.utils.make_default_short_help(value, max_length)\n>       assert out == expect\nE       AssertionError: assert '123' == '123 567 9.'\nE         \nE         - 123 567 9.\nE         + 123\n\ntests\\test_utils.py:507: AssertionError\n_______________ test_make_default_short_help[-paragraph < max] ________________\n\nvalue = '123 567\\n\\n 9. aaaa bbb', max_length = 10, alter = None\nexpect = '123 567'\n\n    @pytest.mark.parametrize(\n        (\"value\", \"max_length\", \"expect\"),\n        [\n            pytest.param(\"\", 10, \"\", id=\"empty\"),\n            pytest.param(\"123 567 90\", 10, \"123 567 90\", id=\"equal length, no dot\"),\n            pytest.param(\"123 567 9. aaaa bbb\", 10, \"123 567 9.\", id=\"sentence < max\"),\n            pytest.param(\"123 567\\n\\n 9. aaaa bbb\", 10, \"123 567\", id=\"paragraph < max\"),\n            pytest.param(\"123 567 90123.\", 10, \"123 567...\", id=\"truncate\"),\n            pytest.",
+              "workspace_path": "workspace\\spec-ab\\agentspec-minimal\\click_t1_short_help_truncation\\run-1"
+            }
+          ],
+          "runs": 1,
+          "skipped": 0,
+          "skips": [],
+          "steps": {
+            "mean": 1.0,
+            "std": 0.0
+          },
+          "task_id": "click_t1_short_help_truncation"
+        }
+      },
+      "trace_samples": []
+    },
+    "baseline": {
+      "base_summary": {
+        "avg_cost_usd": 0.0,
+        "avg_steps": 1.0,
+        "mean_solution_rate": 0.0,
+        "solution_rate": 0.0,
+        "solved": 0,
+        "std_solution_rate": 0.0,
+        "tasks": {
+          "click_t1_short_help_truncation": {
+            "avg_cost_usd": 0.0,
+            "avg_steps": 1.0,
+            "pass_rate": 0.0,
+            "results": [
+              {
+                "cost_usd": 0.0,
+                "diff_path": "",
+                "reason": "",
+                "report_path": "",
+                "status": "failed",
+                "steps": 1,
+                "trace_path": "",
+                "verify_output": ".FFFFFF.FFFFFF                                                           [100%]\n================================== FAILURES ===================================\n_____________ test_make_default_short_help[-equal length, no dot] _____________\n\nvalue = '123 567 90', max_length = 10, alter = None, expect = '123 567 90'\n\n    @pytest.mark.parametrize(\n        (\"value\", \"max_length\", \"expect\"),\n        [\n            pytest.param(\"\", 10, \"\", id=\"empty\"),\n            pytest.param(\"123 567 90\", 10, \"123 567 90\", id=\"equal length, no dot\"),\n            pytest.param(\"123 567 9. aaaa bbb\", 10, \"123 567 9.\", id=\"sentence < max\"),\n            pytest.param(\"123 567\\n\\n 9. aaaa bbb\", 10, \"123 567\", id=\"paragraph < max\"),\n            pytest.param(\"123 567 90123.\", 10, \"123 567...\", id=\"truncate\"),\n            pytest.param(\"123 5678 xxxxxx\", 10, \"123...\", id=\"length includes suffix\"),\n            pytest.param(\n                \"token in ~/.netrc ciao ciao\",\n                20,\n                \"token in ~/.netrc...\",\n                id=\"ignore dot in word\",\n            ),\n        ],\n    )\n    @pytest.mark.parametrize(\n        \"alter\",\n        [\n            pytest.param(None, id=\"\"),\n            pytest.param(\n                lambda text: \"\\n\\b\\n\" + \"  \".join(text.split(\" \")) + \"\\n\", id=\"no-wrap mark\"\n            ),\n        ],\n    )\n    def test_make_default_short_help(value, max_length, alter, expect):\n        assert len(expect) <= max_length\n    \n        if alter:\n            value = alter(value)\n    \n        out = click.utils.make_default_short_help(value, max_length)\n>       assert out == expect\nE       AssertionError: assert '123' == '123 567 90'\nE         \nE         - 123 567 90\nE         + 123\n\ntests\\test_utils.py:507: AssertionError\n________________ test_make_default_short_help[-sentence < max] ________________\n\nvalue = '123 567 9. aaaa bbb', max_length = 10, alter = None\nexpect = '123 567 9.'\n\n    @pytest.mark.parametrize(\n        (\"value\", \"max_length\", \"expect\"),\n        [\n            pytest.param(\"\", 10, \"\", id=\"empty\"),\n            pytest.param(\"123 567 90\", 10, \"123 567 90\", id=\"equal length, no dot\"),\n            pytest.param(\"123 567 9. aaaa bbb\", 10, \"123 567 9.\", id=\"sentence < max\"),\n            pytest.param(\"123 567\\n\\n 9. aaaa bbb\", 10, \"123 567\", id=\"paragraph < max\"),\n            pytest.param(\"123 567 90123.\", 10, \"123 567...\", id=\"truncate\"),\n            pytest.param(\"123 5678 xxxxxx\", 10, \"123...\", id=\"length includes suffix\"),\n            pytest.param(\n                \"token in ~/.netrc ciao ciao\",\n                20,\n                \"token in ~/.netrc...\",\n                id=\"ignore dot in word\",\n            ),\n        ],\n    )\n    @pytest.mark.parametrize(\n        \"alter\",\n        [\n            pytest.param(None, id=\"\"),\n            pytest.param(\n                lambda text: \"\\n\\b\\n\" + \"  \".join(text.split(\" \")) + \"\\n\", id=\"no-wrap mark\"\n            ),\n        ],\n    )\n    def test_make_default_short_help(value, max_length, alter, expect):\n        assert len(expect) <= max_length\n    \n        if alter:\n            value = alter(value)\n    \n        out = click.utils.make_default_short_help(value, max_length)\n>       assert out == expect\nE       AssertionError: assert '123' == '123 567 9.'\nE         \nE         - 123 567 9.\nE         + 123\n\ntests\\test_utils.py:507: AssertionError\n_______________ test_make_default_short_help[-paragraph < max] ________________\n\nvalue = '123 567\\n\\n 9. aaaa bbb', max_length = 10, alter = None\nexpect = '123 567'\n\n    @pytest.mark.parametrize(\n        (\"value\", \"max_length\", \"expect\"),\n        [\n            pytest.param(\"\", 10, \"\", id=\"empty\"),\n            pytest.param(\"123 567 90\", 10, \"123 567 90\", id=\"equal length, no dot\"),\n            pytest.param(\"123 567 9. aaaa bbb\", 10, \"123 567 9.\", id=\"sentence < max\"),\n            pytest.param(\"123 567\\n\\n 9. aaaa bbb\", 10, \"123 567\", id=\"paragraph < max\"),\n            pytest.param(\"123 567 90123.\", 10, \"123 567...\", id=\"truncate\"),\n            pytest.",
+                "workspace_path": "workspace\\spec-ab\\baseline\\click_t1_short_help_truncation\\run-1"
+              }
+            ],
+            "runs": 1,
+            "solved": 0
+          }
+        },
+        "total": 1
+      },
+      "metrics": {
+        "cost_usd": {
+          "mean": 0.0,
+          "std": 0.0
+        },
+        "pass_rate": {
+          "mean": 0.0,
+          "std": 0.0
+        },
+        "steps": {
+          "mean": 1.0,
+          "std": 0.0
+        }
+      },
+      "skipped_runs": 0,
+      "skips": [],
+      "tasks": {
+        "click_t1_short_help_truncation": {
+          "cost_usd": {
+            "mean": 0.0,
+            "std": 0.0
+          },
+          "pass_rate": {
+            "mean": 0.0,
+            "std": 0.0
+          },
+          "results": [
+            {
+              "cost_usd": 0.0,
+              "diff_path": "",
+              "reason": "",
+              "report_path": "",
+              "status": "failed",
+              "steps": 1,
+              "task_id": "click_t1_short_help_truncation",
+              "trace_path": "",
+              "verify_output": ".FFFFFF.FFFFFF                                                           [100%]\n================================== FAILURES ===================================\n_____________ test_make_default_short_help[-equal length, no dot] _____________\n\nvalue = '123 567 90', max_length = 10, alter = None, expect = '123 567 90'\n\n    @pytest.mark.parametrize(\n        (\"value\", \"max_length\", \"expect\"),\n        [\n            pytest.param(\"\", 10, \"\", id=\"empty\"),\n            pytest.param(\"123 567 90\", 10, \"123 567 90\", id=\"equal length, no dot\"),\n            pytest.param(\"123 567 9. aaaa bbb\", 10, \"123 567 9.\", id=\"sentence < max\"),\n            pytest.param(\"123 567\\n\\n 9. aaaa bbb\", 10, \"123 567\", id=\"paragraph < max\"),\n            pytest.param(\"123 567 90123.\", 10, \"123 567...\", id=\"truncate\"),\n            pytest.param(\"123 5678 xxxxxx\", 10, \"123...\", id=\"length includes suffix\"),\n            pytest.param(\n                \"token in ~/.netrc ciao ciao\",\n                20,\n                \"token in ~/.netrc...\",\n                id=\"ignore dot in word\",\n            ),\n        ],\n    )\n    @pytest.mark.parametrize(\n        \"alter\",\n        [\n            pytest.param(None, id=\"\"),\n            pytest.param(\n                lambda text: \"\\n\\b\\n\" + \"  \".join(text.split(\" \")) + \"\\n\", id=\"no-wrap mark\"\n            ),\n        ],\n    )\n    def test_make_default_short_help(value, max_length, alter, expect):\n        assert len(expect) <= max_length\n    \n        if alter:\n            value = alter(value)\n    \n        out = click.utils.make_default_short_help(value, max_length)\n>       assert out == expect\nE       AssertionError: assert '123' == '123 567 90'\nE         \nE         - 123 567 90\nE         + 123\n\ntests\\test_utils.py:507: AssertionError\n________________ test_make_default_short_help[-sentence < max] ________________\n\nvalue = '123 567 9. aaaa bbb', max_length = 10, alter = None\nexpect = '123 567 9.'\n\n    @pytest.mark.parametrize(\n        (\"value\", \"max_length\", \"expect\"),\n        [\n            pytest.param(\"\", 10, \"\", id=\"empty\"),\n            pytest.param(\"123 567 90\", 10, \"123 567 90\", id=\"equal length, no dot\"),\n            pytest.param(\"123 567 9. aaaa bbb\", 10, \"123 567 9.\", id=\"sentence < max\"),\n            pytest.param(\"123 567\\n\\n 9. aaaa bbb\", 10, \"123 567\", id=\"paragraph < max\"),\n            pytest.param(\"123 567 90123.\", 10, \"123 567...\", id=\"truncate\"),\n            pytest.param(\"123 5678 xxxxxx\", 10, \"123...\", id=\"length includes suffix\"),\n            pytest.param(\n                \"token in ~/.netrc ciao ciao\",\n                20,\n                \"token in ~/.netrc...\",\n                id=\"ignore dot in word\",\n            ),\n        ],\n    )\n    @pytest.mark.parametrize(\n        \"alter\",\n        [\n            pytest.param(None, id=\"\"),\n            pytest.param(\n                lambda text: \"\\n\\b\\n\" + \"  \".join(text.split(\" \")) + \"\\n\", id=\"no-wrap mark\"\n            ),\n        ],\n    )\n    def test_make_default_short_help(value, max_length, alter, expect):\n        assert len(expect) <= max_length\n    \n        if alter:\n            value = alter(value)\n    \n        out = click.utils.make_default_short_help(value, max_length)\n>       assert out == expect\nE       AssertionError: assert '123' == '123 567 9.'\nE         \nE         - 123 567 9.\nE         + 123\n\ntests\\test_utils.py:507: AssertionError\n_______________ test_make_default_short_help[-paragraph < max] ________________\n\nvalue = '123 567\\n\\n 9. aaaa bbb', max_length = 10, alter = None\nexpect = '123 567'\n\n    @pytest.mark.parametrize(\n        (\"value\", \"max_length\", \"expect\"),\n        [\n            pytest.param(\"\", 10, \"\", id=\"empty\"),\n            pytest.param(\"123 567 90\", 10, \"123 567 90\", id=\"equal length, no dot\"),\n            pytest.param(\"123 567 9. aaaa bbb\", 10, \"123 567 9.\", id=\"sentence < max\"),\n            pytest.param(\"123 567\\n\\n 9. aaaa bbb\", 10, \"123 567\", id=\"paragraph < max\"),\n            pytest.param(\"123 567 90123.\", 10, \"123 567...\", id=\"truncate\"),\n            pytest.",
+              "workspace_path": "workspace\\spec-ab\\baseline\\click_t1_short_help_truncation\\run-1"
+            }
+          ],
+          "runs": 1,
+          "skipped": 0,
+          "skips": [],
+          "steps": {
+            "mean": 1.0,
+            "std": 0.0
+          },
+          "task_id": "click_t1_short_help_truncation"
+        }
+      },
+      "trace_samples": []
+    }
+  },
+  "noise_warning": "LLM evals are noisy: never draw conclusions from a single solution_rate. Use mean\u00b1std and inspect traces."
+}
