@@ -1,0 +1,27 @@
+import base64
+import json
+import pathlib
+import subprocess
+import sys
+
+GOLDEN_PATCH_B64 = "ZGlmZiAtLWdpdCBhL3N5bXB5L2NvZGVnZW4vdGVzdHMvdGVzdF9yZXdyaXRpbmcucHkgYi9zeW1weS9jb2RlZ2VuL3Rlc3RzL3Rlc3RfcmV3cml0aW5nLnB5Ci0tLSBhL3N5bXB5L2NvZGVnZW4vdGVzdHMvdGVzdF9yZXdyaXRpbmcucHkKKysrIGIvc3ltcHkvY29kZWdlbi90ZXN0cy90ZXN0X3Jld3JpdGluZy5weQpAQCAtMjY2LDEwICsyNjYsMTAgQEAgZGVmIHRlc3RfY3JlYXRlX2V4cGFuZF9wb3dfb3B0aW1pemF0aW9uKCk6CiAgICAgIyBnaCBpc3N1ZSAxNTMzNQogICAgIGFzc2VydCBjYyh4KiooLTQpKSA9PSAnMS4wLyh4KngqeCp4KScKICAgICBhc3NlcnQgY2MoeCoqKC01KSkgPT0gJ3Bvdyh4LCAtNSknCi0gICAgYXNzZXJ0IGNjKC14Kio0KSA9PSAnLXgqeCp4KngnCi0gICAgYXNzZXJ0IGNjKHgqKjQgLSB4KioyKSA9PSAnLXgqeCArIHgqeCp4KngnCisgICAgYXNzZXJ0IGNjKC14Kio0KSA9PSAnLSh4KngqeCp4KScKKyAgICBhc3NlcnQgY2MoeCoqNCAtIHgqKjIpID09ICctKHgqeCkgKyB4KngqeCp4JwogICAgIGkgPSBTeW1ib2woJ2knLCBpbnRlZ2VyPVRydWUpCi0gICAgYXNzZXJ0IGNjKHgqKmkgLSB4KioyKSA9PSAncG93KHgsIGkpIC0geCp4JworICAgIGFzc2VydCBjYyh4KippIC0geCoqMikgPT0gJ3Bvdyh4LCBpKSAtICh4KngpJwogICAgICMgZ2ggaXNzdWUgMjA3NTMKICAgICBjYzIgPSBsYW1iZGEgeDogY2NvZGUob3B0aW1pemUoeCwgW2NyZWF0ZV9leHBhbmRfcG93X29wdGltaXphdGlvbigKICAgICAgICAgNCwgYmFzZV9yZXE9bGFtYmRhIGI6IGIuaXNfRnVuY3Rpb24pXSkpCmRpZmYgLS1naXQgYS9zeW1weS9wcmludGluZy90ZXN0cy90ZXN0X3B5Y29kZS5weSBiL3N5bXB5L3ByaW50aW5nL3Rlc3RzL3Rlc3RfcHljb2RlLnB5Ci0tLSBhL3N5bXB5L3ByaW50aW5nL3Rlc3RzL3Rlc3RfcHljb2RlLnB5CisrKyBiL3N5bXB5L3ByaW50aW5nL3Rlc3RzL3Rlc3RfcHljb2RlLnB5CkBAIC0zMCw2ICszMCw4IEBAIGRlZiB0ZXN0X1B5dGhvbkNvZGVQcmludGVyKCk6CiAKICAgICBhc3NlcnQgcHJudHIuZG9wcmludCh4Kip5KSA9PSAneCoqeScKICAgICBhc3NlcnQgcHJudHIuZG9wcmludChNb2QoeCwgMikpID09ICd4ICUgMicKKyAgICBhc3NlcnQgcHJudHIuZG9wcmludCgtTW9kKHgsIHkpKSA9PSAnLSh4ICUgeSknCisgICAgYXNzZXJ0IHBybnRyLmRvcHJpbnQoTW9kKC14LCB5KSkgPT0gJygteCkgJSB5JwogICAgIGFzc2VydCBwcm50ci5kb3ByaW50KEFuZCh4LCB5KSkgPT0gJ3ggYW5kIHknCiAgICAgYXNzZXJ0IHBybnRyLmRvcHJpbnQoT3IoeCwgeSkpID09ICd4IG9yIHknCiAgICAgYXNzZXJ0IG5vdCBwcm50ci5tb2R1bGVfaW1wb3J0cwpkaWZmIC0tZ2l0IGEvc3ltcHkvdXRpbGl0aWVzL3Rlc3RzL3Rlc3RfbGFtYmRpZnkucHkgYi9zeW1weS91dGlsaXRpZXMvdGVzdHMvdGVzdF9sYW1iZGlmeS5weQotLS0gYS9zeW1weS91dGlsaXRpZXMvdGVzdHMvdGVzdF9sYW1iZGlmeS5weQorKysgYi9zeW1weS91dGlsaXRpZXMvdGVzdHMvdGVzdF9sYW1iZGlmeS5weQpAQCAtMjY0LDcgKzI2NCwxNSBAQCBkZWYgdGVzdF9pc3N1ZV8xMjk4NCgpOgogICAgICAgICB3YXJuaW5ncy5zaW1wbGVmaWx0ZXIoImlnbm9yZSIsIFJ1bnRpbWVXYXJuaW5nKQogICAgICAgICBhc3NlcnQgc3RyKGZ1bmNfbnVtZXhwcigtMSwgMjQsIDQyKSkgPT0gJ25hbicKIAotIz09PT09PT09PT09PT09PT09PSBUZXN0IHNvbWUgZnVuY3Rpb25zID09PT09PT09PT09PT09PT09PT09PT09PT09PT0KKworZGVmIHRlc3RfZW1wdHlfbW9kdWxlcygpOgorICAgIHgsIHkgPSBzeW1ib2xzKCd4IHknKQorICAgIGV4cHIgPSAtKHggJSB5KQorCisgICAgbm9fbW9kdWxlcyA9IGxhbWJkaWZ5KFt4LCB5XSwgZXhwcikKKyAgICBlbXB0eV9tb2R1bGVzID0gbGFtYmRpZnkoW3gsIHldLCBleHByLCBtb2R1bGVzPVtdKQorICAgIGFzc2VydCBub19tb2R1bGVzKDMsIDcpID09IGVtcHR5X21vZHVsZXMoMywgNykKKyAgICBhc3NlcnQgbm9fbW9kdWxlcygzLCA3KSA9PSAtMwogCiAKIGRlZiB0ZXN0X2V4cG9uZW50aWF0aW9uKCk6Cg=="
+
+_TESTS = json.loads(r"""{"F2P": ["test_create_expand_pow_optimization", "test_PythonCodePrinter", "test_empty_modules"], "P2P": ["test_log2_opt", "test_exp2_opt", "test_expm1_opt", "test_expm1_two_exp_terms", "test_cosm1_opt", "test_cosm1_two_cos_terms", "test_expm1_cosm1_mixed", "test_log1p_opt", "test_optims_c99", "test_matsolve", "test_logaddexp_opt", "test_logaddexp2_opt", "test_sinc_opts", "test_optims_numpy", "test_PythonCodePrinter_standard", "test_MpmathPrinter", "test_NumPyPrinter", "test_SciPyPrinter", "test_pycode_reserved_words", "test_sqrt", "test_frac", "test_printmethod", "test_codegen_ast_nodes", "test_issue_14283", "test_NumPyPrinter_print_seq", "test_issue_16535_16536", "test_Integral", "test_fresnel_integrals", "test_beta", "test_airy", "test_airy_prime", "test_no_args", "test_single_arg", "test_list_args", "test_nested_args", "test_str_args", "test_own_namespace_1", "test_own_namespace_2", "test_own_module", "test_bad_args", "test_atoms", "test_sympy_lambda", "test_math_lambda", "test_mpmath_lambda", "test_number_precision", "test_mpmath_precision", "test_math_transl", "test_mpmath_transl", "test_exponentiation", "test_trig", "test_integral", "test_double_integral", "test_vector_simple", "test_vector_discontinuous", "test_trig_symbolic", "test_trig_float", "test_docs", "test_math", "test_sin", "test_matrix", "test_issue9474", "test_sym_single_arg", "test_sym_list_args", "test_sym_integral", "test_namespace_order", "test_namespace_type", "test_imps", "test_imps_errors", "test_imps_wrong_args", "test_lambdify_imps", "test_dummification", "test_curly_matrix_symbol", "test_python_keywords", "test_lambdify_docstring", "test_special_printers", "test_true_false", "test_issue_2790", "test_issue_12092", "test_issue_14911", "test_ITE", "test_Min_Max", "test_issue_12173", "test_sinc_mpmath", "test_lambdify_dummy_arg", "test_lambdify_mixed_symbol_dummy_args", "test_lambdify_inspect", "test_issue_14941", "test_lambdify_Derivative_arg_issue_16468", "test_imag_real", "test_single_e", "test_beta_math"]}""")
+
+patch_bytes = base64.b64decode(GOLDEN_PATCH_B64)
+patch_path = pathlib.Path("_test_patch.diff")
+patch_path.write_bytes(patch_bytes)
+
+proc = subprocess.run(
+    ["git", "apply", str(patch_path)],
+    capture_output=True, text=True, timeout=30
+)
+if proc.returncode != 0:
+    print(f"Patch apply failed: {proc.stderr}", file=sys.stderr)
+    raise SystemExit(2)
+
+cmd = [sys.executable, "-m", "pytest", *_TESTS["F2P"], *_TESTS["P2P"], "-q", "-p", "no:cacheprovider"]
+proc = subprocess.run(cmd, text=True, capture_output=True, timeout=600)
+print(proc.stdout, end="")
+print(proc.stderr, end="")
+raise SystemExit(proc.returncode)

@@ -1,0 +1,195 @@
+{
+  "phase": "Phase 1 baseline repeat 3 (12 sympy tasks, 80-step budget, 2026-07-07)",
+  "noise_warning": "LLM evals are noisy. Use mean±std, never single-run conclusions.",
+  "group": "baseline",
+  "repeat": 3,
+  "total_runs": 10,
+  "metrics": {
+    "pass_rate": {
+      "mean": 0.3,
+      "std": 0.458257569495584
+    }
+  },
+  "tasks": {
+    "sympy__sympy-21847": {
+      "task_id": "sympy__sympy-21847",
+      "runs": 3,
+      "pass_rate": {
+        "mean": 1.0,
+        "std": 0.0
+      },
+      "steps": {
+        "mean": 17.0,
+        "std": 1.4142135623730951
+      },
+      "cost_usd": {
+        "mean": 0.004018787733333334,
+        "std": 0.0008358079647358452
+      },
+      "statuses": [
+        "solved",
+        "solved",
+        "solved"
+      ],
+      "results": [
+        {
+          "task_id": "sympy__sympy-21847",
+          "group": "baseline",
+          "run_index": 1,
+          "status": "solved",
+          "steps": 16,
+          "cost_usd": 0.0044523752000000015,
+          "reason": "finished"
+        },
+        {
+          "task_id": "sympy__sympy-21847",
+          "group": "baseline",
+          "run_index": 2,
+          "status": "solved",
+          "steps": 16,
+          "cost_usd": 0.004754288000000001,
+          "reason": "finished"
+        },
+        {
+          "task_id": "sympy__sympy-21847",
+          "group": "baseline",
+          "run_index": 3,
+          "status": "solved",
+          "steps": 19,
+          "cost_usd": 0.0028497000000000006,
+          "reason": "finished"
+        }
+      ]
+    },
+    "sympy__sympy-22080": {
+      "task_id": "sympy__sympy-22080",
+      "runs": 3,
+      "pass_rate": {
+        "mean": 0.0,
+        "std": 0.0
+      },
+      "steps": {
+        "mean": 30.0,
+        "std": 1.632993161855452
+      },
+      "cost_usd": {
+        "mean": 0.0056031248,
+        "std": 0.0003911492706483635
+      },
+      "statuses": [
+        "failed",
+        "failed",
+        "failed"
+      ],
+      "results": [
+        {
+          "task_id": "sympy__sympy-22080",
+          "group": "baseline",
+          "run_index": 1,
+          "status": "failed",
+          "steps": 30,
+          "cost_usd": 0.005722085600000002,
+          "reason": "budget_exceeded"
+        },
+        {
+          "task_id": "sympy__sympy-22080",
+          "group": "baseline",
+          "run_index": 2,
+          "status": "failed",
+          "steps": 28,
+          "cost_usd": 0.0050757952,
+          "reason": "budget_exceeded"
+        },
+        {
+          "task_id": "sympy__sympy-22080",
+          "group": "baseline",
+          "run_index": 3,
+          "status": "failed",
+          "steps": 32,
+          "cost_usd": 0.0060114936,
+          "reason": "budget_exceeded"
+        }
+      ]
+    },
+    "sympy__sympy-23262": {
+      "task_id": "sympy__sympy-23262",
+      "runs": 3,
+      "pass_rate": {
+        "mean": 0.0,
+        "std": 0.0
+      },
+      "steps": {
+        "mean": 31.333333333333332,
+        "std": 1.699673171197595
+      },
+      "cost_usd": {
+        "mean": 0.004872957600000001,
+        "std": 0.0002172866677945972
+      },
+      "statuses": [
+        "failed",
+        "failed",
+        "failed"
+      ],
+      "results": [
+        {
+          "task_id": "sympy__sympy-23262",
+          "group": "baseline",
+          "run_index": 1,
+          "status": "failed",
+          "steps": 32,
+          "cost_usd": 0.005179462399999999,
+          "reason": "budget_exceeded"
+        },
+        {
+          "task_id": "sympy__sympy-23262",
+          "group": "baseline",
+          "run_index": 2,
+          "status": "failed",
+          "steps": 29,
+          "cost_usd": 0.004700696000000001,
+          "reason": "budget_exceeded"
+        },
+        {
+          "task_id": "sympy__sympy-23262",
+          "group": "baseline",
+          "run_index": 3,
+          "status": "failed",
+          "steps": 33,
+          "cost_usd": 0.004738714400000002,
+          "reason": "budget_exceeded"
+        }
+      ]
+    },
+    "sympy__sympy-23413": {
+      "task_id": "sympy__sympy-23413",
+      "runs": 1,
+      "pass_rate": {
+        "mean": 0.0,
+        "std": 0.0
+      },
+      "steps": {
+        "mean": 0.0,
+        "std": 0.0
+      },
+      "cost_usd": {
+        "mean": 0.0,
+        "std": 0.0
+      },
+      "statuses": [
+        "incomplete"
+      ],
+      "results": [
+        {
+          "task_id": "sympy__sympy-23413",
+          "group": "baseline",
+          "run_index": 1,
+          "status": "incomplete",
+          "steps": 0,
+          "cost_usd": 0.0,
+          "reason": "no run_summary"
+        }
+      ]
+    }
+  }
+}

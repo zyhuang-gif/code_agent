@@ -1,5 +1,5 @@
 language: python
-setup_cmd: python -m pip install -e .
+setup_cmd:
 setup_needs_network: true
 setup_timeout: 600
 test_cmd: python -m pytest sympy/combinatorics/tests/test_homomorphisms.py::test_homomorphism -q -p no:cacheprovider

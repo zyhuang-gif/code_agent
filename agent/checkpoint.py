@@ -44,6 +44,13 @@ class GitCheckpoint:
         self._git("init")
         self._git("config", "user.name", "Codex")
         self._git("config", "user.email", "noreply@anthropic.com")
+        # Fix detached HEAD on shallow clones: checkout a branch first.
+        # sympy shallow-cloned repos have HEAD detached at FETCH_HEAD,
+        # which causes git add -A to succeed but git commit fails with
+        # "nothing to commit" because there's no branch to commit onto.
+        head = self._git("symbolic-ref", "-q", "HEAD")
+        if head["exit_code"] != 0:
+            self._git("checkout", "-b", "baseline")
         self._git("add", "-A")
         result = self._git("commit", "-m", "baseline")
         if result["exit_code"] != 0:

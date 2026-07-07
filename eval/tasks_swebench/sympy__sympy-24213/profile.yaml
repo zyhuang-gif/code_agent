@@ -1,0 +1,7 @@
+language: python
+setup_cmd:
+setup_needs_network: true
+setup_timeout: 600
+test_cmd:
+test_timeout: 600
+command_timeout: 600
