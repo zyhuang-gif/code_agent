@@ -8,7 +8,9 @@
 
 ## 1. 做了什么
 
-在 `eval/tasks_swebench/` 新增 17 个 SWE-bench Verified 任务，全部通过 py3.13 smoke。修复了 `agent/checkpoint.py` 的 shallow clone detached HEAD bug，将 budget 从 40 提高到 80 steps。用 resumable runner 对 11 个 sympy 任务跑完了 baseline repeat 3。**spec_ab.py 零改动。**
+在 `eval/tasks_swebench/` 新增 17 个 SWE-bench Verified 任务（task.json + profile.yaml + prompt.md + verify.py），全部通过 py3.13 smoke。修复了 `agent/checkpoint.py` 的 shallow clone detached HEAD bug，budget 从 40 提高到 80 steps。用 resumable runner 对 12 个 sympy 任务跑完了 baseline repeat 3。repo/ 目录改为通过 `task.json` 元数据动态 fetch，不再纳入 git 跟踪。
+
+**spec_ab.py 零改动。**
 
 ---
 
@@ -24,6 +26,8 @@
 ---
 
 ## 3. Phase 1 Baseline 结果（80-step budget, repeat 3）
+
+审计 JSON: [`2026-07-07-sympy12-phase1-baseline.json`](./2026-07-07-sympy12-phase1-baseline.json)，total_runs=36。
 
 ### 3.1 有有效数据的 11 个 sympy 任务
 
@@ -41,7 +45,9 @@
 | sympy-24066 | failed 0s | failed 0s | failed 0s | **0.000±0.000** | 0.0±0.0 | setup 失败 |
 | sympy-24213 | failed 0s | failed 0s | failed 0s | **0.000±0.000** | 0.0±0.0 | setup 失败 |
 
-### 3.2 非 sympy 任务（第一轮数据，40-step budget, repeat 3）
+另有 sympy-24661 的 3 条 run（全部 steps=0, reason=""）在 JSON 中。
+
+### 3.2 非 sympy 任务（第一轮，40-step budget, repeat 3）
 
 | Task | 结果 |
 |---|---|
@@ -67,10 +73,10 @@ Phase 1 无可用样本。
 
 **在本轮实验中，未能验证 AGENTS.md 的正向效应是否从单个 sympy-24443 任务扩展为跨多任务的稳定规律。**
 
-11 个 sympy 任务的 baseline 呈现三种极端情况：
+12 个 sympy 任务的 baseline 呈现三种极端情况：
 - **3 个全部 solved**（pass_rate=1.0）：baseline 已饱和，无法在 A/B/C 中衡量 AGENTS.md 的增量效应
 - **4 个全部 budget_exceeded**（pass_rate=0.0）：80-step 预算不足以让 agent 找到正确的修复
-- **4 个 setup 失败**（steps=0）：任务在 agent 启动前就失败了
+- **5 个 setup 失败**（steps=0）：任务在 agent 启动前就失败了
 
 三个趋势值得注意：
 
@@ -98,8 +104,9 @@ Phase 1 无可用样本。
 |---|---|
 | `agent/budget.py` | max_steps 40 → 80 |
 | `agent/checkpoint.py` | GitCheckpoint.init() 增加 detached HEAD 修复 |
-| `eval/tasks_swebench/` | 新增 17 个任务目录（profile.yaml + prompt.md + verify.py + repo/） |
-| `docs/superpowers/reports/` | 6 个 JSON/MD 审计文件 |
+| `eval/run_eval.py` | run_task() 增加 task.json fallback（repo/ 不存在时 shallow clone） |
+| `eval/tasks_swebench/` | 新增 17 个任务目录（task.json + profile.yaml + prompt.md + verify.py，repo/ 已删除、不纳入 git） |
+| `docs/superpowers/reports/` | 7 个 JSON/MD 审计文件 |
 | **`eval/spec_ab.py`** | **零改动** |
 
 **已 commit 到 `claude/swebench-abc-samples`，未 merge，未 push。**
@@ -108,7 +115,7 @@ Phase 1 无可用样本。
 
 ## 8. 建议
 
-**停止无效长跑。** 在 11 个 sympy 任务 + 80-step budget 下未找到可测样本。下一步可行的方向：
+**停止无效长跑。** 在 12 个 sympy 任务 + 80-step budget 下未找到可测样本。下一步可行的方向：
 
 - 回到 40-step budget，在 sympy-24443 的可区分信号已被证实的基础上，寻找新的非 sympy 任务（requests/flask 类）
 - 或者接受"效应存在但测量不到"的结论，归档本轮实验为"扩展尝试失败"

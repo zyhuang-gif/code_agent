@@ -1,0 +1,8 @@
+{
+  "repo": "sympy/sympy",
+  "version": "1.11",
+  "base_commit": "10de1a18a0efac0b19b611e40c928250dda688bf",
+  "difficulty": "15 min - 1 hour",
+  "FAIL_TO_PASS": "[\"test_hermite_normal\"]",
+  "PASS_TO_PASS": "[\"test_smith_normal\", \"test_smith_normal_deprecated\"]"
+}

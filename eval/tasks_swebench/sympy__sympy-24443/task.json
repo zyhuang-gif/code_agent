@@ -1,0 +1,8 @@
+{
+  "repo": "sympy/sympy",
+  "version": "1.12",
+  "base_commit": "809c53c077485ca48a206cee78340389cb83b7f1",
+  "difficulty": "15 min - 1 hour",
+  "FAIL_TO_PASS": "[\"test_homomorphism\"]",
+  "PASS_TO_PASS": "[\"test_isomorphisms\"]"
+}

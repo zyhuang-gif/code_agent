@@ -66,7 +66,20 @@ def run_task(task: EvalTask, agent: AgentCallable, work_root: Path, command_runn
     task_path = task.path.resolve()
     if work_root.exists():
         robust_rmtree(work_root)
-    shutil.copytree(task_path / "repo", work_root)
+    local_repo = task_path / "repo"
+    if local_repo.is_dir():
+        shutil.copytree(str(local_repo), str(work_root))
+    else:
+        # Fallback: shallow clone from task.json metadata
+        task_json = task_path / "task.json"
+        if not task_json.exists():
+            raise FileNotFoundError(f"No repo/ and no task.json in {task_path}")
+        meta = json.loads(task_json.read_text(encoding="utf-8"))
+        url = f"https://github.com/{meta['repo']}.git"
+        subprocess.run(["git", "init", str(work_root)], check=True, capture_output=True, timeout=60)
+        subprocess.run(["git", "-C", str(work_root), "remote", "add", "origin", url], check=True, capture_output=True, timeout=30)
+        subprocess.run(["git", "-C", str(work_root), "fetch", "--depth", "1", "origin", meta["base_commit"]], check=True, capture_output=True, timeout=300)
+        subprocess.run(["git", "-C", str(work_root), "checkout", "FETCH_HEAD"], check=True, capture_output=True, timeout=60)
     if task.profile.setup_cmd:
         setup = command_runner(
             task.profile.setup_cmd,

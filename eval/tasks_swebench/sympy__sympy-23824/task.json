@@ -1,0 +1,8 @@
+{
+  "repo": "sympy/sympy",
+  "version": "1.12",
+  "base_commit": "39de9a2698ad4bb90681c0fdb70b30a78233145f",
+  "difficulty": "15 min - 1 hour",
+  "FAIL_TO_PASS": "[\"test_kahane_simplify1\"]",
+  "PASS_TO_PASS": "[\"test_kahane_algorithm\", \"test_gamma_matrix_class\"]"
+}
