@@ -3,11 +3,11 @@
   "noise_warning": "LLM evals are noisy. Use mean±std, never single-run conclusions.",
   "group": "baseline",
   "repeat": 3,
-  "total_runs": 36,
+  "total_runs": 38,
   "metrics": {
     "pass_rate": {
-      "mean": 0.4166666666666667,
-      "std": 0.4930066485916347
+      "mean": 0.4473684210526316,
+      "std": 0.49722220072871537
     }
   },
   "tasks": {
@@ -577,12 +577,12 @@
         "std": 0.0
       },
       "steps": {
-        "mean": 30.0,
-        "std": 3.559026084010437
+        "mean": 28.0,
+        "std": 0.816496580927726
       },
       "cost_usd": {
-        "mean": 0.006509202933333335,
-        "std": 0.000508006473768864
+        "mean": 0.006812877866666667,
+        "std": 8.030824783434287e-05
       },
       "statuses": [
         "failed",
@@ -621,13 +621,13 @@
           "group": "baseline",
           "run_index": 3,
           "status": "failed",
-          "steps": 35,
-          "cost_usd": 0.005791234400000001,
+          "steps": 29,
+          "cost_usd": 0.0067022592,
           "reason": "budget_exceeded",
-          "elapsed_s": 0,
-          "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\phase1-batch2\\sympy__sympy-24066\\baseline\\sympy__sympy-24066\\run-3.trace.jsonl",
-          "workspace_path": "",
-          "verify_output": ""
+          "elapsed_s": 195.6,
+          "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-24066\\run-3\\baseline\\sympy__sympy-24066\\run-1.trace.jsonl",
+          "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-24066\\run-3\\baseline\\sympy__sympy-24066\\run-1",
+          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 0.000±0.000 | 29.000±0.000 | 0.007±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-24066\\run-3\\baseline\\sympy__sympy-24066\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-24066 | 1 | 0.000±0.000 | 29.000±0.000 | 0.007±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
         }
       ]
     },
@@ -635,21 +635,21 @@
       "task_id": "sympy__sympy-24213",
       "runs": 3,
       "pass_rate": {
-        "mean": 0.3333333333333333,
-        "std": 0.4714045207910317
+        "mean": 1.0,
+        "std": 0.0
       },
       "steps": {
-        "mean": 31.333333333333332,
-        "std": 4.988876515698588
+        "mean": 23.666666666666668,
+        "std": 2.0548046676563256
       },
       "cost_usd": {
-        "mean": 0.004343277866666667,
-        "std": 0.0005453799728292521
+        "mean": 0.003127570133333333,
+        "std": 0.0002003576829490923
       },
       "statuses": [
         "solved",
-        "failed",
-        "failed"
+        "solved",
+        "solved"
       ],
       "results": [
         {
@@ -657,39 +657,87 @@
           "group": "baseline",
           "run_index": 1,
           "status": "solved",
-          "steps": 26,
-          "cost_usd": 0.0036627304,
+          "steps": 21,
+          "cost_usd": 0.0030057551999999993,
           "reason": "finished",
-          "elapsed_s": 0,
-          "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\phase1-batch2\\sympy__sympy-24213\\baseline\\sympy__sympy-24213\\run-1.trace.jsonl",
-          "workspace_path": "",
-          "verify_output": ""
+          "elapsed_s": 112.4,
+          "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-24213\\run-1\\baseline\\sympy__sympy-24213\\run-1.trace.jsonl",
+          "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-24213\\run-1\\baseline\\sympy__sympy-24213\\run-1",
+          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 1.000±0.000 | 21.000±0.000 | 0.003±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-24213\\run-1\\baseline\\sympy__sympy-24213\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-24213 | 1 | 1.000±0.000 | 21.000±0.000 | 0.003±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
         },
         {
           "task_id": "sympy__sympy-24213",
           "group": "baseline",
           "run_index": 2,
-          "status": "failed",
-          "steps": 30,
-          "cost_usd": 0.0049978768,
-          "reason": "budget_exceeded",
-          "elapsed_s": 0,
-          "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\phase1-batch2\\sympy__sympy-24213\\baseline\\sympy__sympy-24213\\run-2.trace.jsonl",
-          "workspace_path": "",
-          "verify_output": ""
+          "status": "solved",
+          "steps": 26,
+          "cost_usd": 0.0034100304000000002,
+          "reason": "finished",
+          "elapsed_s": 107.6,
+          "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-24213\\run-2\\baseline\\sympy__sympy-24213\\run-1.trace.jsonl",
+          "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-24213\\run-2\\baseline\\sympy__sympy-24213\\run-1",
+          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 1.000±0.000 | 26.000±0.000 | 0.003±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-24213\\run-2\\baseline\\sympy__sympy-24213\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-24213 | 1 | 1.000±0.000 | 26.000±0.000 | 0.003±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
         },
         {
           "task_id": "sympy__sympy-24213",
           "group": "baseline",
           "run_index": 3,
+          "status": "solved",
+          "steps": 24,
+          "cost_usd": 0.0029669248,
+          "reason": "finished",
+          "elapsed_s": 104.9,
+          "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-24213\\run-3\\baseline\\sympy__sympy-24213\\run-1.trace.jsonl",
+          "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-24213\\run-3\\baseline\\sympy__sympy-24213\\run-1",
+          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 1.000±0.000 | 24.000±0.000 | 0.003±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-24213\\run-3\\baseline\\sympy__sympy-24213\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-24213 | 1 | 1.000±0.000 | 24.000±0.000 | 0.003±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
+        }
+      ]
+    },
+    "sympy__sympy-24539": {
+      "task_id": "sympy__sympy-24539",
+      "runs": 2,
+      "pass_rate": {
+        "mean": 0.0,
+        "std": 0.0
+      },
+      "steps": {
+        "mean": 13.0,
+        "std": 0.0
+      },
+      "cost_usd": {
+        "mean": 0.001557136,
+        "std": 0.0
+      },
+      "statuses": [
+        "failed",
+        "failed"
+      ],
+      "results": [
+        {
+          "task_id": "sympy__sympy-24539",
+          "group": "baseline",
+          "run_index": 1,
           "status": "failed",
-          "steps": 38,
-          "cost_usd": 0.0043692264,
+          "steps": 0,
+          "cost_usd": 0.0,
+          "reason": "",
+          "elapsed_s": 2.1,
+          "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-24539\\run-1\\baseline\\sympy__sympy-24539\\run-1.trace.jsonl",
+          "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-24539\\run-1\\baseline\\sympy__sympy-24539\\run-1",
+          "verify_output": "Traceback (most recent call last):\n  File \"D:\\dev\\uv\\python\\cpython-3.13-windows-x86_64-none\\Lib\\shutil.py\", line 631, in _rmtree_unsafe\n    os.rmdir(path)\n    ~~~~~~~~^^^^^^\nPermissionError: [WinError 32] 另一个程序正在使用此文件，进程无法访问。: 'D:\\\\source\\\\agent\\\\code_agent\\\\code-agent-runs\\\\swebench-abc\\\\resumable-runs\\\\sympy__sympy-24539\\\\run-1\\\\baseline\\\\sympy__sympy-24539\\\\run-1'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.Codex\\worktrees\\swebench-abc-samples\\eval\\spec_ab.py\", line 495, in <module>\n    raise SystemExit(main())\n                     ~~~~^^\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.Codex\\worktrees\\swebench-abc-samples\\eval\\spec_ab.py\", line 466, in main\n    runs = run_spec_ab(\n        task_roots,\n    ...<5 lines>...\n        task_ids=selected_task_ids,\n    )\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.Codex\\worktrees\\swebench-abc-samples\\eval\\spec_ab.py\", line 246, in run_spec_ab\n    results.append(run_task(task, wrapped, run_root))\n                   ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.Codex\\worktrees\\swebench-abc-samples\\eval\\run_eval.py\", line 68, in run_task\n    robust_rmtree(work_root)\n    ~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.Codex\\worktrees\\swebench-abc-samples\\eval\\run_eval.py\", line 57, in robust_rmtree\n    shutil.rmtree(path, onexc=_retry_readonly_remove)\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\dev\\uv\\python\\cpython-3.13-windows-x86_64-none\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"D:\\dev\\uv\\python\\cpython-3.13-windows-x86_64-none\\Lib\\shutil.py\", line 635, in _rmtree_unsafe\n    onexc(os.rmdir, path, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.Codex\\worktrees\\swebench-abc-samples\\eval\\run_eval.py\", line 53, in _retry_readonly_remove\n    func(path)\n    ~~~~^^^^^^"
+        },
+        {
+          "task_id": "sympy__sympy-24539",
+          "group": "baseline",
+          "run_index": 2,
+          "status": "failed",
+          "steps": 13,
+          "cost_usd": 0.001557136,
           "reason": "budget_exceeded",
-          "elapsed_s": 0,
-          "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\phase1-batch2\\sympy__sympy-24213\\baseline\\sympy__sympy-24213\\run-3.trace.jsonl",
-          "workspace_path": "",
-          "verify_output": ""
+          "elapsed_s": 715.7,
+          "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-24539\\run-2\\baseline\\sympy__sympy-24539\\run-1.trace.jsonl",
+          "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-24539\\run-2\\baseline\\sympy__sympy-24539\\run-1",
+          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 1.000±0.000 | 13.000±0.000 | 0.002±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-24539\\run-2\\baseline\\sympy__sympy-24539\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-24539 | 1 | 1.000±0.000 | 13.000±0.000 | 0.002±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
         }
       ]
     },
