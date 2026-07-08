@@ -10,7 +10,7 @@ from typing import Callable, Any
 
 @dataclass
 class Budget:
-    max_steps: int = 80
+    max_steps: int = 40
     max_tokens: int = 400_000
     max_wallclock_s: int = 600
     clock: Callable[[], float] = time.monotonic

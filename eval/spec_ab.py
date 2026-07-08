@@ -412,6 +412,7 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser.add_argument("--work-root", type=Path, default=Path("workspace") / "spec-ab")
     parser.add_argument("--agentspec-project", type=Path, default=Path(os.environ.get("AGENTSPEC_PROJECT", "D:/source/agent/agentspec")))
     parser.add_argument("--agentspec-timeout", type=int, default=120)
+    parser.add_argument("--budget-steps", type=int, default=None, help="Override agent max_steps (default: 40)")
     parser.add_argument("--json-summary", type=Path)
     parser.add_argument("--markdown-report", type=Path)
     return parser.parse_args(argv)
@@ -437,6 +438,13 @@ def main(
 
     task_roots = args.tasks or default_task_roots()
     selected_task_ids = set(args.task_id) if args.task_id else None
+
+    if args.budget_steps is not None:
+        import warnings
+        from agent.budget import Budget
+        # Monkey-patch Budget default for this run only
+        _orig_max = Budget.__dataclass_fields__["max_steps"].default
+        Budget.__dataclass_fields__["max_steps"].default = args.budget_steps
 
     if args.fake:
         agent = _safe_fake_agent

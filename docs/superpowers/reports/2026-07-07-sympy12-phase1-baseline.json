@@ -6,8 +6,8 @@
   "total_runs": 36,
   "metrics": {
     "pass_rate": {
-      "mean": 0.25,
-      "std": 0.4330127018922193
+      "mean": 0.4166666666666667,
+      "std": 0.4930066485916347
     }
   },
   "tasks": {
@@ -19,12 +19,12 @@
         "std": 0.0
       },
       "steps": {
-        "mean": 15.0,
-        "std": 3.559026084010437
+        "mean": 16.0,
+        "std": 4.96655480858378
       },
       "cost_usd": {
-        "mean": 0.0033104194666666673,
-        "std": 0.0007539803426655866
+        "mean": 0.0025135450666666673,
+        "std": 0.0006790027525053951
       },
       "statuses": [
         "solved",
@@ -37,39 +37,39 @@
           "group": "baseline",
           "run_index": 1,
           "status": "solved",
-          "steps": 12,
-          "cost_usd": 0.0024957968000000005,
+          "steps": 23,
+          "cost_usd": 0.003470941600000001,
           "reason": "finished",
-          "elapsed_s": 79.0,
+          "elapsed_s": 109.6,
           "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-21847\\run-1\\baseline\\sympy__sympy-21847\\run-1.trace.jsonl",
           "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-21847\\run-1\\baseline\\sympy__sympy-21847\\run-1",
-          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 0.000±0.000 | 12.000±0.000 | 0.002±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-21847\\run-1\\baseline\\sympy__sympy-21847\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-21847 | 1 | 0.000±0.000 | 12.000±0.000 | 0.002±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
+          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 1.000±0.000 | 23.000±0.000 | 0.003±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-21847\\run-1\\baseline\\sympy__sympy-21847\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-21847 | 1 | 1.000±0.000 | 23.000±0.000 | 0.003±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
         },
         {
           "task_id": "sympy__sympy-21847",
           "group": "baseline",
           "run_index": 2,
           "status": "solved",
-          "steps": 13,
-          "cost_usd": 0.003121893600000001,
+          "steps": 12,
+          "cost_usd": 0.0019707296000000003,
           "reason": "finished",
-          "elapsed_s": 57.9,
+          "elapsed_s": 92.7,
           "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-21847\\run-2\\baseline\\sympy__sympy-21847\\run-1.trace.jsonl",
           "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-21847\\run-2\\baseline\\sympy__sympy-21847\\run-1",
-          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 0.000±0.000 | 13.000±0.000 | 0.003±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-21847\\run-2\\baseline\\sympy__sympy-21847\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-21847 | 1 | 0.000±0.000 | 13.000±0.000 | 0.003±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
+          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 1.000±0.000 | 12.000±0.000 | 0.002±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-21847\\run-2\\baseline\\sympy__sympy-21847\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-21847 | 1 | 1.000±0.000 | 12.000±0.000 | 0.002±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
         },
         {
           "task_id": "sympy__sympy-21847",
           "group": "baseline",
           "run_index": 3,
           "status": "solved",
-          "steps": 20,
-          "cost_usd": 0.004313568,
+          "steps": 13,
+          "cost_usd": 0.002098964,
           "reason": "finished",
-          "elapsed_s": 275.9,
+          "elapsed_s": 82.8,
           "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-21847\\run-3\\baseline\\sympy__sympy-21847\\run-1.trace.jsonl",
           "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-21847\\run-3\\baseline\\sympy__sympy-21847\\run-1",
-          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 0.000±0.000 | 20.000±0.000 | 0.004±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-21847\\run-3\\baseline\\sympy__sympy-21847\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-21847 | 1 | 0.000±0.000 | 20.000±0.000 | 0.004±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
+          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 1.000±0.000 | 13.000±0.000 | 0.002±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-21847\\run-3\\baseline\\sympy__sympy-21847\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-21847 | 1 | 1.000±0.000 | 13.000±0.000 | 0.002±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
         }
       ]
     },
@@ -81,12 +81,12 @@
         "std": 0.0
       },
       "steps": {
-        "mean": 27.333333333333332,
-        "std": 0.9428090415820634
+        "mean": 29.666666666666668,
+        "std": 1.247219128924647
       },
       "cost_usd": {
-        "mean": 0.005804855466666667,
-        "std": 0.0005472235641438295
+        "mean": 0.005587347733333334,
+        "std": 0.000346081212495539
       },
       "statuses": [
         "failed",
@@ -99,26 +99,26 @@
           "group": "baseline",
           "run_index": 1,
           "status": "failed",
-          "steps": 26,
-          "cost_usd": 0.0063561176,
+          "steps": 31,
+          "cost_usd": 0.006050615200000001,
           "reason": "budget_exceeded",
-          "elapsed_s": 140.8,
+          "elapsed_s": 187.6,
           "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-22080\\run-1\\baseline\\sympy__sympy-22080\\run-1.trace.jsonl",
           "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-22080\\run-1\\baseline\\sympy__sympy-22080\\run-1",
-          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 0.000±0.000 | 26.000±0.000 | 0.006±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-22080\\run-1\\baseline\\sympy__sympy-22080\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-22080 | 1 | 0.000±0.000 | 26.000±0.000 | 0.006±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
+          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 0.000±0.000 | 31.000±0.000 | 0.006±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-22080\\run-1\\baseline\\sympy__sympy-22080\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-22080 | 1 | 0.000±0.000 | 31.000±0.000 | 0.006±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
         },
         {
           "task_id": "sympy__sympy-22080",
           "group": "baseline",
           "run_index": 2,
           "status": "failed",
-          "steps": 28,
-          "cost_usd": 0.0050588384,
+          "steps": 30,
+          "cost_usd": 0.005492446400000002,
           "reason": "budget_exceeded",
-          "elapsed_s": 96.3,
+          "elapsed_s": 172.0,
           "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-22080\\run-2\\baseline\\sympy__sympy-22080\\run-1.trace.jsonl",
           "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-22080\\run-2\\baseline\\sympy__sympy-22080\\run-1",
-          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 0.000±0.000 | 28.000±0.000 | 0.005±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-22080\\run-2\\baseline\\sympy__sympy-22080\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-22080 | 1 | 0.000±0.000 | 28.000±0.000 | 0.005±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
+          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 0.000±0.000 | 30.000±0.000 | 0.005±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-22080\\run-2\\baseline\\sympy__sympy-22080\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-22080 | 1 | 0.000±0.000 | 30.000±0.000 | 0.005±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
         },
         {
           "task_id": "sympy__sympy-22080",
@@ -126,12 +126,12 @@
           "run_index": 3,
           "status": "failed",
           "steps": 28,
-          "cost_usd": 0.005999610400000002,
+          "cost_usd": 0.0052189815999999995,
           "reason": "budget_exceeded",
-          "elapsed_s": 144.9,
+          "elapsed_s": 152.0,
           "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-22080\\run-3\\baseline\\sympy__sympy-22080\\run-1.trace.jsonl",
           "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-22080\\run-3\\baseline\\sympy__sympy-22080\\run-1",
-          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 0.000±0.000 | 28.000±0.000 | 0.006±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-22080\\run-3\\baseline\\sympy__sympy-22080\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-22080 | 1 | 0.000±0.000 | 28.000±0.000 | 0.006±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
+          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 0.000±0.000 | 28.000±0.000 | 0.005±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-22080\\run-3\\baseline\\sympy__sympy-22080\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-22080 | 1 | 0.000±0.000 | 28.000±0.000 | 0.005±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
         }
       ]
     },
@@ -143,12 +143,12 @@
         "std": 0.0
       },
       "steps": {
-        "mean": 28.0,
-        "std": 0.816496580927726
+        "mean": 27.333333333333332,
+        "std": 1.699673171197595
       },
       "cost_usd": {
-        "mean": 0.0063507248,
-        "std": 0.00022490861447358238
+        "mean": 0.006337480799999999,
+        "std": 0.0004750477647906997
       },
       "statuses": [
         "failed",
@@ -161,39 +161,39 @@
           "group": "baseline",
           "run_index": 1,
           "status": "failed",
-          "steps": 28,
-          "cost_usd": 0.0060362568000000005,
+          "steps": 29,
+          "cost_usd": 0.005820662399999999,
           "reason": "budget_exceeded",
-          "elapsed_s": 129.9,
+          "elapsed_s": 151.7,
           "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-22714\\run-1\\baseline\\sympy__sympy-22714\\run-1.trace.jsonl",
           "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-22714\\run-1\\baseline\\sympy__sympy-22714\\run-1",
-          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 0.000±0.000 | 28.000±0.000 | 0.006±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-22714\\run-1\\baseline\\sympy__sympy-22714\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-22714 | 1 | 0.000±0.000 | 28.000±0.000 | 0.006±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
+          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 0.000±0.000 | 29.000±0.000 | 0.006±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-22714\\run-1\\baseline\\sympy__sympy-22714\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-22714 | 1 | 0.000±0.000 | 29.000±0.000 | 0.006±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
         },
         {
           "task_id": "sympy__sympy-22714",
           "group": "baseline",
           "run_index": 2,
           "status": "failed",
-          "steps": 29,
-          "cost_usd": 0.0065492896,
+          "steps": 28,
+          "cost_usd": 0.006224164799999999,
           "reason": "budget_exceeded",
-          "elapsed_s": 173.1,
+          "elapsed_s": 195.4,
           "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-22714\\run-2\\baseline\\sympy__sympy-22714\\run-1.trace.jsonl",
           "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-22714\\run-2\\baseline\\sympy__sympy-22714\\run-1",
-          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 0.000±0.000 | 29.000±0.000 | 0.007±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-22714\\run-2\\baseline\\sympy__sympy-22714\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-22714 | 1 | 0.000±0.000 | 29.000±0.000 | 0.007±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
+          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 0.000±0.000 | 28.000±0.000 | 0.006±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-22714\\run-2\\baseline\\sympy__sympy-22714\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-22714 | 1 | 0.000±0.000 | 28.000±0.000 | 0.006±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
         },
         {
           "task_id": "sympy__sympy-22714",
           "group": "baseline",
           "run_index": 3,
           "status": "failed",
-          "steps": 27,
-          "cost_usd": 0.0064666279999999994,
+          "steps": 25,
+          "cost_usd": 0.006967615199999999,
           "reason": "budget_exceeded",
-          "elapsed_s": 166.5,
+          "elapsed_s": 188.2,
           "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-22714\\run-3\\baseline\\sympy__sympy-22714\\run-1.trace.jsonl",
           "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-22714\\run-3\\baseline\\sympy__sympy-22714\\run-1",
-          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 0.000±0.000 | 27.000±0.000 | 0.006±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-22714\\run-3\\baseline\\sympy__sympy-22714\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-22714 | 1 | 0.000±0.000 | 27.000±0.000 | 0.006±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
+          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 0.000±0.000 | 25.000±0.000 | 0.007±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-22714\\run-3\\baseline\\sympy__sympy-22714\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-22714 | 1 | 0.000±0.000 | 25.000±0.000 | 0.007±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
         }
       ]
     },
@@ -201,19 +201,19 @@
       "task_id": "sympy__sympy-22914",
       "runs": 3,
       "pass_rate": {
-        "mean": 1.0,
-        "std": 0.0
+        "mean": 0.6666666666666666,
+        "std": 0.4714045207910317
       },
       "steps": {
-        "mean": 16.333333333333332,
-        "std": 6.944222218666553
+        "mean": 18.333333333333332,
+        "std": 12.552113589175153
       },
       "cost_usd": {
-        "mean": 0.0024392293333333334,
-        "std": 0.0014371923986250166
+        "mean": 0.0022092933333333334,
+        "std": 0.001904198575759642
       },
       "statuses": [
-        "solved",
+        "failed",
         "solved",
         "solved"
       ],
@@ -222,40 +222,40 @@
           "task_id": "sympy__sympy-22914",
           "group": "baseline",
           "run_index": 1,
-          "status": "solved",
-          "steps": 13,
-          "cost_usd": 0.0016325736000000002,
-          "reason": "finished",
-          "elapsed_s": 52.0,
+          "status": "failed",
+          "steps": 36,
+          "cost_usd": 0.004887652,
+          "reason": "budget_exceeded",
+          "elapsed_s": 169.8,
           "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-22914\\run-1\\baseline\\sympy__sympy-22914\\run-1.trace.jsonl",
           "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-22914\\run-1\\baseline\\sympy__sympy-22914\\run-1",
-          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 0.000±0.000 | 13.000±0.000 | 0.002±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-22914\\run-1\\baseline\\sympy__sympy-22914\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-22914 | 1 | 0.000±0.000 | 13.000±0.000 | 0.002±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
+          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 1.000±0.000 | 36.000±0.000 | 0.005±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-22914\\run-1\\baseline\\sympy__sympy-22914\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-22914 | 1 | 1.000±0.000 | 36.000±0.000 | 0.005±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
         },
         {
           "task_id": "sympy__sympy-22914",
           "group": "baseline",
           "run_index": 2,
           "status": "solved",
-          "steps": 26,
-          "cost_usd": 0.004458188,
+          "steps": 11,
+          "cost_usd": 0.0011125072,
           "reason": "finished",
-          "elapsed_s": 116.0,
+          "elapsed_s": 66.2,
           "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-22914\\run-2\\baseline\\sympy__sympy-22914\\run-1.trace.jsonl",
           "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-22914\\run-2\\baseline\\sympy__sympy-22914\\run-1",
-          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 0.000±0.000 | 26.000±0.000 | 0.004±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-22914\\run-2\\baseline\\sympy__sympy-22914\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-22914 | 1 | 0.000±0.000 | 26.000±0.000 | 0.004±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
+          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 1.000±0.000 | 11.000±0.000 | 0.001±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-22914\\run-2\\baseline\\sympy__sympy-22914\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-22914 | 1 | 1.000±0.000 | 11.000±0.000 | 0.001±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
         },
         {
           "task_id": "sympy__sympy-22914",
           "group": "baseline",
           "run_index": 3,
           "status": "solved",
-          "steps": 10,
-          "cost_usd": 0.0012269264000000003,
+          "steps": 8,
+          "cost_usd": 0.0006277208,
           "reason": "finished",
-          "elapsed_s": 46.2,
+          "elapsed_s": 48.9,
           "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-22914\\run-3\\baseline\\sympy__sympy-22914\\run-1.trace.jsonl",
           "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-22914\\run-3\\baseline\\sympy__sympy-22914\\run-1",
-          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 0.000±0.000 | 10.000±0.000 | 0.001±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-22914\\run-3\\baseline\\sympy__sympy-22914\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-22914 | 1 | 0.000±0.000 | 10.000±0.000 | 0.001±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
+          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 1.000±0.000 | 8.000±0.000 | 0.001±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-22914\\run-3\\baseline\\sympy__sympy-22914\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-22914 | 1 | 1.000±0.000 | 8.000±0.000 | 0.001±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
         }
       ]
     },
@@ -263,61 +263,61 @@
       "task_id": "sympy__sympy-23262",
       "runs": 3,
       "pass_rate": {
-        "mean": 0.0,
-        "std": 0.0
+        "mean": 0.6666666666666666,
+        "std": 0.4714045207910317
       },
       "steps": {
-        "mean": 34.0,
-        "std": 1.4142135623730951
+        "mean": 31.666666666666668,
+        "std": 3.0912061651652345
       },
       "cost_usd": {
-        "mean": 0.005062773333333334,
-        "std": 0.00026086950650905003
+        "mean": 0.0051156560000000005,
+        "std": 0.0006650882552523885
       },
       "statuses": [
+        "solved",
         "failed",
-        "failed",
-        "failed"
+        "solved"
       ],
       "results": [
         {
           "task_id": "sympy__sympy-23262",
           "group": "baseline",
           "run_index": 1,
-          "status": "failed",
-          "steps": 32,
-          "cost_usd": 0.0053845176,
-          "reason": "budget_exceeded",
-          "elapsed_s": 125.5,
+          "status": "solved",
+          "steps": 30,
+          "cost_usd": 0.004515644000000001,
+          "reason": "finished",
+          "elapsed_s": 121.3,
           "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23262\\run-1\\baseline\\sympy__sympy-23262\\run-1.trace.jsonl",
           "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23262\\run-1\\baseline\\sympy__sympy-23262\\run-1",
-          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 0.000±0.000 | 32.000±0.000 | 0.005±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23262\\run-1\\baseline\\sympy__sympy-23262\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-23262 | 1 | 0.000±0.000 | 32.000±0.000 | 0.005±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
+          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 0.000±0.000 | 30.000±0.000 | 0.005±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23262\\run-1\\baseline\\sympy__sympy-23262\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-23262 | 1 | 0.000±0.000 | 30.000±0.000 | 0.005±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
         },
         {
           "task_id": "sympy__sympy-23262",
           "group": "baseline",
           "run_index": 2,
           "status": "failed",
-          "steps": 35,
-          "cost_usd": 0.0050582336,
+          "steps": 36,
+          "cost_usd": 0.004788364,
           "reason": "budget_exceeded",
-          "elapsed_s": 118.6,
+          "elapsed_s": 143.4,
           "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23262\\run-2\\baseline\\sympy__sympy-23262\\run-1.trace.jsonl",
           "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23262\\run-2\\baseline\\sympy__sympy-23262\\run-1",
-          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 0.000±0.000 | 35.000±0.000 | 0.005±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23262\\run-2\\baseline\\sympy__sympy-23262\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-23262 | 1 | 0.000±0.000 | 35.000±0.000 | 0.005±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
+          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 0.000±0.000 | 36.000±0.000 | 0.005±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23262\\run-2\\baseline\\sympy__sympy-23262\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-23262 | 1 | 0.000±0.000 | 36.000±0.000 | 0.005±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
         },
         {
           "task_id": "sympy__sympy-23262",
           "group": "baseline",
           "run_index": 3,
-          "status": "failed",
-          "steps": 35,
-          "cost_usd": 0.0047455688000000015,
-          "reason": "budget_exceeded",
-          "elapsed_s": 116.2,
+          "status": "solved",
+          "steps": 29,
+          "cost_usd": 0.00604296,
+          "reason": "finished",
+          "elapsed_s": 124.4,
           "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23262\\run-3\\baseline\\sympy__sympy-23262\\run-1.trace.jsonl",
           "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23262\\run-3\\baseline\\sympy__sympy-23262\\run-1",
-          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 0.000±0.000 | 35.000±0.000 | 0.005±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23262\\run-3\\baseline\\sympy__sympy-23262\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-23262 | 1 | 0.000±0.000 | 35.000±0.000 | 0.005±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
+          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 0.000±0.000 | 29.000±0.000 | 0.006±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23262\\run-3\\baseline\\sympy__sympy-23262\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-23262 | 1 | 0.000±0.000 | 29.000±0.000 | 0.006±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
         }
       ]
     },
@@ -329,17 +329,17 @@
         "std": 0.0
       },
       "steps": {
-        "mean": 22.333333333333332,
-        "std": 1.699673171197595
+        "mean": 22.0,
+        "std": 0.0
       },
       "cost_usd": {
-        "mean": 0.0096188064,
-        "std": 0.0009867254322181156
+        "mean": 0.0126231672,
+        "std": 0.004495047200000001
       },
       "statuses": [
         "failed",
         "failed",
-        "failed"
+        "timeout"
       ],
       "results": [
         {
@@ -347,39 +347,39 @@
           "group": "baseline",
           "run_index": 1,
           "status": "failed",
-          "steps": 24,
-          "cost_usd": 0.0094146416,
+          "steps": 22,
+          "cost_usd": 0.008128119999999999,
           "reason": "budget_exceeded",
-          "elapsed_s": 261.2,
+          "elapsed_s": 223.1,
           "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23413\\run-1\\baseline\\sympy__sympy-23413\\run-1.trace.jsonl",
           "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23413\\run-1\\baseline\\sympy__sympy-23413\\run-1",
-          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 0.000±0.000 | 24.000±0.000 | 0.009±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23413\\run-1\\baseline\\sympy__sympy-23413\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-23413 | 1 | 0.000±0.000 | 24.000±0.000 | 0.009±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
+          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 1.000±0.000 | 22.000±0.000 | 0.008±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23413\\run-1\\baseline\\sympy__sympy-23413\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-23413 | 1 | 1.000±0.000 | 22.000±0.000 | 0.008±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
         },
         {
           "task_id": "sympy__sympy-23413",
           "group": "baseline",
           "run_index": 2,
           "status": "failed",
-          "steps": 20,
-          "cost_usd": 0.0109163712,
+          "steps": 22,
+          "cost_usd": 0.0171182144,
           "reason": "budget_exceeded",
-          "elapsed_s": 265.7,
+          "elapsed_s": 513.9,
           "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23413\\run-2\\baseline\\sympy__sympy-23413\\run-1.trace.jsonl",
           "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23413\\run-2\\baseline\\sympy__sympy-23413\\run-1",
-          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 0.000±0.000 | 20.000±0.000 | 0.011±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23413\\run-2\\baseline\\sympy__sympy-23413\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-23413 | 1 | 0.000±0.000 | 20.000±0.000 | 0.011±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
+          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 0.000±0.000 | 22.000±0.000 | 0.017±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23413\\run-2\\baseline\\sympy__sympy-23413\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-23413 | 1 | 0.000±0.000 | 22.000±0.000 | 0.017±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
         },
         {
           "task_id": "sympy__sympy-23413",
           "group": "baseline",
           "run_index": 3,
-          "status": "failed",
-          "steps": 23,
-          "cost_usd": 0.0085254064,
-          "reason": "budget_exceeded",
-          "elapsed_s": 202.6,
-          "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23413\\run-3\\baseline\\sympy__sympy-23413\\run-1.trace.jsonl",
-          "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23413\\run-3\\baseline\\sympy__sympy-23413\\run-1",
-          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 0.000±0.000 | 23.000±0.000 | 0.009±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23413\\run-3\\baseline\\sympy__sympy-23413\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-23413 | 1 | 0.000±0.000 | 23.000±0.000 | 0.009±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
+          "status": "timeout",
+          "steps": 0,
+          "cost_usd": 0.0,
+          "reason": "timeout after 2400s",
+          "elapsed_s": 51467.9,
+          "trace_path": "",
+          "workspace_path": "",
+          "verify_output": ""
         }
       ]
     },
@@ -391,12 +391,12 @@
         "std": 0.0
       },
       "steps": {
-        "mean": 13.666666666666666,
-        "std": 2.8674417556808756
+        "mean": 12.0,
+        "std": 2.160246899469287
       },
       "cost_usd": {
-        "mean": 0.002407329866666667,
-        "std": 0.0008176699785985594
+        "mean": 0.0015357085333333334,
+        "std": 0.0002943579414060974
       },
       "statuses": [
         "solved",
@@ -409,39 +409,39 @@
           "group": "baseline",
           "run_index": 1,
           "status": "solved",
-          "steps": 14,
-          "cost_usd": 0.003033352,
+          "steps": 10,
+          "cost_usd": 0.0012379080000000002,
           "reason": "finished",
-          "elapsed_s": 53.3,
+          "elapsed_s": 100.7,
           "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23534\\run-1\\baseline\\sympy__sympy-23534\\run-1.trace.jsonl",
           "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23534\\run-1\\baseline\\sympy__sympy-23534\\run-1",
-          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 0.000±0.000 | 14.000±0.000 | 0.003±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23534\\run-1\\baseline\\sympy__sympy-23534\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-23534 | 1 | 0.000±0.000 | 14.000±0.000 | 0.003±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
+          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 1.000±0.000 | 10.000±0.000 | 0.001±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23534\\run-1\\baseline\\sympy__sympy-23534\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-23534 | 1 | 1.000±0.000 | 10.000±0.000 | 0.001±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
         },
         {
           "task_id": "sympy__sympy-23534",
           "group": "baseline",
           "run_index": 2,
           "status": "solved",
-          "steps": 10,
-          "cost_usd": 0.0012523280000000003,
+          "steps": 11,
+          "cost_usd": 0.0014327040000000004,
           "reason": "finished",
-          "elapsed_s": 39.8,
+          "elapsed_s": 70.5,
           "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23534\\run-2\\baseline\\sympy__sympy-23534\\run-1.trace.jsonl",
           "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23534\\run-2\\baseline\\sympy__sympy-23534\\run-1",
-          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 0.000±0.000 | 10.000±0.000 | 0.001±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23534\\run-2\\baseline\\sympy__sympy-23534\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-23534 | 1 | 0.000±0.000 | 10.000±0.000 | 0.001±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
+          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 1.000±0.000 | 11.000±0.000 | 0.001±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23534\\run-2\\baseline\\sympy__sympy-23534\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-23534 | 1 | 1.000±0.000 | 11.000±0.000 | 0.001±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
         },
         {
           "task_id": "sympy__sympy-23534",
           "group": "baseline",
           "run_index": 3,
           "status": "solved",
-          "steps": 17,
-          "cost_usd": 0.0029363096,
+          "steps": 15,
+          "cost_usd": 0.0019365136,
           "reason": "finished",
-          "elapsed_s": 102.9,
+          "elapsed_s": 77.3,
           "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23534\\run-3\\baseline\\sympy__sympy-23534\\run-1.trace.jsonl",
           "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23534\\run-3\\baseline\\sympy__sympy-23534\\run-1",
-          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 0.000±0.000 | 17.000±0.000 | 0.003±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23534\\run-3\\baseline\\sympy__sympy-23534\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-23534 | 1 | 0.000±0.000 | 17.000±0.000 | 0.003±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
+          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 1.000±0.000 | 15.000±0.000 | 0.002±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23534\\run-3\\baseline\\sympy__sympy-23534\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-23534 | 1 | 1.000±0.000 | 15.000±0.000 | 0.002±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
         }
       ]
     },
@@ -449,61 +449,61 @@
       "task_id": "sympy__sympy-23824",
       "runs": 3,
       "pass_rate": {
-        "mean": 0.0,
+        "mean": 1.0,
         "std": 0.0
       },
       "steps": {
-        "mean": 0.0,
-        "std": 0.0
+        "mean": 14.0,
+        "std": 0.816496580927726
       },
       "cost_usd": {
-        "mean": 0.0,
-        "std": 0.0
+        "mean": 0.002891085866666667,
+        "std": 0.00047867757014478533
       },
       "statuses": [
-        "failed",
-        "failed",
-        "failed"
+        "solved",
+        "solved",
+        "solved"
       ],
       "results": [
         {
           "task_id": "sympy__sympy-23824",
           "group": "baseline",
           "run_index": 1,
-          "status": "failed",
-          "steps": 0,
-          "cost_usd": 0.0,
-          "reason": "",
-          "elapsed_s": 241.3,
+          "status": "solved",
+          "steps": 15,
+          "cost_usd": 0.002886492,
+          "reason": "finished",
+          "elapsed_s": 108.2,
           "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23824\\run-1\\baseline\\sympy__sympy-23824\\run-1.trace.jsonl",
           "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23824\\run-1\\baseline\\sympy__sympy-23824\\run-1",
-          "verify_output": "Traceback (most recent call last):\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpx\\_transports\\default.py\", line 101, in map_httpcore_exceptions\n    yield\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpx\\_transports\\default.py\", line 250, in handle_request\n    resp = self._pool.handle_request(req)\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\connection_pool.py\", line 256, in handle_request\n    raise exc from None\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\connection_pool.py\", line 236, in handle_request\n    response = connection.handle_request(\n        pool_request.request\n    )\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\http_proxy.py\", line 316, in handle_request\n    stream = stream.start_tls(**kwargs)\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\http11.py\", line 376, in start_tls\n    return self._stream.start_tls(ssl_context, server_hostname, timeout)\n           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_backends\\sync.py\", line 154, in start_tls\n    with map_exceptions(exc_map):\n         ~~~~~~~~~~~~~~^^^^^^^^^\n  File \"D:\\dev\\uv\\python\\cpython-3.13-windows-x86_64-none\\Lib\\contextlib.py\", line 162, in __exit__\n    self.gen.throw(value)\n    ~~~~~~~~~~~~~~^^^^^^^\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_exceptions.py\", line 14, in map_exceptions\n    raise to_exc(exc) from exc\nhttpcore.ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1032)\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\openai\\_base_client.py\", line 1037, in request\n    response "
+          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 1.000±0.000 | 15.000±0.000 | 0.003±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23824\\run-1\\baseline\\sympy__sympy-23824\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-23824 | 1 | 1.000±0.000 | 15.000±0.000 | 0.003±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
         },
         {
           "task_id": "sympy__sympy-23824",
           "group": "baseline",
           "run_index": 2,
-          "status": "failed",
-          "steps": 0,
-          "cost_usd": 0.0,
-          "reason": "",
-          "elapsed_s": 30.3,
+          "status": "solved",
+          "steps": 14,
+          "cost_usd": 0.003479627200000001,
+          "reason": "finished",
+          "elapsed_s": 95.9,
           "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23824\\run-2\\baseline\\sympy__sympy-23824\\run-1.trace.jsonl",
           "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23824\\run-2\\baseline\\sympy__sympy-23824\\run-1",
-          "verify_output": "Traceback (most recent call last):\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpx\\_transports\\default.py\", line 101, in map_httpcore_exceptions\n    yield\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpx\\_transports\\default.py\", line 250, in handle_request\n    resp = self._pool.handle_request(req)\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\connection_pool.py\", line 256, in handle_request\n    raise exc from None\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\connection_pool.py\", line 236, in handle_request\n    response = connection.handle_request(\n        pool_request.request\n    )\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\http_proxy.py\", line 316, in handle_request\n    stream = stream.start_tls(**kwargs)\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\http11.py\", line 376, in start_tls\n    return self._stream.start_tls(ssl_context, server_hostname, timeout)\n           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_backends\\sync.py\", line 154, in start_tls\n    with map_exceptions(exc_map):\n         ~~~~~~~~~~~~~~^^^^^^^^^\n  File \"D:\\dev\\uv\\python\\cpython-3.13-windows-x86_64-none\\Lib\\contextlib.py\", line 162, in __exit__\n    self.gen.throw(value)\n    ~~~~~~~~~~~~~~^^^^^^^\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_exceptions.py\", line 14, in map_exceptions\n    raise to_exc(exc) from exc\nhttpcore.ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1032)\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\openai\\_base_client.py\", line 1037, in request\n    response "
+          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 1.000±0.000 | 14.000±0.000 | 0.003±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23824\\run-2\\baseline\\sympy__sympy-23824\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-23824 | 1 | 1.000±0.000 | 14.000±0.000 | 0.003±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
         },
         {
           "task_id": "sympy__sympy-23824",
           "group": "baseline",
           "run_index": 3,
-          "status": "failed",
-          "steps": 0,
-          "cost_usd": 0.0,
-          "reason": "",
-          "elapsed_s": 29.8,
+          "status": "solved",
+          "steps": 13,
+          "cost_usd": 0.0023071384,
+          "reason": "finished",
+          "elapsed_s": 103.1,
           "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23824\\run-3\\baseline\\sympy__sympy-23824\\run-1.trace.jsonl",
           "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23824\\run-3\\baseline\\sympy__sympy-23824\\run-1",
-          "verify_output": "Traceback (most recent call last):\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpx\\_transports\\default.py\", line 101, in map_httpcore_exceptions\n    yield\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpx\\_transports\\default.py\", line 250, in handle_request\n    resp = self._pool.handle_request(req)\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\connection_pool.py\", line 256, in handle_request\n    raise exc from None\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\connection_pool.py\", line 236, in handle_request\n    response = connection.handle_request(\n        pool_request.request\n    )\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\http_proxy.py\", line 316, in handle_request\n    stream = stream.start_tls(**kwargs)\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\http11.py\", line 376, in start_tls\n    return self._stream.start_tls(ssl_context, server_hostname, timeout)\n           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_backends\\sync.py\", line 154, in start_tls\n    with map_exceptions(exc_map):\n         ~~~~~~~~~~~~~~^^^^^^^^^\n  File \"D:\\dev\\uv\\python\\cpython-3.13-windows-x86_64-none\\Lib\\contextlib.py\", line 162, in __exit__\n    self.gen.throw(value)\n    ~~~~~~~~~~~~~~^^^^^^^\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_exceptions.py\", line 14, in map_exceptions\n    raise to_exc(exc) from exc\nhttpcore.ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1032)\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\openai\\_base_client.py\", line 1037, in request\n    response "
+          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 1.000±0.000 | 13.000±0.000 | 0.002±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23824\\run-3\\baseline\\sympy__sympy-23824\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-23824 | 1 | 1.000±0.000 | 13.000±0.000 | 0.002±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
         }
       ]
     },
@@ -511,19 +511,19 @@
       "task_id": "sympy__sympy-23950",
       "runs": 3,
       "pass_rate": {
-        "mean": 0.0,
-        "std": 0.0
+        "mean": 0.3333333333333333,
+        "std": 0.4714045207910317
       },
       "steps": {
-        "mean": 0.0,
-        "std": 0.0
+        "mean": 36.0,
+        "std": 3.7416573867739413
       },
       "cost_usd": {
-        "mean": 0.0,
-        "std": 0.0
+        "mean": 0.0053708032000000005,
+        "std": 0.0007350270982240225
       },
       "statuses": [
-        "failed",
+        "solved",
         "failed",
         "failed"
       ],
@@ -532,40 +532,40 @@
           "task_id": "sympy__sympy-23950",
           "group": "baseline",
           "run_index": 1,
-          "status": "failed",
-          "steps": 0,
-          "cost_usd": 0.0,
-          "reason": "",
-          "elapsed_s": 33.4,
+          "status": "solved",
+          "steps": 31,
+          "cost_usd": 0.006336646400000001,
+          "reason": "finished",
+          "elapsed_s": 213.2,
           "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23950\\run-1\\baseline\\sympy__sympy-23950\\run-1.trace.jsonl",
           "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23950\\run-1\\baseline\\sympy__sympy-23950\\run-1",
-          "verify_output": "Traceback (most recent call last):\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpx\\_transports\\default.py\", line 101, in map_httpcore_exceptions\n    yield\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpx\\_transports\\default.py\", line 250, in handle_request\n    resp = self._pool.handle_request(req)\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\connection_pool.py\", line 256, in handle_request\n    raise exc from None\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\connection_pool.py\", line 236, in handle_request\n    response = connection.handle_request(\n        pool_request.request\n    )\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\http_proxy.py\", line 316, in handle_request\n    stream = stream.start_tls(**kwargs)\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\http11.py\", line 376, in start_tls\n    return self._stream.start_tls(ssl_context, server_hostname, timeout)\n           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_backends\\sync.py\", line 154, in start_tls\n    with map_exceptions(exc_map):\n         ~~~~~~~~~~~~~~^^^^^^^^^\n  File \"D:\\dev\\uv\\python\\cpython-3.13-windows-x86_64-none\\Lib\\contextlib.py\", line 162, in __exit__\n    self.gen.throw(value)\n    ~~~~~~~~~~~~~~^^^^^^^\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_exceptions.py\", line 14, in map_exceptions\n    raise to_exc(exc) from exc\nhttpcore.ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1032)\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\openai\\_base_client.py\", line 1037, in request\n    response "
+          "verify_output": "Exception in thread Thread-47 (_readerthread):\nTraceback (most recent call last):\n  File \"D:\\dev\\uv\\python\\cpython-3.13-windows-x86_64-none\\Lib\\threading.py\", line 1044, in _bootstrap_inner\n    self.run()\n    ~~~~~~~~^^\n  File \"D:\\dev\\uv\\python\\cpython-3.13-windows-x86_64-none\\Lib\\threading.py\", line 995, in run\n    self._target(*self._args, **self._kwargs)\n    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\dev\\uv\\python\\cpython-3.13-windows-x86_64-none\\Lib\\subprocess.py\", line 1615, in _readerthread\n    buffer.append(fh.read())\n                  ~~~~~~~^^\nUnicodeDecodeError: 'gbk' codec can't decode byte 0x88 in position 476: illegal multibyte sequence\nTraceback (most recent call last):\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.Codex\\worktrees\\swebench-abc-samples\\eval\\spec_ab.py\", line 495, in <module>\n    raise SystemExit(main())\n                     ~~~~^^\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.Codex\\worktrees\\swebench-abc-samples\\eval\\spec_ab.py\", line 466, in main\n    runs = run_spec_ab(\n        task_roots,\n    ...<5 lines>...\n        task_ids=selected_task_ids,\n    )\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.Codex\\worktrees\\swebench-abc-samples\\eval\\spec_ab.py\", line 246, in run_spec_ab\n    results.append(run_task(task, wrapped, run_root))\n                   ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.Codex\\worktrees\\swebench-abc-samples\\eval\\run_eval.py\", line 94, in run_task\n    meta = agent(work_root, prompt, task.profile) or {}\n           ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.Codex\\worktrees\\swebench-abc-samples\\eval\\spec_ab.py\", line 202, in wrapped\n    return agent(work_root, prompt, profile) or {}\n           ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.Codex\\worktrees\\swebench-abc-samples\\eval\\run_eval.py\", line 376, in agent\n    (workspace / \"final.diff\").write_text(getattr(result, \"diff\", \"\"), encoding=\"utf-"
         },
         {
           "task_id": "sympy__sympy-23950",
           "group": "baseline",
           "run_index": 2,
           "status": "failed",
-          "steps": 0,
-          "cost_usd": 0.0,
-          "reason": "",
-          "elapsed_s": 31.6,
+          "steps": 37,
+          "cost_usd": 0.0052206840000000015,
+          "reason": "budget_exceeded",
+          "elapsed_s": 159.4,
           "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23950\\run-2\\baseline\\sympy__sympy-23950\\run-1.trace.jsonl",
           "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23950\\run-2\\baseline\\sympy__sympy-23950\\run-1",
-          "verify_output": "Traceback (most recent call last):\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpx\\_transports\\default.py\", line 101, in map_httpcore_exceptions\n    yield\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpx\\_transports\\default.py\", line 250, in handle_request\n    resp = self._pool.handle_request(req)\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\connection_pool.py\", line 256, in handle_request\n    raise exc from None\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\connection_pool.py\", line 236, in handle_request\n    response = connection.handle_request(\n        pool_request.request\n    )\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\http_proxy.py\", line 316, in handle_request\n    stream = stream.start_tls(**kwargs)\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\http11.py\", line 376, in start_tls\n    return self._stream.start_tls(ssl_context, server_hostname, timeout)\n           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_backends\\sync.py\", line 154, in start_tls\n    with map_exceptions(exc_map):\n         ~~~~~~~~~~~~~~^^^^^^^^^\n  File \"D:\\dev\\uv\\python\\cpython-3.13-windows-x86_64-none\\Lib\\contextlib.py\", line 162, in __exit__\n    self.gen.throw(value)\n    ~~~~~~~~~~~~~~^^^^^^^\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_exceptions.py\", line 14, in map_exceptions\n    raise to_exc(exc) from exc\nhttpcore.ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1032)\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\openai\\_base_client.py\", line 1037, in request\n    response "
+          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 0.000±0.000 | 37.000±0.000 | 0.005±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23950\\run-2\\baseline\\sympy__sympy-23950\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-23950 | 1 | 0.000±0.000 | 37.000±0.000 | 0.005±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
         },
         {
           "task_id": "sympy__sympy-23950",
           "group": "baseline",
           "run_index": 3,
           "status": "failed",
-          "steps": 0,
-          "cost_usd": 0.0,
-          "reason": "",
-          "elapsed_s": 30.3,
+          "steps": 40,
+          "cost_usd": 0.0045550792,
+          "reason": "budget_exceeded",
+          "elapsed_s": 238.3,
           "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23950\\run-3\\baseline\\sympy__sympy-23950\\run-1.trace.jsonl",
           "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23950\\run-3\\baseline\\sympy__sympy-23950\\run-1",
-          "verify_output": "Traceback (most recent call last):\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpx\\_transports\\default.py\", line 101, in map_httpcore_exceptions\n    yield\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpx\\_transports\\default.py\", line 250, in handle_request\n    resp = self._pool.handle_request(req)\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\connection_pool.py\", line 256, in handle_request\n    raise exc from None\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\connection_pool.py\", line 236, in handle_request\n    response = connection.handle_request(\n        pool_request.request\n    )\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\http_proxy.py\", line 316, in handle_request\n    stream = stream.start_tls(**kwargs)\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\http11.py\", line 376, in start_tls\n    return self._stream.start_tls(ssl_context, server_hostname, timeout)\n           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_backends\\sync.py\", line 154, in start_tls\n    with map_exceptions(exc_map):\n         ~~~~~~~~~~~~~~^^^^^^^^^\n  File \"D:\\dev\\uv\\python\\cpython-3.13-windows-x86_64-none\\Lib\\contextlib.py\", line 162, in __exit__\n    self.gen.throw(value)\n    ~~~~~~~~~~~~~~^^^^^^^\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_exceptions.py\", line 14, in map_exceptions\n    raise to_exc(exc) from exc\nhttpcore.ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1032)\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\openai\\_base_client.py\", line 1037, in request\n    response "
+          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 0.000±0.000 | 40.000±0.000 | 0.005±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-23950\\run-3\\baseline\\sympy__sympy-23950\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-23950 | 1 | 0.000±0.000 | 40.000±0.000 | 0.005±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
         }
       ]
     },
@@ -577,12 +577,12 @@
         "std": 0.0
       },
       "steps": {
-        "mean": 0.0,
-        "std": 0.0
+        "mean": 30.0,
+        "std": 3.559026084010437
       },
       "cost_usd": {
-        "mean": 0.0,
-        "std": 0.0
+        "mean": 0.006509202933333335,
+        "std": 0.000508006473768864
       },
       "statuses": [
         "failed",
@@ -595,39 +595,39 @@
           "group": "baseline",
           "run_index": 1,
           "status": "failed",
-          "steps": 0,
-          "cost_usd": 0.0,
-          "reason": "",
-          "elapsed_s": 33.6,
+          "steps": 27,
+          "cost_usd": 0.006845899200000002,
+          "reason": "budget_exceeded",
+          "elapsed_s": 209.2,
           "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-24066\\run-1\\baseline\\sympy__sympy-24066\\run-1.trace.jsonl",
           "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-24066\\run-1\\baseline\\sympy__sympy-24066\\run-1",
-          "verify_output": "Traceback (most recent call last):\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpx\\_transports\\default.py\", line 101, in map_httpcore_exceptions\n    yield\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpx\\_transports\\default.py\", line 250, in handle_request\n    resp = self._pool.handle_request(req)\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\connection_pool.py\", line 256, in handle_request\n    raise exc from None\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\connection_pool.py\", line 236, in handle_request\n    response = connection.handle_request(\n        pool_request.request\n    )\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\http_proxy.py\", line 316, in handle_request\n    stream = stream.start_tls(**kwargs)\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\http11.py\", line 376, in start_tls\n    return self._stream.start_tls(ssl_context, server_hostname, timeout)\n           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_backends\\sync.py\", line 154, in start_tls\n    with map_exceptions(exc_map):\n         ~~~~~~~~~~~~~~^^^^^^^^^\n  File \"D:\\dev\\uv\\python\\cpython-3.13-windows-x86_64-none\\Lib\\contextlib.py\", line 162, in __exit__\n    self.gen.throw(value)\n    ~~~~~~~~~~~~~~^^^^^^^\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_exceptions.py\", line 14, in map_exceptions\n    raise to_exc(exc) from exc\nhttpcore.ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1032)\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\openai\\_base_client.py\", line 1037, in request\n    response "
+          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 0.000±0.000 | 27.000±0.000 | 0.007±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-24066\\run-1\\baseline\\sympy__sympy-24066\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-24066 | 1 | 0.000±0.000 | 27.000±0.000 | 0.007±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
         },
         {
           "task_id": "sympy__sympy-24066",
           "group": "baseline",
           "run_index": 2,
           "status": "failed",
-          "steps": 0,
-          "cost_usd": 0.0,
-          "reason": "",
-          "elapsed_s": 30.6,
+          "steps": 28,
+          "cost_usd": 0.0068904752,
+          "reason": "budget_exceeded",
+          "elapsed_s": 202.6,
           "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-24066\\run-2\\baseline\\sympy__sympy-24066\\run-1.trace.jsonl",
           "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-24066\\run-2\\baseline\\sympy__sympy-24066\\run-1",
-          "verify_output": "Traceback (most recent call last):\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpx\\_transports\\default.py\", line 101, in map_httpcore_exceptions\n    yield\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpx\\_transports\\default.py\", line 250, in handle_request\n    resp = self._pool.handle_request(req)\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\connection_pool.py\", line 256, in handle_request\n    raise exc from None\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\connection_pool.py\", line 236, in handle_request\n    response = connection.handle_request(\n        pool_request.request\n    )\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\http_proxy.py\", line 316, in handle_request\n    stream = stream.start_tls(**kwargs)\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\http11.py\", line 376, in start_tls\n    return self._stream.start_tls(ssl_context, server_hostname, timeout)\n           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_backends\\sync.py\", line 154, in start_tls\n    with map_exceptions(exc_map):\n         ~~~~~~~~~~~~~~^^^^^^^^^\n  File \"D:\\dev\\uv\\python\\cpython-3.13-windows-x86_64-none\\Lib\\contextlib.py\", line 162, in __exit__\n    self.gen.throw(value)\n    ~~~~~~~~~~~~~~^^^^^^^\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_exceptions.py\", line 14, in map_exceptions\n    raise to_exc(exc) from exc\nhttpcore.ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1032)\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\openai\\_base_client.py\", line 1037, in request\n    response "
+          "verify_output": "# AgentSpec A/B Evaluation Report\n\nLLM evals are noisy: never draw conclusions from a single solution_rate. Use mean±std and inspect traces.\n\n## Group Summary\n\n| Group | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped | Trace Sample |\n|---|---:|---:|---:|---:|---|\n| baseline | 0.000±0.000 | 28.000±0.000 | 0.007±0.000 | 0 | D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-24066\\run-2\\baseline\\sympy__sympy-24066\\run-1.trace.jsonl |\n\n## Per Task\n\n### baseline\n\n| Task | Runs | Pass Rate mean±std | Steps mean±std | Cost mean±std | Skipped |\n|---|---:|---:|---:|---:|---:|\n| sympy__sympy-24066 | 1 | 0.000±0.000 | 28.000±0.000 | 0.007±0.000 | 0 |\n\n## Skipped Runs\n\n- none\n\n"
         },
         {
           "task_id": "sympy__sympy-24066",
           "group": "baseline",
           "run_index": 3,
           "status": "failed",
-          "steps": 0,
-          "cost_usd": 0.0,
-          "reason": "",
-          "elapsed_s": 30.3,
-          "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-24066\\run-3\\baseline\\sympy__sympy-24066\\run-1.trace.jsonl",
-          "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-24066\\run-3\\baseline\\sympy__sympy-24066\\run-1",
-          "verify_output": "Traceback (most recent call last):\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpx\\_transports\\default.py\", line 101, in map_httpcore_exceptions\n    yield\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpx\\_transports\\default.py\", line 250, in handle_request\n    resp = self._pool.handle_request(req)\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\connection_pool.py\", line 256, in handle_request\n    raise exc from None\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\connection_pool.py\", line 236, in handle_request\n    response = connection.handle_request(\n        pool_request.request\n    )\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\http_proxy.py\", line 316, in handle_request\n    stream = stream.start_tls(**kwargs)\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\http11.py\", line 376, in start_tls\n    return self._stream.start_tls(ssl_context, server_hostname, timeout)\n           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_backends\\sync.py\", line 154, in start_tls\n    with map_exceptions(exc_map):\n         ~~~~~~~~~~~~~~^^^^^^^^^\n  File \"D:\\dev\\uv\\python\\cpython-3.13-windows-x86_64-none\\Lib\\contextlib.py\", line 162, in __exit__\n    self.gen.throw(value)\n    ~~~~~~~~~~~~~~^^^^^^^\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_exceptions.py\", line 14, in map_exceptions\n    raise to_exc(exc) from exc\nhttpcore.ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1032)\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\openai\\_base_client.py\", line 1037, in request\n    response "
+          "steps": 35,
+          "cost_usd": 0.005791234400000001,
+          "reason": "budget_exceeded",
+          "elapsed_s": 0,
+          "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\phase1-batch2\\sympy__sympy-24066\\baseline\\sympy__sympy-24066\\run-3.trace.jsonl",
+          "workspace_path": "",
+          "verify_output": ""
         }
       ]
     },
@@ -635,19 +635,19 @@
       "task_id": "sympy__sympy-24213",
       "runs": 3,
       "pass_rate": {
-        "mean": 0.0,
-        "std": 0.0
+        "mean": 0.3333333333333333,
+        "std": 0.4714045207910317
       },
       "steps": {
-        "mean": 0.0,
-        "std": 0.0
+        "mean": 31.333333333333332,
+        "std": 4.988876515698588
       },
       "cost_usd": {
-        "mean": 0.0,
-        "std": 0.0
+        "mean": 0.004343277866666667,
+        "std": 0.0005453799728292521
       },
       "statuses": [
-        "failed",
+        "solved",
         "failed",
         "failed"
       ],
@@ -656,40 +656,40 @@
           "task_id": "sympy__sympy-24213",
           "group": "baseline",
           "run_index": 1,
-          "status": "failed",
-          "steps": 0,
-          "cost_usd": 0.0,
-          "reason": "",
-          "elapsed_s": 34.1,
-          "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-24213\\run-1\\baseline\\sympy__sympy-24213\\run-1.trace.jsonl",
-          "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-24213\\run-1\\baseline\\sympy__sympy-24213\\run-1",
-          "verify_output": "Traceback (most recent call last):\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpx\\_transports\\default.py\", line 101, in map_httpcore_exceptions\n    yield\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpx\\_transports\\default.py\", line 250, in handle_request\n    resp = self._pool.handle_request(req)\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\connection_pool.py\", line 256, in handle_request\n    raise exc from None\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\connection_pool.py\", line 236, in handle_request\n    response = connection.handle_request(\n        pool_request.request\n    )\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\http_proxy.py\", line 316, in handle_request\n    stream = stream.start_tls(**kwargs)\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\http11.py\", line 376, in start_tls\n    return self._stream.start_tls(ssl_context, server_hostname, timeout)\n           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_backends\\sync.py\", line 154, in start_tls\n    with map_exceptions(exc_map):\n         ~~~~~~~~~~~~~~^^^^^^^^^\n  File \"D:\\dev\\uv\\python\\cpython-3.13-windows-x86_64-none\\Lib\\contextlib.py\", line 162, in __exit__\n    self.gen.throw(value)\n    ~~~~~~~~~~~~~~^^^^^^^\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_exceptions.py\", line 14, in map_exceptions\n    raise to_exc(exc) from exc\nhttpcore.ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1032)\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\openai\\_base_client.py\", line 1037, in request\n    response "
+          "status": "solved",
+          "steps": 26,
+          "cost_usd": 0.0036627304,
+          "reason": "finished",
+          "elapsed_s": 0,
+          "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\phase1-batch2\\sympy__sympy-24213\\baseline\\sympy__sympy-24213\\run-1.trace.jsonl",
+          "workspace_path": "",
+          "verify_output": ""
         },
         {
           "task_id": "sympy__sympy-24213",
           "group": "baseline",
           "run_index": 2,
           "status": "failed",
-          "steps": 0,
-          "cost_usd": 0.0,
-          "reason": "",
-          "elapsed_s": 30.3,
-          "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-24213\\run-2\\baseline\\sympy__sympy-24213\\run-1.trace.jsonl",
-          "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-24213\\run-2\\baseline\\sympy__sympy-24213\\run-1",
-          "verify_output": "Traceback (most recent call last):\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpx\\_transports\\default.py\", line 101, in map_httpcore_exceptions\n    yield\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpx\\_transports\\default.py\", line 250, in handle_request\n    resp = self._pool.handle_request(req)\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\connection_pool.py\", line 256, in handle_request\n    raise exc from None\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\connection_pool.py\", line 236, in handle_request\n    response = connection.handle_request(\n        pool_request.request\n    )\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\http_proxy.py\", line 316, in handle_request\n    stream = stream.start_tls(**kwargs)\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\http11.py\", line 376, in start_tls\n    return self._stream.start_tls(ssl_context, server_hostname, timeout)\n           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_backends\\sync.py\", line 154, in start_tls\n    with map_exceptions(exc_map):\n         ~~~~~~~~~~~~~~^^^^^^^^^\n  File \"D:\\dev\\uv\\python\\cpython-3.13-windows-x86_64-none\\Lib\\contextlib.py\", line 162, in __exit__\n    self.gen.throw(value)\n    ~~~~~~~~~~~~~~^^^^^^^\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_exceptions.py\", line 14, in map_exceptions\n    raise to_exc(exc) from exc\nhttpcore.ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1032)\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\openai\\_base_client.py\", line 1037, in request\n    response "
+          "steps": 30,
+          "cost_usd": 0.0049978768,
+          "reason": "budget_exceeded",
+          "elapsed_s": 0,
+          "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\phase1-batch2\\sympy__sympy-24213\\baseline\\sympy__sympy-24213\\run-2.trace.jsonl",
+          "workspace_path": "",
+          "verify_output": ""
         },
         {
           "task_id": "sympy__sympy-24213",
           "group": "baseline",
           "run_index": 3,
           "status": "failed",
-          "steps": 0,
-          "cost_usd": 0.0,
-          "reason": "",
-          "elapsed_s": 30.4,
-          "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-24213\\run-3\\baseline\\sympy__sympy-24213\\run-1.trace.jsonl",
-          "workspace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\resumable-runs\\sympy__sympy-24213\\run-3\\baseline\\sympy__sympy-24213\\run-1",
-          "verify_output": "Traceback (most recent call last):\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpx\\_transports\\default.py\", line 101, in map_httpcore_exceptions\n    yield\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpx\\_transports\\default.py\", line 250, in handle_request\n    resp = self._pool.handle_request(req)\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\connection_pool.py\", line 256, in handle_request\n    raise exc from None\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\connection_pool.py\", line 236, in handle_request\n    response = connection.handle_request(\n        pool_request.request\n    )\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\http_proxy.py\", line 316, in handle_request\n    stream = stream.start_tls(**kwargs)\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_sync\\http11.py\", line 376, in start_tls\n    return self._stream.start_tls(ssl_context, server_hostname, timeout)\n           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_backends\\sync.py\", line 154, in start_tls\n    with map_exceptions(exc_map):\n         ~~~~~~~~~~~~~~^^^^^^^^^\n  File \"D:\\dev\\uv\\python\\cpython-3.13-windows-x86_64-none\\Lib\\contextlib.py\", line 162, in __exit__\n    self.gen.throw(value)\n    ~~~~~~~~~~~~~~^^^^^^^\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\httpcore\\_exceptions.py\", line 14, in map_exceptions\n    raise to_exc(exc) from exc\nhttpcore.ConnectError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1032)\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"D:\\source\\agent\\code_agent\\code-agent\\.venv\\Lib\\site-packages\\openai\\_base_client.py\", line 1037, in request\n    response "
+          "steps": 38,
+          "cost_usd": 0.0043692264,
+          "reason": "budget_exceeded",
+          "elapsed_s": 0,
+          "trace_path": "D:\\source\\agent\\code_agent\\code-agent-runs\\swebench-abc\\phase1-batch2\\sympy__sympy-24213\\baseline\\sympy__sympy-24213\\run-3.trace.jsonl",
+          "workspace_path": "",
+          "verify_output": ""
         }
       ]
     },
