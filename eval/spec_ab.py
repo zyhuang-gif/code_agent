@@ -439,12 +439,9 @@ def main(
     task_roots = args.tasks or default_task_roots()
     selected_task_ids = set(args.task_id) if args.task_id else None
 
+    budget_kwargs: dict[str, Any] = {}
     if args.budget_steps is not None:
-        import warnings
-        from agent.budget import Budget
-        # Monkey-patch Budget default for this run only
-        _orig_max = Budget.__dataclass_fields__["max_steps"].default
-        Budget.__dataclass_fields__["max_steps"].default = args.budget_steps
+        budget_kwargs["budget_steps"] = args.budget_steps
 
     if args.fake:
         agent = _safe_fake_agent
@@ -453,7 +450,7 @@ def main(
             print("DEEPSEEK_API_KEY is required for non-fake spec_ab runs", file=sys.stderr)
             return 2
         factory = agent_factory or (multi_agent_factory if args.multi else real_agent_factory)
-        agent = factory()
+        agent = factory(**budget_kwargs)
 
     def default_generator(workspace: Path, variant: SpecVariant) -> AgentspecGeneration:
         return run_agentspec_for_variant(

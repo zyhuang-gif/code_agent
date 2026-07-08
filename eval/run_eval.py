@@ -344,7 +344,7 @@ def _maybe_enrich_prompt(workspace: Path, prompt: str, profile: ProjectProfile, 
                                    repair_memory_matches=repair_memory_matches), initial_output, attempts, repair_memory_matches
 
 
-def real_agent_factory() -> AgentCallable:
+def real_agent_factory(*, budget_steps: int | None = None) -> AgentCallable:
     def agent(workspace: Path, prompt: str, profile: ProjectProfile) -> dict[str, Any]:
         from agent.budget import Budget
         from agent.editor import SearchReplaceEditor
@@ -354,8 +354,9 @@ def real_agent_factory() -> AgentCallable:
         from agent.tools import RunContext, build_default_registry
         from agent.trace import Trace
 
+        budget = Budget(max_steps=budget_steps) if budget_steps is not None else Budget()
         trace = Trace(workspace.parent / f"{workspace.name}.trace.jsonl")
-        ctx = RunContext(workspace, profile, trace, Budget(), GrepLocator(workspace, profile), SearchReplaceEditor(profile))
+        ctx = RunContext(workspace, profile, trace, budget, GrepLocator(workspace, profile), SearchReplaceEditor(profile))
         task_prompt, initial_output, initial_attempts, repair_memory_matches = _maybe_enrich_prompt(workspace, prompt, profile, ctx.runner or default_command_runner, trace)
         result = AgentLoop(LLMClient(trace=trace, **_llm_env_kwargs("DEEPSEEK")), build_default_registry()).run(task_prompt, ctx)
         if profile.language == "cmake":
@@ -369,16 +370,16 @@ def real_agent_factory() -> AgentCallable:
             write_fix_report(report, workspace / "fix_report.md", trace)
 
             # 先写 final.diff，再用 artifact extractor 读取文件提取 repair case
-            (workspace / "final.diff").write_text(getattr(result, "diff", ""), encoding="utf-8")
+            (workspace / "final.diff").write_text(getattr(result, "diff", "") or "", encoding="utf-8")
             repair_case = extract_repair_case_from_artifacts(workspace, source=str(workspace))
             append_repair_case(repair_memory_jsonl(workspace), repair_case)
         else:
-            (workspace / "final.diff").write_text(getattr(result, "diff", ""), encoding="utf-8")
+            (workspace / "final.diff").write_text(getattr(result, "diff", "") or "", encoding="utf-8")
         return {"steps": ctx.budget.steps, "cost_usd": result.cost_usd, "reason": result.reason}
     return agent
 
 
-def multi_agent_factory() -> AgentCallable:
+def multi_agent_factory(*, budget_steps: int | None = None) -> AgentCallable:
     def agent(workspace: Path, prompt: str, profile: ProjectProfile) -> dict[str, Any]:
         from agent.budget import Budget
         from agent.editor import SearchReplaceEditor
@@ -388,8 +389,9 @@ def multi_agent_factory() -> AgentCallable:
         from agent.tools import RunContext, build_default_registry
         from agent.trace import Trace
 
+        budget = Budget(max_steps=budget_steps) if budget_steps is not None else Budget()
         trace = Trace(workspace.parent / f"{workspace.name}.trace.jsonl")
-        ctx = RunContext(workspace, profile, trace, Budget(), GrepLocator(workspace, profile), SearchReplaceEditor(profile))
+        ctx = RunContext(workspace, profile, trace, budget, GrepLocator(workspace, profile), SearchReplaceEditor(profile))
         llm = LLMClient(trace=trace, **_llm_env_kwargs("DEEPSEEK"))
         role_llms = {}
         if _has_llm_env("PLANNER"):
@@ -409,11 +411,11 @@ def multi_agent_factory() -> AgentCallable:
             write_fix_report(report, workspace / "fix_report.md", trace)
 
             # 先写 final.diff，再用 artifact extractor 读取文件
-            (workspace / "final.diff").write_text(getattr(result, "diff", ""), encoding="utf-8")
+            (workspace / "final.diff").write_text(getattr(result, "diff", "") or "", encoding="utf-8")
             repair_case = extract_repair_case_from_artifacts(workspace, source=str(workspace))
             append_repair_case(repair_memory_jsonl(workspace), repair_case)
         else:
-            (workspace / "final.diff").write_text(getattr(result, "diff", ""), encoding="utf-8")
+            (workspace / "final.diff").write_text(getattr(result, "diff", "") or "", encoding="utf-8")
         return {"steps": result.steps, "cost_usd": result.cost_usd, "reason": result.reason}
     return agent
 
