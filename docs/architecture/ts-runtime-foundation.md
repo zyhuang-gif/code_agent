@@ -27,6 +27,11 @@ This repository is migrating incrementally from the Python prototype to a TypeSc
 - `GovernedToolExecutor` is the only route from the engine to concrete tools.
 - Bash commands receive dynamic risk classification before permission evaluation.
 
+`src/host/`
+
+- Owns process-boundary concerns outside the four-layer kernel: managed run layout, isolated workspace preparation, and Project Profile loading.
+- Loads snake_case YAML into a typed `ProjectProfile`; the CLI maps only tool-relevant values into `src/tools/` configuration.
+
 ## Extensions
 
 `src/extensions/` contains generic extension loading and skill registration. Product features live outside the four-layer kernel under `extensions/`.
@@ -55,7 +60,7 @@ These rules are enforced by `tests-ts/architecture.test.ts`.
 
 Fake CLI smoke test:
 
-`npm run start:ts -- --fake --json --task "smoke" --repo <source-repo> --run-root <external-run-root> --extensions extensions`
+`npm run start:ts -- --fake --json --task "smoke" --repo <source-repo> --run-root <external-run-root> --profile profiles/node.yaml --extensions extensions`
 
 Host shell tools are not registered by default. `--allow-host-shell` is an explicit unsandboxed opt-in and shell commands are always governed as write/open-world capabilities.
 
@@ -71,6 +76,7 @@ Real model execution reads:
 Implemented in TypeScript:
 
 - Managed workspace isolation, hardened Git checkpoint/rollback, final diff and result artifacts
+- Python-compatible Project Profile YAML loading and built-in tool configuration
 - Agent runtime and JSON event stream
 - Unified tool contracts and registry
 - File/search/edit/Bash/finish tools
@@ -97,4 +103,5 @@ Still using the Python implementation as the reference:
 - Migration roadmap: ../roadmap/2026-07-11-typescript-runtime-roadmap.md
 - Active task index: ../tasks/README.md
 - Completed TS-01 specification: ../tasks/TS-01-workspace-checkpoint.md
-- Next parallel tasks: TS-02 Project Profile and TS-04 Trace/Artifact persistence (see roadmap/task index)
+- Completed TS-02 specification: ../tasks/TS-02-project-profile.md
+- Next task: TS-03 Verification/Finish Gate; TS-04 Trace/Artifact persistence is being integrated in parallel

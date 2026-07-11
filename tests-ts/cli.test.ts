@@ -4,6 +4,8 @@ import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
+import { selectBuiltInTools } from "../src/cli.js";
+import { ProjectProfile } from "../src/host/project-profile.js";
 
 const tsxCli = path.resolve("node_modules", "tsx", "dist", "cli.mjs");
 
@@ -75,4 +77,43 @@ test("CLI rejects an existing workspace unless it is explicitly declared isolate
   });
   assert.equal(result.status, 2);
   assert.match(result.stderr, /workspace-is-isolated/);
+});
+
+test("CLI accepts --profile with a repository YAML profile", () => {
+  const result = spawnSync(process.execPath, [
+    tsxCli,
+    "src/cli.ts",
+    "--fake",
+    "--json",
+    "--task",
+    "CLI profile smoke test",
+    "--workspace",
+    ".",
+    "--workspace-is-isolated",
+    "--profile",
+    path.resolve("profiles", "node.yaml"),
+    "--extensions",
+    "extensions",
+  ], {
+    cwd: process.cwd(),
+    encoding: "utf8",
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  const events = result.stdout.trim().split(/\r?\n/).filter(Boolean).map((line) => JSON.parse(line) as {
+    readonly type: string;
+    readonly result?: { readonly reason?: string };
+  });
+  assert.equal(events[0]?.type, "session_start");
+  assert.equal(events.at(-1)?.type, "session_end");
+  assert.equal(events.at(-1)?.result?.reason, "completed");
+});
+test("CLI maps ProjectProfile values into built-in tool configuration", () => {
+  const tools = selectBuiltInTools(true, new ProjectProfile({
+    ignore: ["generated"],
+    maxFileBytes: 123,
+    commandTimeout: 9,
+  }));
+  const bash = tools.find((tool) => tool.name === "bash");
+  assert.equal(bash?.inputSchema.properties?.timeoutMs?.default, 9_000);
 });

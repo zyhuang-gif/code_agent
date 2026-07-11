@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -61,4 +61,61 @@ test("built-in file tools stay inside the workspace", async () => {
   } finally {
     await rm(workspace, { recursive: true, force: true });
   }
+});
+
+test("Profile-derived tool config appends ignores and constrains read and grep", async () => {
+  const workspace = await mkdtemp(path.join(os.tmpdir(), "code-agent-ts-profile-tools-"));
+  try {
+    await mkdir(path.join(workspace, ".git"), { recursive: true });
+    await mkdir(path.join(workspace, "custom-cache"), { recursive: true });
+    await mkdir(path.join(workspace, "generated", "nested"), { recursive: true });
+    await writeFile(path.join(workspace, ".git", "config"), "needle\n", "utf8");
+    await writeFile(path.join(workspace, "custom-cache", "secret.txt"), "needle\n", "utf8");
+    await writeFile(path.join(workspace, "generated", "nested", "secret.txt"), "needle\n", "utf8");
+    await writeFile(path.join(workspace, "visible.txt"), "needle\n", "utf8");
+    await writeFile(path.join(workspace, "large.txt"), "needle in a file larger than the configured limit\n", "utf8");
+
+    const registry = new ToolRegistry(createBuiltInTools({
+      ignore: ["custom-cache", "generated/*"],
+      maxFileBytes: 12,
+      commandTimeout: 7,
+    }));
+
+    const listing = await registry.execute("list_dir", {}, context(workspace));
+    assert.equal(listing.status, "success");
+    assert.match(listing.content, /visible\.txt/);
+    assert.doesNotMatch(listing.content, /\.git/);
+    assert.doesNotMatch(listing.content, /custom-cache/);
+    assert.doesNotMatch(listing.content, /generated\/nested/);
+
+    const fullRead = await registry.execute("read_file", { path: "large.txt" }, context(workspace));
+    assert.equal(fullRead.status, "error");
+    assert.match(fullRead.content, /file too large/);
+
+    const rangedRead = await registry.execute(
+      "read_file",
+      { path: "large.txt", startLine: 1, endLine: 1 },
+      context(workspace),
+    );
+    assert.equal(rangedRead.status, "success");
+    assert.match(rangedRead.content, /needle in a file/);
+
+    const grep = await registry.execute("grep", { pattern: "needle" }, context(workspace));
+    assert.equal(grep.status, "success");
+    assert.match(grep.content, /visible\.txt:1:needle/);
+    assert.doesNotMatch(grep.content, /large\.txt/);
+    assert.doesNotMatch(grep.content, /secret\.txt/);
+    assert.doesNotMatch(grep.content, /\.git/);
+
+    const bash = registry.get("bash");
+    assert.equal(bash.inputSchema.properties?.timeoutMs?.default, 7_000);
+  } finally {
+    await rm(workspace, { recursive: true, force: true });
+  }
+});
+
+test("default built-in tool config keeps Python-compatible size and timeout defaults", () => {
+  const registry = new ToolRegistry(createBuiltInTools());
+  assert.equal(registry.get("bash").inputSchema.properties?.timeoutMs?.default, 300_000);
+  assert.equal(registry.get("edit_file").name, "edit_file");
 });

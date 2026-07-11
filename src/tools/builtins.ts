@@ -22,7 +22,23 @@ const BASH_POLICY: ToolPolicy = Object.freeze({
   openWorld: false,
 });
 
-const IGNORED_DIRECTORIES = new Set([".git", "node_modules", ".venv", "__pycache__", "dist"]);
+const CORE_IGNORED_DIRECTORIES = new Set([".git", "node_modules", ".venv", "__pycache__", "dist"]);
+const DEFAULT_MAX_FILE_BYTES = 200_000;
+const DEFAULT_COMMAND_TIMEOUT_SECONDS = 300;
+const MAX_BASH_TIMEOUT_MS = 900_000;
+const MAX_TIMER_MS = 2_147_483_647;
+
+export interface BuiltInToolsConfig {
+  readonly ignore?: readonly string[];
+  readonly maxFileBytes?: number;
+  readonly commandTimeout?: number;
+}
+
+interface ResolvedBuiltInToolsConfig {
+  readonly ignore: readonly string[];
+  readonly maxFileBytes: number;
+  readonly commandTimeoutMs: number;
+}
 
 function objectSchema(
   properties: Readonly<Record<string, JsonSchema>>,
@@ -47,7 +63,47 @@ function globPattern(pattern: string): RegExp {
   return new RegExp("^" + escaped + "$", "i");
 }
 
-async function walkFiles(root: string, maxEntries = 1_000): Promise<string[]> {
+function normalizeRelativePath(relativePath: string): string {
+  return relativePath.replaceAll("\\", "/").replace(/^\.\//, "").replace(/\/{2,}/g, "/");
+}
+
+function pathPartEquals(left: string, right: string): boolean {
+  return process.platform === "win32" ? left.toLowerCase() === right.toLowerCase() : left === right;
+}
+
+function ignoreGlobPattern(pattern: string): RegExp {
+  let source = "";
+  for (let index = 0; index < pattern.length; index += 1) {
+    const character = pattern[index]!;
+    if (character === "*") source += ".*";
+    else if (character === "?") source += ".";
+    else source += /[\\^$.*+?()[\]{}|]/.test(character) ? `\\${character}` : character;
+  }
+  return new RegExp(`^${source}$`, process.platform === "win32" ? "i" : "");
+}
+
+function matchesCustomIgnore(normalizedPath: string, parts: readonly string[], pattern: string): boolean {
+  const normalizedPattern = normalizeRelativePath(pattern);
+  if (parts.some((part) => pathPartEquals(part, normalizedPattern))) return true;
+  const regex = ignoreGlobPattern(normalizedPattern);
+  return regex.test(normalizedPath) || parts.some((part) => regex.test(part));
+}
+
+function shouldIgnorePath(relativePath: string, customIgnore: readonly string[]): boolean {
+  const normalized = normalizeRelativePath(relativePath);
+  const parts = normalized.split("/").filter(Boolean);
+  if (parts.some((part) => CORE_IGNORED_DIRECTORIES.has(part.toLowerCase()))) return true;
+  const lowerPath = normalized.toLowerCase();
+  if (lowerPath.endsWith(".pyc") || parts.some((part) => part.toLowerCase().endsWith(".egg-info"))) return true;
+  return customIgnore.some((pattern) => matchesCustomIgnore(normalized, parts, pattern));
+}
+
+async function walkFiles(
+  root: string,
+  workspace: string,
+  customIgnore: readonly string[],
+  maxEntries = 1_000,
+): Promise<string[]> {
   const files: string[] = [];
   async function visit(directory: string): Promise<void> {
     if (files.length >= maxEntries) return;
@@ -60,8 +116,9 @@ async function walkFiles(root: string, maxEntries = 1_000): Promise<string[]> {
     entries.sort((left, right) => left.name.localeCompare(right.name));
     for (const entry of entries) {
       if (files.length >= maxEntries) return;
-      if (entry.isDirectory() && IGNORED_DIRECTORIES.has(entry.name)) continue;
       const absolute = path.join(directory, entry.name);
+      const relative = path.relative(workspace, absolute).split(path.sep).join("/");
+      if (shouldIgnorePath(relative, customIgnore)) continue;
       files.push(absolute);
       if (entry.isDirectory()) await visit(absolute);
     }
@@ -78,7 +135,7 @@ interface WriteFileInput { readonly path: string; readonly content: string }
 interface BashInput { readonly command: string; readonly timeoutMs?: number }
 interface FinishInput { readonly summary: string }
 
-function listDirectoryTool(): ToolDefinition<ListDirectoryInput, { readonly entries: readonly string[] }> {
+function listDirectoryTool(config: ResolvedBuiltInToolsConfig): ToolDefinition<ListDirectoryInput, { readonly entries: readonly string[] }> {
   return {
     name: "list_dir",
     description: "List files below a workspace-relative directory.",
@@ -86,15 +143,15 @@ function listDirectoryTool(): ToolDefinition<ListDirectoryInput, { readonly entr
     policy: READ_ONLY_POLICY,
     async execute(input, context) {
       const root = await resolveWorkspacePath(context.workspace, input.path ?? ".", { mustExist: true });
-      const entries = await walkFiles(root);
       const workspace = await resolveWorkspacePath(context.workspace, ".", { mustExist: true });
+      const entries = await walkFiles(root, workspace, config.ignore);
       const relative = entries.map((entry) => path.relative(workspace, entry).split(path.sep).join("/"));
       return { status: "success", content: truncate(relative.join("\n")), data: { entries: relative } };
     },
   };
 }
 
-function readFileTool(): ToolDefinition<ReadFileInput> {
+function readFileTool(config: ResolvedBuiltInToolsConfig): ToolDefinition<ReadFileInput> {
   return {
     name: "read_file",
     description: "Read a UTF-8 file range with line numbers. Paths are workspace-relative.",
@@ -111,7 +168,7 @@ function readFileTool(): ToolDefinition<ReadFileInput> {
       const file = await resolveWorkspacePath(context.workspace, input.path, { mustExist: true });
       const details = await stat(file);
       if (!details.isFile()) return { status: "error", content: "path is not a file", error: "path is not a file" };
-      if (details.size > 500_000 && (input.startLine === undefined || input.endLine === undefined)) {
+      if (details.size > config.maxFileBytes && (input.startLine === undefined || input.endLine === undefined)) {
         return { status: "error", content: "file too large; specify startLine and endLine", error: "file too large" };
       }
       const lines = (await readFile(file, "utf8")).split(/\r?\n/);
@@ -123,7 +180,7 @@ function readFileTool(): ToolDefinition<ReadFileInput> {
   };
 }
 
-function grepTool(): ToolDefinition<GrepInput> {
+function grepTool(config: ResolvedBuiltInToolsConfig): ToolDefinition<GrepInput> {
   return {
     name: "grep",
     description: "Search UTF-8 workspace files with a regular expression.",
@@ -136,11 +193,11 @@ function grepTool(): ToolDefinition<GrepInput> {
       const regex = new RegExp(input.pattern);
       const matchGlob = input.glob ? globPattern(input.glob) : null;
       const workspace = await resolveWorkspacePath(context.workspace, ".", { mustExist: true });
-      const candidates = await walkFiles(workspace, 5_000);
+      const candidates = await walkFiles(workspace, workspace, config.ignore, 5_000);
       const hits: string[] = [];
       for (const candidate of candidates) {
         const details = await stat(candidate).catch(() => null);
-        if (!details?.isFile() || details.size > 500_000) continue;
+        if (!details?.isFile() || details.size > config.maxFileBytes) continue;
         const relative = path.relative(workspace, candidate).split(path.sep).join("/");
         if (matchGlob && !matchGlob.test(relative)) continue;
         let text: string;
@@ -231,17 +288,18 @@ async function runShell(
   });
 }
 
-function bashTool(): ToolDefinition<BashInput, { readonly exitCode: number }> {
+function bashTool(config: ResolvedBuiltInToolsConfig): ToolDefinition<BashInput, { readonly exitCode: number }> {
+  const maximumTimeoutMs = Math.max(MAX_BASH_TIMEOUT_MS, config.commandTimeoutMs);
   return {
     name: "bash",
     description: "Run a shell command in the workspace. Dynamic governance classifies each command before execution.",
     inputSchema: objectSchema(
-      { command: { type: "string" }, timeoutMs: { type: "integer", default: 300_000 } },
+      { command: { type: "string" }, timeoutMs: { type: "integer", default: config.commandTimeoutMs } },
       ["command"],
     ),
     policy: BASH_POLICY,
     async execute(input, context) {
-      const timeoutMs = Math.max(1, Math.min(input.timeoutMs ?? 300_000, 900_000));
+      const timeoutMs = Math.max(1, Math.min(input.timeoutMs ?? config.commandTimeoutMs, maximumTimeoutMs));
       const result = await runShell(input.command, context.workspace, timeoutMs, context.signal);
       const content = truncate(
         "exit_code=" + String(result.exitCode) + "\nstdout:\n" + result.stdout + "\nstderr:\n" + result.stderr,
@@ -275,14 +333,35 @@ function finishTool(): ToolDefinition<FinishInput> {
   };
 }
 
-export function createBuiltInTools(): readonly ToolDefinition[] {
+function resolveBuiltInToolsConfig(config: BuiltInToolsConfig): ResolvedBuiltInToolsConfig {
+  const ignore = config.ignore ?? [];
+  if (!Array.isArray(ignore) || ignore.some((pattern) => typeof pattern !== "string")) {
+    throw new TypeError("built-in tools ignore must be an array of strings");
+  }
+  const maxFileBytes = config.maxFileBytes ?? DEFAULT_MAX_FILE_BYTES;
+  if (!Number.isSafeInteger(maxFileBytes) || maxFileBytes < 1) {
+    throw new RangeError("built-in tools maxFileBytes must be a positive integer");
+  }
+  const commandTimeout = config.commandTimeout ?? DEFAULT_COMMAND_TIMEOUT_SECONDS;
+  if (!Number.isSafeInteger(commandTimeout) || commandTimeout < 1 || commandTimeout * 1_000 > MAX_TIMER_MS) {
+    throw new RangeError("built-in tools commandTimeout must be a positive integer supported by Node timers");
+  }
+  return {
+    ignore: Object.freeze([...ignore]),
+    maxFileBytes,
+    commandTimeoutMs: commandTimeout * 1_000,
+  };
+}
+
+export function createBuiltInTools(config: BuiltInToolsConfig = {}): readonly ToolDefinition[] {
+  const resolved = resolveBuiltInToolsConfig(config);
   return [
-    listDirectoryTool(),
-    readFileTool(),
-    grepTool(),
+    listDirectoryTool(resolved),
+    readFileTool(resolved),
+    grepTool(resolved),
     editTool(),
     writeFileTool(),
-    bashTool(),
+    bashTool(resolved),
     finishTool(),
   ];
 }

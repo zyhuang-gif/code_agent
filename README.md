@@ -16,12 +16,14 @@ A new four-layer TypeScript runtime now lives under `src/`. The Python runtime r
 
 `npm run check:ts`
 
-`npm run start:ts -- --fake --json --task "smoke" --repo <source-repo> --run-root <external-run-root> --extensions extensions`
+`npm run start:ts -- --fake --json --task "smoke" --repo <source-repo> --run-root <external-run-root> --profile profiles/node.yaml --extensions extensions`
 
 See `docs/architecture/ts-runtime-foundation.md` for layer boundaries and migration status.
 
 Host shell execution is disabled by default. Use `--allow-host-shell` only when you explicitly accept unsandboxed shell access; it still passes through permission governance.
 
+`--profile <yaml>` loads the existing snake_case Project Profile format once at startup. Its ignore patterns, maximum readable file size, and default command timeout configure the built-in tools; setup and verification commands are reserved for the verification gate.
+
 ## TypeScript migration roadmap
 
-The prioritized migration backlog is stored in docs/roadmap/2026-07-11-typescript-runtime-roadmap.md. The next implementation specification is docs/tasks/TS-01-workspace-checkpoint.md.
+The prioritized migration backlog is stored in docs/roadmap/2026-07-11-typescript-runtime-roadmap.md. Completed task specifications are indexed in docs/tasks/README.md.

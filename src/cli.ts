@@ -13,6 +13,8 @@ import type { ApprovalProvider, PermissionDecision, PermissionMode, PermissionRe
 import { PermissionEngine } from "./governance/permissions.js";
 import { finalizeManagedRun, prepareManagedRun } from "./host/managed-run.js";
 import type { ManagedRunResult } from "./host/managed-run.js";
+import { createDefaultProjectProfile, loadProjectProfile } from "./host/project-profile.js";
+import type { ProjectProfile } from "./host/project-profile.js";
 import { CompactingContextService } from "./services/context.js";
 import { DefaultMcpService } from "./services/mcp.js";
 import type { ModelService } from "./services/model.js";
@@ -42,6 +44,7 @@ interface CliOptions {
   readonly permissionMode: PermissionMode;
   readonly maxSteps: number;
   readonly allowHostShell: boolean;
+  readonly profilePath: string | null;
 }
 
 function parseArgs(argv: readonly string[]): CliOptions {
@@ -56,6 +59,7 @@ function parseArgs(argv: readonly string[]): CliOptions {
   let permissionMode: PermissionMode = "default";
   let maxSteps = 40;
   let allowHostShell = false;
+  let profilePath: string | null = null;
 
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
@@ -77,6 +81,7 @@ function parseArgs(argv: readonly string[]): CliOptions {
       case "--permission-mode": permissionMode = next() as PermissionMode; break;
       case "--max-steps": maxSteps = Number.parseInt(next(), 10); break;
       case "--allow-host-shell": allowHostShell = true; break;
+      case "--profile": profilePath = path.resolve(next()); break;
       default:
         if (arg?.startsWith("-")) throw new Error("unknown argument: " + arg);
         task = task ? task + " " + arg : arg ?? "";
@@ -114,6 +119,7 @@ function parseArgs(argv: readonly string[]): CliOptions {
     permissionMode,
     maxSteps,
     allowHostShell,
+    profilePath,
   };
 }
 
@@ -132,8 +138,15 @@ class ConsoleApprovalProvider implements ApprovalProvider {
   }
 }
 
-export function selectBuiltInTools(allowHostShell: boolean): readonly ToolDefinition[] {
-  return createBuiltInTools().filter((tool) => allowHostShell || tool.name !== "bash");
+export function selectBuiltInTools(
+  allowHostShell: boolean,
+  profile: ProjectProfile = createDefaultProjectProfile(),
+): readonly ToolDefinition[] {
+  return createBuiltInTools({
+    ignore: profile.ignore,
+    maxFileBytes: profile.maxFileBytes,
+    commandTimeout: profile.commandTimeout,
+  }).filter((tool) => allowHostShell || tool.name !== "bash");
 }
 
 function createModel(fake: boolean): ModelService {
@@ -220,10 +233,13 @@ async function executeRuntime(
 }
 
 async function execute(options: CliOptions): Promise<RunResult> {
+  const profile = options.profilePath
+    ? await loadProjectProfile(options.profilePath)
+    : createDefaultProjectProfile();
   const extensionRegistry = new ExtensionRegistry();
   for (const extension of await loadExtensions(options.extensions)) extensionRegistry.register(extension);
   const mcp = new DefaultMcpService();
-  const builtIns = selectBuiltInTools(options.allowHostShell);
+  const builtIns = selectBuiltInTools(options.allowHostShell, profile);
   const tools = [
     ...builtIns,
     ...extensionRegistry.listTools(),
