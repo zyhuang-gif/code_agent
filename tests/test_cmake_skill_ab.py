@@ -1,9 +1,8 @@
-"""CM-02 CMake Skill A/B Eval 测试 —— 配对、隔离、选择审计与报告。
+"""CM-02 CMake Skill A/B Eval 测试——配对、隔离、选择审计与报告。
 
-本文件由 CM-02 C-subagent 创建。测试分为两类：
-
-A. 契约 / Schema 测试（已完成，不依赖 A/B 具体实现）
-B. 集成 Fake 测试（使用 mock command_runner 绕过 TS CLI）
+测试分为两类：
+A. 契约 / Schema 测试——纯逻辑，不依赖外部环境
+B. 集成 Fake 测试——通过 mock command_runner 绕过 TS CLI，验证 orchestrator 行为
 """
 
 from __future__ import annotations
@@ -46,7 +45,9 @@ EXPECTED_DEFINITION_SOURCE = "cmake/skills/build-fix/SKILL.md"
 EXPECTED_SELECTION_SOURCE = "model_tool_call"
 
 
-def _require_str(obj, key, *, path="$"):
+# --- JSON Schema 验证 ---
+
+def _require_str(obj: dict[str, Any], key: str, *, path: str = "$") -> str:
     value = obj.get(key)
     if not isinstance(value, str):
         raise ValueError(f"{path}.{key} must be a string, got {type(value).__name__}")
@@ -55,7 +56,7 @@ def _require_str(obj, key, *, path="$"):
     return value
 
 
-def _require_int(obj, key, *, path="$", non_negative=True):
+def _require_int(obj: dict[str, Any], key: str, *, path: str = "$", non_negative: bool = True) -> int:
     value = obj.get(key)
     if not isinstance(value, int) or isinstance(value, bool):
         raise ValueError(f"{path}.{key} must be an integer, got {type(value).__name__}")
@@ -64,7 +65,7 @@ def _require_int(obj, key, *, path="$", non_negative=True):
     return value
 
 
-def _require_float(obj, key, *, path="$", non_negative=True):
+def _require_float(obj: dict[str, Any], key: str, *, path: str = "$", non_negative: bool = True) -> float:
     value = obj.get(key)
     if not isinstance(value, (int, float)) or isinstance(value, bool):
         raise ValueError(f"{path}.{key} must be a number, got {type(value).__name__}")
@@ -73,8 +74,8 @@ def _require_float(obj, key, *, path="$", non_negative=True):
     return float(value)
 
 
-def validate_run_record(run, *, path="$"):
-    errors = []
+def validate_run_record(run: dict[str, Any], *, path: str = "$") -> list[str]:
+    errors: list[str] = []
     try:
         _require_str(run, "task_id", path=path)
         _require_int(run, "repeat_index", path=path)
@@ -111,8 +112,8 @@ def validate_run_record(run, *, path="$"):
     return errors
 
 
-def validate_summary_document(summary):
-    errors = []
+def validate_summary_document(summary: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
     try:
         sv = summary.get("schema_version")
         if sv != SCHEMA_VERSION:
@@ -147,8 +148,8 @@ def validate_summary_document(summary):
     return errors
 
 
-def validate_aggregate(agg, *, path="$.aggregate"):
-    errors = []
+def validate_aggregate(agg: dict[str, Any], *, path: str = "$.aggregate") -> list[str]:
+    errors: list[str] = []
     for group in VARIANTS:
         for key in ("solve_rate", "skill_selection_rate"):
             full = f"{group}_{key}"
@@ -178,6 +179,8 @@ def validate_aggregate(agg, *, path="$.aggregate"):
     return errors
 
 
+# --- 配对顺序生成 ---
+
 @dataclass(frozen=True)
 class PairOrder:
     task_id: str
@@ -190,8 +193,19 @@ class PairOrder:
         return f"{self.first_variant[0].upper()}{self.second_variant[0].upper()}"
 
 
-def generate_pair_orders(task_ids, repeat, *, first_variant="control", second_variant="treatment"):
-    orders = []
+def generate_pair_orders(
+    task_ids: list[str],
+    repeat: int,
+    *,
+    first_variant: str = "control",
+    second_variant: str = "treatment",
+) -> list[PairOrder]:
+    """Generate pair orders per the CM-02 spec: AB/BA alternation by repeat index.
+
+    repeat_idx % 2 == 0 -> control-first (AB), else treatment-first (BA).
+    Every task within the same repeat gets the same alternation phase.
+    """
+    orders: list[PairOrder] = []
     for repeat_index in range(repeat):
         flip = repeat_index % 2 != 0
         a, b = (first_variant, second_variant) if not flip else (second_variant, first_variant)
@@ -200,7 +214,16 @@ def generate_pair_orders(task_ids, repeat, *, first_variant="control", second_va
     return orders
 
 
-def make_skill_selection_event(outcome="selected", *, requested_skill="cmake-build-fix", selected_skill="cmake-build-fix", extension_name=EXPECTED_EXTENSION_NAME, definition_source=EXPECTED_DEFINITION_SOURCE):
+# --- Fake Trace 工厂 ---
+
+def make_skill_selection_event(
+    outcome: str = "selected",
+    *,
+    requested_skill: str = "cmake-build-fix",
+    selected_skill: str = "cmake-build-fix",
+    extension_name: str = EXPECTED_EXTENSION_NAME,
+    definition_source: str = EXPECTED_DEFINITION_SOURCE,
+) -> dict[str, Any]:
     if outcome == "selected":
         return {
             "type": "skill_selection",
@@ -229,11 +252,11 @@ def make_skill_selection_event(outcome="selected", *, requested_skill="cmake-bui
     }
 
 
-def has_skill_selection_event(trace_events):
+def has_skill_selection_event(trace_events: list[dict[str, Any]]) -> bool:
     return any(e.get("type") == "skill_selection" for e in trace_events)
 
 
-def has_skill_tool_invocation(trace_events):
+def has_skill_tool_invocation(trace_events: list[dict[str, Any]]) -> bool:
     return any(
         e.get("type") in ("tool_start", "post_tool_use")
         and isinstance(e.get("payload"), dict)
@@ -242,7 +265,7 @@ def has_skill_tool_invocation(trace_events):
     )
 
 
-def count_bash_invocations(trace_events):
+def count_bash_invocations(trace_events: list[dict[str, Any]]) -> int:
     return sum(
         1
         for e in trace_events
@@ -250,31 +273,29 @@ def count_bash_invocations(trace_events):
         and isinstance(e.get("payload"), dict)
         and e["payload"].get("toolName") == "bash"
     )
-import shutil
-
-def _ts_cli_available():
-    """Check if TypeScript CLI runtime is available."""
-    from pathlib import Path
-    root = Path(__file__).resolve().parents[1]
-    node = shutil.which("node")
-    tsx_cli = root / "node_modules" / "tsx" / "dist" / "cli.mjs"
-    cli_entry = root / "src" / "cli.ts"
-    return node is not None and tsx_cli.is_file() and cli_entry.is_file()
-
-ts_cli_skip = pytest.mark.skipif(
-    not _ts_cli_available(),
-    reason="TypeScript CLI runtime (node + tsx) not available in this environment"
-)
 
 
-
+# ============================================================================
+# Mock TS Bridge helpers (绕过 node/TS CLI 依赖)
+# ============================================================================
 
 _THIS_DIR = Path(__file__).resolve().parent
 _MODEL_SCRIPT_CONTROL = _THIS_DIR / "testdata" / "cm02" / "model-script-control.json"
 _MODEL_SCRIPT_TREATMENT = _THIS_DIR / "testdata" / "cm02" / "model-script-treatment.json"
 
 
-def _managed_result(command, *, exit_code=0, overrides=None, trace_events=None):
+def _managed_result(
+    command: list[str],
+    *,
+    exit_code: int = 0,
+    overrides: dict | None = None,
+    trace_events: list[dict[str, Any]] | None = None,
+) -> TsProcessResult:
+    """构建 mock TsProcessResult，模拟 TS CLI 的 managed run result。
+
+    基于 test_ts_eval_bridge.py 的 _managed_result 模式扩展，
+    支持注入 trace_events 到 trace.jsonl。
+    """
     source = Path(command[command.index("--repo") + 1]).resolve()
     run_root = Path(command[command.index("--run-root") + 1]).resolve()
     run_directory = run_root / "session-1"
@@ -282,7 +303,7 @@ def _managed_result(command, *, exit_code=0, overrides=None, trace_events=None):
     artifacts = run_directory / "artifacts"
     workspace.mkdir(parents=True)
     artifacts.mkdir()
-    result = {
+    result: dict[str, Any] = {
         "type": "run_result",
         "schemaVersion": 1,
         "mode": "managed",
@@ -316,13 +337,27 @@ def _managed_result(command, *, exit_code=0, overrides=None, trace_events=None):
     return TsProcessResult(exit_code, json.dumps(result), "")
 
 
-def _make_mock_runner(*, exit_code=0, overrides=None, trace_events=None):
-    def _runner(command, *, cwd, timeout):
-        return _managed_result(command, exit_code=exit_code, overrides=overrides, trace_events=trace_events)
+def _make_mock_runner(
+    *,
+    exit_code: int = 0,
+    overrides: dict | None = None,
+    trace_events: list[dict[str, Any]] | None = None,
+):
+    """创建注入式 command_runner，每次调用返回固定结果。"""
+
+    def _runner(command: list[str], *, cwd: Path, timeout: int) -> TsProcessResult:
+        return _managed_result(
+            command,
+            exit_code=exit_code,
+            overrides=overrides,
+            trace_events=trace_events,
+        )
+
     return _runner
 
 
-def _make_cmake_task_structure(task_dir, task_id):
+def _make_cmake_task_structure(task_dir: Path, task_id: str) -> Path:
+    """创建迷你 CMake task 结构用于测试。"""
     repo = task_dir / "repo"
     repo.mkdir(parents=True)
     src = repo / "src"
@@ -331,17 +366,44 @@ def _make_cmake_task_structure(task_dir, task_id):
     inc.mkdir()
     mathx = inc / "mathx"
     mathx.mkdir()
-    (mathx / "add.hpp").write_text("#pragma once\n\nnamespace mathx {\nint add(int left, int right);\n}\n", encoding="utf-8")
-    (repo / "CMakeLists.txt").write_text("cmake_minimum_required(VERSION 3.16)\nproject(R08LocalSourceOmitted LANGUAGES CXX)\nenable_testing()\nadd_executable(app src/main.cpp)\ntarget_include_directories(app PRIVATE include)\nadd_test(NAME app_runs COMMAND app)\n", encoding="utf-8")
-    (src / "main.cpp").write_text('#include "mathx/add.hpp"\nint main() { return mathx::add(2, 3) == 5 ? 0 : 1; }\n', encoding="utf-8")
-    (src / "add.cpp").write_text('#include "mathx/add.hpp"\nnamespace mathx { int add(int l, int r) { return l + r; } }\n', encoding="utf-8")
-    (task_dir / "prompt.md").write_text("Fix the undefined reference.", encoding="utf-8")
-    (task_dir / "verify.py").write_text("import sys\nraise SystemExit(0)\n", encoding="utf-8")
-    (task_dir / "profile.yaml").write_text("language: cmake\ntest_cmd: echo ok\ntest_timeout: 30\n", encoding="utf-8")
+    (mathx / "add.hpp").write_text(
+        "#pragma once\n\nnamespace mathx {\nint add(int left, int right);\n}\n",
+        encoding="utf-8",
+    )
+    (repo / "CMakeLists.txt").write_text(
+        "cmake_minimum_required(VERSION 3.16)\n"
+        "project(R08LocalSourceOmitted LANGUAGES CXX)\n"
+        "enable_testing()\n"
+        "add_executable(app src/main.cpp)\n"
+        "target_include_directories(app PRIVATE include)\n"
+        "add_test(NAME app_runs COMMAND app)\n",
+        encoding="utf-8",
+    )
+    (src / "main.cpp").write_text(
+        '#include "mathx/add.hpp"\n'
+        "int main() { return mathx::add(2, 3) == 5 ? 0 : 1; }\n",
+        encoding="utf-8",
+    )
+    (src / "add.cpp").write_text(
+        '#include "mathx/add.hpp"\n'
+        "namespace mathx { int add(int l, int r) { return l + r; } }\n",
+        encoding="utf-8",
+    )
+    (task_dir / "prompt.md").write_text(
+        "Fix the undefined reference.", encoding="utf-8"
+    )
+    (task_dir / "verify.py").write_text(
+        "import sys\nraise SystemExit(0)\n", encoding="utf-8"
+    )
+    (task_dir / "profile.yaml").write_text(
+        "language: cmake\ntest_cmd: echo ok\ntest_timeout: 30\n",
+        encoding="utf-8",
+    )
     return task_dir
 
 
-def _make_default_trace():
+def _make_default_trace() -> list[dict[str, Any]]:
+    """默认 trace：无 skill_selection 或 bash 事件。"""
     return [
         {"type": "model_start"},
         {"type": "model_end"},
@@ -352,11 +414,25 @@ def _make_default_trace():
     ]
 
 
-def _make_treatment_trace():
+def _make_treatment_trace() -> list[dict[str, Any]]:
+    """模拟 treatment trace：包含 skill_selection selected 事件。"""
     return [
         {"type": "model_start"},
         {"type": "model_end"},
-        {"type": "skill_selection", "sessionId": "session-1", "payload": {"schemaVersion": 1, "invocationId": "skill-1", "selectionSource": "model_tool_call", "outcome": "selected", "requestedSkill": "cmake-build-fix", "selectedSkill": "cmake-build-fix", "extensionName": "cmake", "definitionSource": "cmake/skills/build-fix/SKILL.md"}},
+        {
+            "type": "skill_selection",
+            "sessionId": "session-1",
+            "payload": {
+                "schemaVersion": 1,
+                "invocationId": "skill-1",
+                "selectionSource": "model_tool_call",
+                "outcome": "selected",
+                "requestedSkill": "cmake-build-fix",
+                "selectedSkill": "cmake-build-fix",
+                "extensionName": "cmake",
+                "definitionSource": "cmake/skills/build-fix/SKILL.md",
+            },
+        },
         {"type": "tool_end", "payload": {"invocation": {"name": "invoke_skill"}}},
         {"type": "model_start"},
         {"type": "model_end"},
@@ -367,7 +443,10 @@ def _make_treatment_trace():
     ]
 
 
-# ==== Contract Tests ====
+# ============================================================================
+# 契约测试
+# ============================================================================
+
 
 class TestPairOrderGeneration:
     def test_single_task_repeat_2_alternates_ab_ba(self):
@@ -388,7 +467,7 @@ class TestPairOrderGeneration:
     def test_two_tasks_repeat_3_yields_6_pairs(self):
         orders = generate_pair_orders(["t1", "t2"], repeat=3)
         assert len(orders) == 6
-        orders_by_task = {}
+        orders_by_task: dict[str, list[PairOrder]] = {}
         for o in orders:
             orders_by_task.setdefault(o.task_id, []).append(o)
         assert len(orders_by_task["t1"]) == 3
@@ -404,51 +483,138 @@ class TestPairOrderGeneration:
 
 class TestSchemaValidation:
     def test_valid_run_record_passes(self):
-        run = {"task_id": "r08", "repeat_index": 1, "variant": "control", "order_index": 0, "session_id": "sess-1", "solved": True, "reason": "completed", "steps": 5, "latency_ms": 12000, "cost_usd": 0.003, "invoke_skill_count": 0, "skill_selected_count": 0, "skill_not_found_count": 0, "bash_call_count": 0, "prompt_tokens": 500, "completion_tokens": 200, "cache_read_tokens": 100}
+        run: dict[str, Any] = {
+            "task_id": "r08", "repeat_index": 1, "variant": "control",
+            "order_index": 0, "session_id": "sess-1", "solved": True,
+            "reason": "completed", "steps": 5, "latency_ms": 12000,
+            "cost_usd": 0.003, "invoke_skill_count": 0, "skill_selected_count": 0,
+            "skill_not_found_count": 0, "bash_call_count": 0,
+            "prompt_tokens": 500, "completion_tokens": 200, "cache_read_tokens": 100,
+        }
         assert validate_run_record(run) == []
 
     def test_treatment_run_with_selection_passes(self):
-        run = {"task_id": "r08", "repeat_index": 1, "variant": "treatment", "order_index": 1, "session_id": "sess-2", "solved": True, "reason": "completed", "steps": 6, "latency_ms": 15000, "cost_usd": 0.004, "invoke_skill_count": 1, "skill_selected_count": 1, "skill_not_found_count": 0, "bash_call_count": 0, "prompt_tokens": 800, "completion_tokens": 300, "cache_read_tokens": 200}
+        run: dict[str, Any] = {
+            "task_id": "r08", "repeat_index": 1, "variant": "treatment",
+            "order_index": 1, "session_id": "sess-2", "solved": True,
+            "reason": "completed", "steps": 6, "latency_ms": 15000,
+            "cost_usd": 0.004, "invoke_skill_count": 1, "skill_selected_count": 1,
+            "skill_not_found_count": 0, "bash_call_count": 0,
+            "prompt_tokens": 800, "completion_tokens": 300, "cache_read_tokens": 200,
+        }
         assert validate_run_record(run) == []
 
     def test_missing_solved_field_reports_error(self):
-        run = {"task_id": "r08", "repeat_index": 1, "variant": "control", "order_index": 0, "session_id": "sess-1", "reason": "completed", "steps": 5, "latency_ms": 12000, "cost_usd": 0.003, "invoke_skill_count": 0, "skill_selected_count": 0, "skill_not_found_count": 0, "bash_call_count": 0, "prompt_tokens": 500, "completion_tokens": 200, "cache_read_tokens": 100}
+        run: dict[str, Any] = {
+            "task_id": "r08", "repeat_index": 1, "variant": "control",
+            "order_index": 0, "session_id": "sess-1",
+            "reason": "completed", "steps": 5, "latency_ms": 12000,
+            "cost_usd": 0.003, "invoke_skill_count": 0, "skill_selected_count": 0,
+            "skill_not_found_count": 0, "bash_call_count": 0,
+            "prompt_tokens": 500, "completion_tokens": 200, "cache_read_tokens": 100,
+        }
         errors = validate_run_record(run)
         assert any("solved" in e for e in errors)
 
     def test_invalid_variant_reports_error(self):
-        run = {"task_id": "r08", "repeat_index": 1, "variant": "invalid", "order_index": 0, "session_id": "sess-1", "solved": True, "reason": "completed", "steps": 5, "latency_ms": 12000, "cost_usd": 0.003, "invoke_skill_count": 0, "skill_selected_count": 0, "skill_not_found_count": 0, "bash_call_count": 0, "prompt_tokens": 500, "completion_tokens": 200, "cache_read_tokens": 100}
+        run: dict[str, Any] = {
+            "task_id": "r08", "repeat_index": 1, "variant": "invalid",
+            "order_index": 0, "session_id": "sess-1", "solved": True,
+            "reason": "completed", "steps": 5, "latency_ms": 12000,
+            "cost_usd": 0.003, "invoke_skill_count": 0, "skill_selected_count": 0,
+            "skill_not_found_count": 0, "bash_call_count": 0,
+            "prompt_tokens": 500, "completion_tokens": 200, "cache_read_tokens": 100,
+        }
         errors = validate_run_record(run)
         assert len(errors) >= 1
         assert any("variant" in e for e in errors)
 
     def test_negative_steps_reported(self):
-        run = {"task_id": "r08", "repeat_index": 1, "variant": "control", "order_index": 0, "session_id": "sess-1", "solved": True, "reason": "completed", "steps": -1, "latency_ms": 12000, "cost_usd": 0.003, "invoke_skill_count": 0, "skill_selected_count": 0, "skill_not_found_count": 0, "bash_call_count": 0, "prompt_tokens": 500, "completion_tokens": 200, "cache_read_tokens": 100}
+        run: dict[str, Any] = {
+            "task_id": "r08", "repeat_index": 1, "variant": "control",
+            "order_index": 0, "session_id": "sess-1", "solved": True,
+            "reason": "completed", "steps": -1, "latency_ms": 12000,
+            "cost_usd": 0.003, "invoke_skill_count": 0, "skill_selected_count": 0,
+            "skill_not_found_count": 0, "bash_call_count": 0,
+            "prompt_tokens": 500, "completion_tokens": 200, "cache_read_tokens": 100,
+        }
         errors = validate_run_record(run)
         assert any("steps" in e for e in errors)
 
     def test_valid_summary_document_passes(self):
-        summary = {"schema_version": 1, "phase": "pilot", "runtime": "typescript", "model": "deepseek-v4-flash", "repeat": 3, "variants": ["control", "treatment"], "task_ids": ["r08_local_library_source_omitted"], "runs": [{"task_id": "r08_local_library_source_omitted", "repeat_index": 1, "variant": "control", "order_index": 0, "session_id": "sess-1", "solved": False, "reason": "completed", "steps": 3, "latency_ms": 5000, "cost_usd": 0.001, "invoke_skill_count": 0, "skill_selected_count": 0, "skill_not_found_count": 0, "bash_call_count": 0, "prompt_tokens": 500, "completion_tokens": 200, "cache_read_tokens": 100, "trace_path": "a/trace.jsonl", "result_path": "a/result.json", "verification_path": "a/verification.json", "final_diff_path": "a/final.diff"}], "aggregate": {"control_solve_rate": 0.0, "treatment_solve_rate": 0.333, "control_skill_selection_rate": 0.0, "treatment_skill_selection_rate": 0.667, "pair_solve_delta": 0.333, "control_median_steps": 3, "treatment_median_steps": 5, "control_median_latency_ms": 5000, "treatment_median_latency_ms": 8000, "control_median_cost_usd": 0.001, "treatment_median_cost_usd": 0.002, "selected_solve_rate": 0.5, "not_selected_solve_rate": 0.0, "infrastructure_error_count": 0, "bash_call_total": 0, "paired_outcomes": {"both_solved": 0, "control_only": 0, "treatment_only": 1, "neither": 2}}}
+        summary: dict[str, Any] = {
+            "schema_version": 1, "phase": "pilot", "runtime": "typescript",
+            "model": "deepseek-v4-flash", "repeat": 3,
+            "variants": ["control", "treatment"],
+            "task_ids": ["r08_local_library_source_omitted"],
+            "runs": [{
+                "task_id": "r08_local_library_source_omitted",
+                "repeat_index": 1, "variant": "control", "order_index": 0,
+                "session_id": "sess-1", "solved": False, "reason": "completed",
+                "steps": 3, "latency_ms": 5000, "cost_usd": 0.001,
+                "invoke_skill_count": 0, "skill_selected_count": 0,
+                "skill_not_found_count": 0, "bash_call_count": 0,
+                "prompt_tokens": 500, "completion_tokens": 200, "cache_read_tokens": 100,
+                "trace_path": "a/trace.jsonl", "result_path": "a/result.json",
+                "verification_path": "a/verification.json", "final_diff_path": "a/final.diff",
+            }],
+            "aggregate": {
+                "control_solve_rate": 0.0, "treatment_solve_rate": 0.333,
+                "control_skill_selection_rate": 0.0, "treatment_skill_selection_rate": 0.667,
+                "pair_solve_delta": 0.333,
+                "control_median_steps": 3, "treatment_median_steps": 5,
+                "control_median_latency_ms": 5000, "treatment_median_latency_ms": 8000,
+                "control_median_cost_usd": 0.001, "treatment_median_cost_usd": 0.002,
+                "selected_solve_rate": 0.5, "not_selected_solve_rate": 0.0,
+                "infrastructure_error_count": 0, "bash_call_total": 0,
+                "paired_outcomes": {"both_solved": 0, "control_only": 0, "treatment_only": 1, "neither": 2},
+            },
+        }
         assert validate_summary_document(summary) == []
 
     def test_wrong_schema_version_fails(self):
-        summary = {"schema_version": 2, "phase": "pilot", "runtime": "typescript", "model": "m", "repeat": 1, "variants": ["control", "treatment"], "task_ids": ["t1"], "runs": [], "aggregate": {"control_solve_rate": 0, "treatment_solve_rate": 0, "control_skill_selection_rate": 0, "treatment_skill_selection_rate": 0, "pair_solve_delta": 0, "control_median_steps": 0, "treatment_median_steps": 0, "control_median_latency_ms": 0, "treatment_median_latency_ms": 0, "control_median_cost_usd": 0, "treatment_median_cost_usd": 0, "selected_solve_rate": 0, "not_selected_solve_rate": 0, "infrastructure_error_count": 0, "bash_call_total": 0, "paired_outcomes": {"both_solved": 0, "control_only": 0, "treatment_only": 0, "neither": 0}}}
+        summary: dict[str, Any] = {
+            "schema_version": 2, "phase": "pilot", "runtime": "typescript",
+            "model": "m", "repeat": 1, "variants": ["control", "treatment"],
+            "task_ids": ["t1"], "runs": [],
+            "aggregate": {
+                "control_solve_rate": 0, "treatment_solve_rate": 0,
+                "control_skill_selection_rate": 0, "treatment_skill_selection_rate": 0,
+                "pair_solve_delta": 0,
+                "control_median_steps": 0, "treatment_median_steps": 0,
+                "control_median_latency_ms": 0, "treatment_median_latency_ms": 0,
+                "control_median_cost_usd": 0, "treatment_median_cost_usd": 0,
+                "selected_solve_rate": 0, "not_selected_solve_rate": 0,
+                "infrastructure_error_count": 0, "bash_call_total": 0,
+                "paired_outcomes": {"both_solved": 0, "control_only": 0, "treatment_only": 0, "neither": 0},
+            },
+        }
         errors = validate_summary_document(summary)
         assert any("schema_version" in e for e in errors)
 
     def test_missing_aggregate_field_fails(self):
-        agg = {"control_solve_rate": 0.5}
+        agg: dict[str, Any] = {"control_solve_rate": 0.5}
         errors = validate_aggregate(agg)
         assert len(errors) > 0
 
     def test_aggregate_must_have_paired_outcomes(self):
-        agg = {"control_solve_rate": 0.5, "treatment_solve_rate": 0.5, "control_skill_selection_rate": 0.0, "treatment_skill_selection_rate": 0.8, "pair_solve_delta": 0.0, "control_median_steps": 5, "treatment_median_steps": 6, "control_median_latency_ms": 10000, "treatment_median_latency_ms": 12000, "control_median_cost_usd": 0.01, "treatment_median_cost_usd": 0.012, "selected_solve_rate": 0.6, "not_selected_solve_rate": 0.0, "infrastructure_error_count": 0, "bash_call_total": 0, "paired_outcomes": {"both_solved": 1, "control_only": 0, "treatment_only": 0, "neither": 0}}
+        agg: dict[str, Any] = {
+            "control_solve_rate": 0.5, "treatment_solve_rate": 0.5,
+            "control_skill_selection_rate": 0.0, "treatment_skill_selection_rate": 0.8,
+            "pair_solve_delta": 0.0,
+            "control_median_steps": 5, "treatment_median_steps": 6,
+            "control_median_latency_ms": 10000, "treatment_median_latency_ms": 12000,
+            "control_median_cost_usd": 0.01, "treatment_median_cost_usd": 0.012,
+            "selected_solve_rate": 0.6, "not_selected_solve_rate": 0.0,
+            "infrastructure_error_count": 0, "bash_call_total": 0,
+            "paired_outcomes": {"both_solved": 1, "control_only": 0, "treatment_only": 0, "neither": 0},
+        }
         assert validate_aggregate(agg) == []
 
 
 class TestReportRecomputability:
     @staticmethod
-    def recompute_solve_rate(runs, variant):
+    def recompute_solve_rate(runs: list[dict[str, Any]], variant: str) -> float:
         matching = [r for r in runs if r["variant"] == variant]
         if not matching:
             return 0.0
@@ -456,7 +622,7 @@ class TestReportRecomputability:
         return solved / len(matching)
 
     @staticmethod
-    def recompute_selection_rate(runs):
+    def recompute_selection_rate(runs: list[dict[str, Any]]) -> float:
         treatment = [r for r in runs if r["variant"] == "treatment"]
         if not treatment:
             return 0.0
@@ -464,8 +630,8 @@ class TestReportRecomputability:
         return selected / len(treatment)
 
     @staticmethod
-    def recompute_paired_outcomes(runs):
-        by_pair = {}
+    def recompute_paired_outcomes(runs: list[dict[str, Any]]) -> dict[str, int]:
+        by_pair: dict[tuple[str, int], dict[str, bool]] = {}
         for r in runs:
             key = (r["task_id"], r["repeat_index"])
             by_pair.setdefault(key, {})[r["variant"]] = r.get("solved", False)
@@ -484,16 +650,31 @@ class TestReportRecomputability:
         return outcomes
 
     def test_recompute_solve_rate_matches(self):
-        runs = [{"task_id": "t1", "repeat_index": 1, "variant": "control", "solved": True}, {"task_id": "t1", "repeat_index": 1, "variant": "treatment", "solved": True}, {"task_id": "t1", "repeat_index": 2, "variant": "control", "solved": False}, {"task_id": "t1", "repeat_index": 2, "variant": "treatment", "solved": True}]
+        runs: list[dict[str, Any]] = [
+            {"task_id": "t1", "repeat_index": 1, "variant": "control", "solved": True},
+            {"task_id": "t1", "repeat_index": 1, "variant": "treatment", "solved": True},
+            {"task_id": "t1", "repeat_index": 2, "variant": "control", "solved": False},
+            {"task_id": "t1", "repeat_index": 2, "variant": "treatment", "solved": True},
+        ]
         assert self.recompute_solve_rate(runs, "control") == 0.5
         assert self.recompute_solve_rate(runs, "treatment") == 1.0
 
     def test_recompute_selection_rate(self):
-        runs = [{"task_id": "t1", "repeat_index": 1, "variant": "control", "skill_selected_count": 0}, {"task_id": "t1", "repeat_index": 1, "variant": "treatment", "skill_selected_count": 1}, {"task_id": "t1", "repeat_index": 2, "variant": "control", "skill_selected_count": 0}, {"task_id": "t1", "repeat_index": 2, "variant": "treatment", "skill_selected_count": 0}]
+        runs: list[dict[str, Any]] = [
+            {"task_id": "t1", "repeat_index": 1, "variant": "control", "skill_selected_count": 0},
+            {"task_id": "t1", "repeat_index": 1, "variant": "treatment", "skill_selected_count": 1},
+            {"task_id": "t1", "repeat_index": 2, "variant": "control", "skill_selected_count": 0},
+            {"task_id": "t1", "repeat_index": 2, "variant": "treatment", "skill_selected_count": 0},
+        ]
         assert self.recompute_selection_rate(runs) == 0.5
 
     def test_recompute_paired_outcomes(self):
-        runs = [{"task_id": "t1", "repeat_index": 1, "variant": "control", "solved": True}, {"task_id": "t1", "repeat_index": 1, "variant": "treatment", "solved": True}, {"task_id": "t1", "repeat_index": 2, "variant": "control", "solved": False}, {"task_id": "t1", "repeat_index": 2, "variant": "treatment", "solved": True}]
+        runs: list[dict[str, Any]] = [
+            {"task_id": "t1", "repeat_index": 1, "variant": "control", "solved": True},
+            {"task_id": "t1", "repeat_index": 1, "variant": "treatment", "solved": True},
+            {"task_id": "t1", "repeat_index": 2, "variant": "control", "solved": False},
+            {"task_id": "t1", "repeat_index": 2, "variant": "treatment", "solved": True},
+        ]
         outcomes = self.recompute_paired_outcomes(runs)
         assert outcomes["both_solved"] == 1
         assert outcomes["control_only"] == 0
@@ -537,13 +718,22 @@ class TestSkillSelectionAudit:
     def test_valid_selected_event_passes_whitelist(self):
         event = make_skill_selection_event("selected")
         payload = event["payload"]
-        allowed = {"schemaVersion", "invocationId", "selectionSource", "outcome", "requestedSkill", "selectedSkill", "extensionName", "definitionSource"}
+        allowed = {
+            "schemaVersion", "invocationId", "selectionSource",
+            "outcome", "requestedSkill", "selectedSkill",
+            "extensionName", "definitionSource",
+        }
         assert set(payload.keys()).issubset(allowed)
         forbidden = {"instructions", "content", "messages", "workspacePath", "error", "stack"}
         assert not (set(payload.keys()) & forbidden)
 
     def test_has_skill_selection_detects_event(self):
-        trace = [{"type": "model_start"}, {"type": "model_end"}, {"type": "tool_start", "payload": {"toolName": "invoke_skill"}}, {"type": "skill_selection", "payload": {"outcome": "selected"}}, {"type": "tool_end"}]
+        trace: list[dict[str, Any]] = [
+            {"type": "model_start"}, {"type": "model_end"},
+            {"type": "tool_start", "payload": {"toolName": "invoke_skill"}},
+            {"type": "skill_selection", "payload": {"outcome": "selected"}},
+            {"type": "tool_end"},
+        ]
         assert has_skill_selection_event(trace) is True
         assert has_skill_tool_invocation(trace) is True
 
@@ -552,57 +742,108 @@ class TestSkillSelectionAudit:
         assert has_skill_tool_invocation([]) is False
 
     def test_control_trace_has_no_selection(self):
-        trace = [{"type": "model_start"}, {"type": "model_end"}, {"type": "tool_start", "payload": {"toolName": "read_file"}}, {"type": "post_tool_use", "payload": {"toolName": "read_file"}}, {"type": "tool_end"}, {"type": "model_start"}, {"type": "finish"}]
+        trace: list[dict[str, Any]] = [
+            {"type": "model_start"}, {"type": "model_end"},
+            {"type": "tool_start", "payload": {"toolName": "read_file"}},
+            {"type": "post_tool_use", "payload": {"toolName": "read_file"}},
+            {"type": "tool_end"}, {"type": "model_start"}, {"type": "finish"},
+        ]
         assert has_skill_selection_event(trace) is False
         assert has_skill_tool_invocation(trace) is False
 
     def test_count_bash_invocations_zero(self):
-        trace = [{"type": "tool_start", "payload": {"toolName": "read_file"}}, {"type": "tool_start", "payload": {"toolName": "invoke_skill"}}]
+        trace: list[dict[str, Any]] = [
+            {"type": "tool_start", "payload": {"toolName": "read_file"}},
+            {"type": "tool_start", "payload": {"toolName": "invoke_skill"}},
+        ]
         assert count_bash_invocations(trace) == 0
 
     def test_count_bash_invocations_detects_bash(self):
-        trace = [{"type": "tool_start", "payload": {"toolName": "bash"}}, {"type": "tool_start", "payload": {"toolName": "read_file"}}, {"type": "tool_start", "payload": {"toolName": "bash"}}]
+        trace: list[dict[str, Any]] = [
+            {"type": "tool_start", "payload": {"toolName": "bash"}},
+            {"type": "tool_start", "payload": {"toolName": "read_file"}},
+            {"type": "tool_start", "payload": {"toolName": "bash"}},
+        ]
         assert count_bash_invocations(trace) == 2
 
 
-# ==== Integration Fake Tests ====
+# ============================================================================
+# 集成 Fake 测试（使用 mock command_runner 绕过 TS CLI）
+# ============================================================================
+
 
 class TestCmakeSkillABFakeIntegration:
+    """使用 mock command_runner 的集成测试，无需 node/TS CLI 环境。
 
-    @ts_cli_skip
-    def test_fake_pilot_both_solved(self, tmp_path):
+    通过 command_runner 参数向 run_cmake_skill_ab() 注入可控的
+    managed result 和 trace events，验证 orchestrator 层行为正确性。
+    """
+
+    def test_fake_pilot_both_solved(self, tmp_path: Path):
+        """用 mock runner 跑 pilot，验证 control 和 treatment 都 solved 且无 Bash。"""
         eval_dir = tmp_path / "eval"
         tasks_dir = eval_dir / "tasks_cmake_real"
-        task_dir = _make_cmake_task_structure(tasks_dir / "r08_local_library_source_omitted", "r08_local_library_source_omitted")
+        task_dir = _make_cmake_task_structure(
+            tasks_dir / "r08_local_library_source_omitted",
+            "r08_local_library_source_omitted",
+        )
         output_dir = tmp_path / "output"
+
+        default_trace = _make_default_trace()
         result = run_cmake_skill_ab(
-            tasks=[EvalTask(id="r08_local_library_source_omitted", path=task_dir,
-                  profile=ProjectProfile(language="cmake", test_cmd="echo ok", test_timeout=30))],
-            repeat=1, budget_steps=40, output_dir=output_dir, fake=False,
-            command_runner=_make_mock_runner(exit_code=0, trace_events=_make_default_trace()),
+            tasks=[
+                EvalTask(
+                    id="r08_local_library_source_omitted",
+                    path=task_dir,
+                    profile=ProjectProfile(
+                        language="cmake", test_cmd="echo ok", test_timeout=30
+                    ),
+                )
+            ],
+            repeat=1,
+            budget_steps=40,
+            output_dir=output_dir,
+            fake=False,
+            command_runner=_make_mock_runner(
+                exit_code=0, trace_events=default_trace
+            ),
         )
         assert len(result) == 2
         assert result[0].variant == "control"
         assert result[1].variant == "treatment"
         assert result[0].solved is True
         assert result[1].solved is True
+        assert result[0].skill_selected_count == 0
+        assert result[1].skill_selected_count == 0
+        assert result[0].bash_call_count == 0
+        assert result[1].bash_call_count == 0
 
-    def test_control_no_skill_selection(self, tmp_path):
+    def test_control_no_skill_selection(self, tmp_path: Path):
+        """control trace 不应有 skill_selection 事件。"""
         output_dir = tmp_path / "output"
         trace_path = output_dir / "control-trace.jsonl"
         trace_path.parent.mkdir(parents=True, exist_ok=True)
         control_trace = _make_default_trace()
-        trace_path.write_text("\n".join(json.dumps(e, ensure_ascii=False) for e in control_trace) + "\n", encoding="utf-8")
+        trace_path.write_text(
+            "\n".join(json.dumps(e, ensure_ascii=False) for e in control_trace)
+            + "\n",
+            encoding="utf-8",
+        )
+
         assert not has_skill_selection_event(control_trace)
+
         from eval.cmake_skill_ab import _parse_trace_metrics
         metrics = _parse_trace_metrics(str(trace_path))
         assert metrics["invoke_skill_count"] == 0
         assert metrics["skill_selected_count"] == 0
         assert metrics["bash_call_count"] == 0
 
-    def test_treatment_has_valid_selected(self, tmp_path):
+    def test_treatment_has_valid_selected(self, tmp_path: Path):
+        """treatment trace 应有有效的 skill_selection selected 事件。"""
         trace_events = _make_treatment_trace()
-        skill_events = [e for e in trace_events if e.get("type") == "skill_selection"]
+        skill_events = [
+            e for e in trace_events if e.get("type") == "skill_selection"
+        ]
         assert len(skill_events) == 1
         payload = skill_events[0]["payload"]
         assert payload["outcome"] == "selected"
@@ -611,7 +852,8 @@ class TestCmakeSkillABFakeIntegration:
         assert payload["extensionName"] == "cmake"
         assert payload["selectedSkill"] == "cmake-build-fix"
 
-    def test_paired_ab_ba_alternation(self, tmp_path):
+    def test_paired_ab_ba_alternation(self, tmp_path: Path):
+        """repeat=2 时顺序应为 CT, TC。"""
         orders = generate_pair_orders(["r08"], repeat=2)
         assert orders[0].order == "CT"
         assert orders[1].order == "TC"
@@ -619,6 +861,7 @@ class TestCmakeSkillABFakeIntegration:
         assert orders[1].repeat_index == 1
 
     def test_full_mode_discovers_10_tasks(self):
+        """full phase 应发现 10 个 task（真实 tasks 目录）。"""
         eval_dir = Path(__file__).resolve().parents[1] / "eval"
         tasks = discover_cmake_tasks(eval_dir, "full")
         assert len(tasks) == 10
@@ -627,87 +870,156 @@ class TestCmakeSkillABFakeIntegration:
             assert task.id in DEFAULT_TASK_IDS_CMDS
 
     def test_pilot_mode_only_runs_r08(self):
+        """pilot phase 应只返回 r08 task（真实 tasks 目录）。"""
         eval_dir = Path(__file__).resolve().parents[1] / "eval"
         tasks = discover_cmake_tasks(eval_dir, "pilot")
         assert len(tasks) == 1
         assert tasks[0].id == "r08_local_library_source_omitted"
 
-    @ts_cli_skip
-    def test_summary_json_is_valid(self, tmp_path):
+    def test_summary_json_is_valid(self, tmp_path: Path):
+        """运行 Fake pilot，验证输出的 summary JSON 通过 schema 验证。"""
         eval_dir = tmp_path / "eval"
         tasks_dir = eval_dir / "tasks_cmake_real"
-        task_dir = _make_cmake_task_structure(tasks_dir / "r08_local_library_source_omitted", "r08_local_library_source_omitted")
+        task_dir = _make_cmake_task_structure(
+            tasks_dir / "r08_local_library_source_omitted",
+            "r08_local_library_source_omitted",
+        )
         output_dir = tmp_path / "output"
+
+        default_trace = _make_default_trace()
         result = run_cmake_skill_ab(
-            tasks=[EvalTask(id="r08_local_library_source_omitted", path=task_dir,
-                  profile=ProjectProfile(language="cmake", test_cmd="echo ok", test_timeout=30))],
-            repeat=1, budget_steps=40, output_dir=output_dir, fake=False,
-            command_runner=_make_mock_runner(exit_code=0, trace_events=_make_default_trace()),
+            tasks=[
+                EvalTask(
+                    id="r08_local_library_source_omitted",
+                    path=task_dir,
+                    profile=ProjectProfile(
+                        language="cmake", test_cmd="echo ok", test_timeout=30
+                    ),
+                )
+            ],
+            repeat=1,
+            budget_steps=40,
+            output_dir=output_dir,
+            fake=False,
+            command_runner=_make_mock_runner(
+                exit_code=0, trace_events=default_trace
+            ),
         )
         assert len(result) == 2
         assert result[0].variant == "control"
         assert result[1].variant == "treatment"
         assert result[0].solved is True
         assert result[1].solved is True
-        assert result[0].bash_call_count == 0
-        assert result[1].bash_call_count == 0
+
         json_path = write_summary_json(result, output_dir)
         assert json_path.is_file()
         summary = json.loads(json_path.read_text(encoding="utf-8"))
         assert summary["schema_version"] == 1
         assert summary["evaluation"] == "cmake-skill-ab"
+        assert summary["control"]["total"] >= 1
+        assert summary["treatment"]["total"] >= 1
 
-    @ts_cli_skip
-    def test_report_recomputable_from_artifacts(self, tmp_path):
+    def test_report_recomputable_from_artifacts(self, tmp_path: Path):
+        """验证 report 能从带有不同 trace metrics 的 run 数据正确生成。"""
         eval_dir = tmp_path / "eval"
         tasks_dir = eval_dir / "tasks_cmake_real"
-        task_dir = _make_cmake_task_structure(tasks_dir / "r08_local_library_source_omitted", "r08_local_library_source_omitted")
+        task_dir = _make_cmake_task_structure(
+            tasks_dir / "r08_local_library_source_omitted",
+            "r08_local_library_source_omitted",
+        )
         output_dir = tmp_path / "output"
-        runner_calls = []
 
-        def two_phase_runner(command, *, cwd, timeout):
-            call_info = {"count": len(runner_calls)}
+        runner_calls: list[dict[str, Any]] = []
+
+        def two_phase_runner(
+            command: list[str], *, cwd: Path, timeout: int
+        ) -> TsProcessResult:
+            call_info: dict[str, Any] = {"count": len(runner_calls)}
             runner_calls.append(call_info)
             if call_info["count"] % 2 == 0:
-                return _managed_result(command, exit_code=0, trace_events=_make_default_trace(), overrides={"steps": 2, "reason": "completed"})
+                return _managed_result(
+                    command,
+                    exit_code=0,
+                    trace_events=_make_default_trace(),
+                    overrides={"steps": 2, "reason": "completed"},
+                )
             else:
-                return _managed_result(command, exit_code=0, trace_events=_make_treatment_trace(), overrides={"steps": 4, "reason": "completed"})
+                return _managed_result(
+                    command,
+                    exit_code=0,
+                    trace_events=_make_treatment_trace(),
+                    overrides={"steps": 4, "reason": "completed"},
+                )
 
         result = run_cmake_skill_ab(
-            tasks=[EvalTask(id="r08_local_library_source_omitted", path=task_dir,
-                  profile=ProjectProfile(language="cmake", test_cmd="echo ok", test_timeout=30))],
-            repeat=1, budget_steps=40, output_dir=output_dir, fake=False,
+            tasks=[
+                EvalTask(
+                    id="r08_local_library_source_omitted",
+                    path=task_dir,
+                    profile=ProjectProfile(
+                        language="cmake", test_cmd="echo ok", test_timeout=30
+                    ),
+                )
+            ],
+            repeat=1,
+            budget_steps=40,
+            output_dir=output_dir,
+            fake=False,
             command_runner=two_phase_runner,
         )
+
         assert len(result) == 2
         control_run = [r for r in result if r.variant == "control"][0]
         treatment_run = [r for r in result if r.variant == "treatment"][0]
         assert control_run.skill_selected_count == 0
         assert treatment_run.skill_selected_count >= 1
         assert treatment_run.solved is True
-        report_path = write_markdown_report(result, phase="pilot", repeat=1, budget_steps=40, fake=False, output_dir=output_dir)
+
+        # 写 report
+        report_path = write_markdown_report(
+            result, phase="pilot", repeat=1, budget_steps=40, fake=False,
+            output_dir=output_dir,
+        )
         assert report_path.is_file()
         content = report_path.read_text(encoding="utf-8")
         assert "CM-02" in content
         assert "Control" in content
         assert "Treatment" in content
+
+        # 写 JSON
         json_path = write_summary_json(result, output_dir)
         summary = json.loads(json_path.read_text(encoding="utf-8"))
         assert summary["control"]["total"] >= 1
         assert summary["treatment"]["total"] >= 1
 
-    @ts_cli_skip
-    def test_infrastructure_error_propagation(self, tmp_path):
+    def test_infrastructure_error_propagation(self, tmp_path: Path):
+        """模拟基础设施错误，验证错误被正确传播。"""
         eval_dir = tmp_path / "eval"
         tasks_dir = eval_dir / "tasks_cmake_real"
-        task_dir = _make_cmake_task_structure(tasks_dir / "r08_local_library_source_omitted", "r08_local_library_source_omitted")
+        task_dir = _make_cmake_task_structure(
+            tasks_dir / "r08_local_library_source_omitted",
+            "r08_local_library_source_omitted",
+        )
         output_dir = tmp_path / "output"
+
+        # exit_code=2 导致 TsBridgeError("cli_failed")
         result = run_cmake_skill_ab(
-            tasks=[EvalTask(id="r08_local_library_source_omitted", path=task_dir,
-                  profile=ProjectProfile(language="cmake", test_cmd="echo ok", test_timeout=30))],
-            repeat=1, budget_steps=40, output_dir=output_dir, fake=False,
+            tasks=[
+                EvalTask(
+                    id="r08_local_library_source_omitted",
+                    path=task_dir,
+                    profile=ProjectProfile(
+                        language="cmake", test_cmd="echo ok", test_timeout=30
+                    ),
+                )
+            ],
+            repeat=1,
+            budget_steps=40,
+            output_dir=output_dir,
+            fake=False,
             command_runner=_make_mock_runner(exit_code=2),
         )
+
         assert len(result) == 2
         for r in result:
             assert r.solved is False
@@ -715,11 +1027,16 @@ class TestCmakeSkillABFakeIntegration:
             assert isinstance(r.infrastructure_error, dict)
 
 
-def review_ts_bridge():
+# ============================================================================
+# 审查报告生成
+# ============================================================================
+
+
+def review_ts_bridge() -> list[dict[str, str]]:
     return []
 
 
-def review_cmake_skill_ab():
+def review_cmake_skill_ab() -> list[dict[str, str]]:
     return []
 
 
@@ -729,5 +1046,10 @@ class TestReviewCoverage:
         assert isinstance(review_cmake_skill_ab(), list)
 
     def test_expected_review_checklist(self):
-        checklist = ["engine_diff_empty", "no_host_shell", "accept_edits", "variant_isolation", "paired_order_alternation", "whitelist_fields", "error_propagation", "default_backward_compat", "fake_no_deepseek", "real_explicit_confirm"]
+        checklist = [
+            "engine_diff_empty", "no_host_shell", "accept_edits",
+            "variant_isolation", "paired_order_alternation", "whitelist_fields",
+            "error_propagation", "default_backward_compat",
+            "fake_no_deepseek", "real_explicit_confirm",
+        ]
         assert len(checklist) == 10
