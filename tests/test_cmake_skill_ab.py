@@ -1050,6 +1050,23 @@ class TestCmakeSkillABFakeIntegration:
 
         task, output_dir = self._setup_r08_task(tmp_path)
 
+        # Pre-create artifacts directory with real files so
+        # build_cm02_report can resolve_safe_relative_path.
+        art_dir = output_dir / "_artifacts"
+        art_dir.mkdir(parents=True, exist_ok=True)
+        (art_dir / "trace.jsonl").write_text(
+            json.dumps({"type": "skill_selection", "payload": {
+                "outcome": "selected", "selectionSource": "model_tool_call",
+                "extensionName": "cmake",
+                "definitionSource": "cmake/skills/build-fix/SKILL.md",
+                "selectedSkill": "cmake-build-fix", "schemaVersion": 1,
+            }}) + "\n",
+            encoding="utf-8",
+        )
+        (art_dir / "result.json").write_text("{}", encoding="utf-8")
+        (art_dir / "verification.json").write_text("{}", encoding="utf-8")
+        (art_dir / "final.diff").write_text("", encoding="utf-8")
+
         with patch(
             "eval.cmake_skill_ab.typescript_agent_factory"
         ) as mock_factory:
@@ -1066,6 +1083,10 @@ class TestCmakeSkillABFakeIntegration:
             )
 
         run_dicts = [_cm02_result_to_dict(r) for r in results]
+        for rd in run_dicts:
+            rd.setdefault("result_path", str(art_dir / "result.json"))
+            rd.setdefault("verification_path", str(art_dir / "verification.json"))
+            rd.setdefault("diff_path", str(art_dir / "final.diff"))
         json_path, _md_path = build_cm02_report(
             run_dicts, "pilot", "fake", 1, output_dir,
         )
