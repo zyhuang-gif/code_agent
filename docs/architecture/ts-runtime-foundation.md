@@ -27,6 +27,7 @@ This repository is migrating incrementally from the Python prototype to a TypeSc
 - `GovernedToolExecutor` is the only route from the engine to concrete tools.
 - Bash commands receive dynamic risk classification before permission evaluation.
 - JSONL trace persistence serializes Host, Engine, and Hook events through one ordered sink.
+- Verification commands use a governance runner; a `pre_tool_use` Hook blocks `finish` when comparison finds new failures.
 
 `src/host/`
 
@@ -78,6 +79,7 @@ Implemented in TypeScript:
 
 - Managed workspace isolation, hardened Git checkpoint/rollback, final diff and result artifacts
 - Stable managed result schema, trace.jsonl lifecycle audit, and reserved verification artifact
+- Baseline/final test verification, failure fingerprint comparison, and Finish Gate
 - Python-compatible Project Profile YAML loading and built-in tool configuration
 - Agent runtime and JSON event stream
 - Unified tool contracts and registry
@@ -106,5 +108,6 @@ Still using the Python implementation as the reference:
 - Active task index: ../tasks/README.md
 - Completed TS-01 specification: ../tasks/TS-01-workspace-checkpoint.md
 - Completed TS-02 specification: ../tasks/TS-02-project-profile.md
+- Completed TS-03 specification: ../tasks/TS-03-verification-gate.md
 - Completed TS-04 specification: ../tasks/TS-04-trace-artifacts.md
-- Next task: TS-03 Verification/Finish Gate
+- Next task: TS-05 Python Eval bridge

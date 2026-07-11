@@ -113,3 +113,54 @@ test("executor runs only parallel-safe batches concurrently", async () => {
   ], context);
   assert.equal(maxActive, 1);
 });
+
+test("pre-tool governance blocks execution and emits a failure lifecycle event", async () => {
+  let executed = false;
+  let laterExecuted = false;
+  let failures = 0;
+  const hooks = new HookBus();
+  hooks.on("pre_tool_use", (event) => {
+    const payload = event.payload as { readonly invocation?: { readonly name?: string } };
+    return payload.invocation?.name === "finish"
+      ? { action: "block", reason: "verification regression" }
+      : undefined;
+  });
+  hooks.on("post_tool_use_failure", () => { failures += 1; });
+  const terminal: ToolDefinition = {
+    name: "finish",
+    description: "finish",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+    policy: { ...READ_ONLY_POLICY, concurrency: "serial" },
+    async execute() {
+      executed = true;
+      return { status: "success", content: "done", terminal: { reason: "completed", summary: "done" } };
+    },
+  };
+  const executor = new GovernedToolExecutor(
+    new ToolRegistry([terminal, {
+      name: "later_write",
+      description: "later write",
+      inputSchema: { type: "object", properties: {}, additionalProperties: false },
+      policy: { ...READ_ONLY_POLICY, access: "write", concurrency: "serial" },
+      async execute() {
+        laterExecuted = true;
+        return { status: "success", content: "wrote" };
+      },
+    }]),
+    new PermissionEngine(),
+    new StaticApprovalProvider(true),
+    hooks,
+  );
+  const [record] = await executor.executeBatch(
+    [
+      { id: "finish", name: "finish", input: {} },
+      { id: "later", name: "later_write", input: {} },
+    ],
+    context,
+  );
+  assert.equal(executed, false);
+  assert.equal(record?.result.status, "denied");
+  assert.equal(record?.result.terminal, undefined);
+  assert.equal(failures, 1);
+  assert.equal(laterExecuted, false);
+});

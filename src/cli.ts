@@ -19,6 +19,7 @@ import type { ManagedRunResult } from "./host/managed-run.js";
 import { createDefaultProjectProfile, loadProjectProfile } from "./host/project-profile.js";
 import type { ProjectProfile } from "./host/project-profile.js";
 import { DeferredRunEventSink } from "./host/run-events.js";
+import { VerificationGate } from "./host/verification-gate.js";
 import { CompactingContextService } from "./services/context.js";
 import { DefaultMcpService } from "./services/mcp.js";
 import type { ModelService } from "./services/model.js";
@@ -295,6 +296,17 @@ async function execute(options: CliOptions): Promise<RunResult> {
     const trace = new FileSystemTraceSink(prepared.artifacts.paths.tracePath);
     await hostEvents.attach(trace);
     registerTraceHooks(hooks, trace);
+    const verification = new VerificationGate({
+      sessionId: prepared.session.sessionId,
+      workspace: prepared.session.repository,
+      profile,
+      artifacts: prepared.artifacts,
+      hooks,
+      runEventSink: hostEvents,
+      scratchRoot: path.join(prepared.session.runDirectory, "verification-workspaces"),
+    });
+    await verification.initialize();
+    verification.register();
     const runtimeResult = await executeRuntime(
       prepared.session.repository,
       prepared.session.sessionId,

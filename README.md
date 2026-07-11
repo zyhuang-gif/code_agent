@@ -26,6 +26,8 @@ Host shell execution is disabled by default. Use `--allow-host-shell` only when 
 
 Managed runs persist `final.diff`, `result.json`, and an ordered `trace.jsonl` under the external run artifact directory. `verification.json` has a stable reserved path for the verification gate.
 
+When the selected Profile declares `test_cmd`, managed runs execute a baseline before the Agent and re-run the command before every `finish`. New failures block Finish through governance hooks; passing tests and baseline-only failures may complete.
+
 ## TypeScript migration roadmap
 
 The prioritized migration backlog is stored in docs/roadmap/2026-07-11-typescript-runtime-roadmap.md. Completed task specifications are indexed in docs/tasks/README.md.

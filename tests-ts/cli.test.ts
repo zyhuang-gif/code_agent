@@ -29,6 +29,13 @@ interface TraceEnvelope {
   readonly payload: unknown;
 }
 
+interface VerificationArtifact {
+  readonly decision: string;
+  readonly security: { readonly osSandbox: boolean; readonly sensitiveEnvironmentFiltered: boolean };
+  readonly baseline: { readonly passed: boolean } | null;
+  readonly finishAttempts: ReadonlyArray<{ readonly passed: boolean }>;
+}
+
 test("TypeScript CLI creates an isolated workspace and emits artifacts", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "code-agent-cli-isolated-"));
   try {
@@ -68,6 +75,10 @@ test("TypeScript CLI creates an isolated workspace and emits artifacts", async (
     assert.equal(persisted.workspace, runResult?.workspace);
     assert.equal(persisted.tracePath, runResult?.tracePath);
     assert.equal(persisted.verificationPath, runResult?.verificationPath);
+    const verification = JSON.parse(await readFile(runResult?.verificationPath ?? "", "utf8")) as VerificationArtifact;
+    assert.equal(verification.decision, "not_configured");
+    assert.equal(verification.security.osSandbox, false);
+    assert.equal(verification.security.sensitiveEnvironmentFiltered, true);
 
     const trace = (await readFile(runResult?.tracePath ?? "", "utf8"))
       .trim()
@@ -84,6 +95,58 @@ test("TypeScript CLI creates an isolated workspace and emits artifacts", async (
     assert.equal(trace.filter((event) => event.type === "run_result").length, 1);
     assert.equal(trace.at(-1)?.type, "run_result");
     assert.equal(trace.every((event) => event.sessionId === runResult?.sessionId), true);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("managed CLI runs baseline and finish verification and persists the gate artifact", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "code-agent-cli-verification-"));
+  try {
+    const source = path.join(root, "source");
+    const runRoot = path.join(root, "runs");
+    const profile = path.join(root, "profile.yaml");
+    await mkdir(source, { recursive: true });
+    await writeFile(path.join(source, "hello.txt"), "original\n", "utf8");
+    await writeFile(profile, [
+      "test_cmd: node -e \"process.exit(0)\"",
+      "test_timeout: 10",
+      "pass_when: exit_zero",
+      "",
+    ].join("\n"), "utf8");
+
+    const result = spawnSync(process.execPath, [
+      tsxCli,
+      "src/cli.ts",
+      "--fake",
+      "--json",
+      "--task",
+      "CLI verification smoke test",
+      "--repo",
+      source,
+      "--run-root",
+      runRoot,
+      "--profile",
+      profile,
+      "--extensions",
+      "extensions",
+    ], { cwd: process.cwd(), encoding: "utf8" });
+
+    assert.equal(result.status, 0, result.stderr);
+    const output = result.stdout.trim().split(/\r?\n/).map((line) => JSON.parse(line) as { readonly type: string });
+    const runResult = output.at(-1) as RunResultEvent;
+    const verification = JSON.parse(await readFile(runResult.verificationPath, "utf8")) as VerificationArtifact;
+    assert.equal(verification.decision, "passed");
+    assert.equal(verification.baseline?.passed, true);
+    assert.equal(verification.finishAttempts.length, 1);
+    assert.equal(verification.finishAttempts[0]?.passed, true);
+    const trace = (await readFile(runResult.tracePath, "utf8"))
+      .trim()
+      .split(/\r?\n/)
+      .map((line) => JSON.parse(line) as TraceEnvelope);
+    assert.equal(trace.filter((event) => event.type === "verification_start").length, 2);
+    assert.equal(trace.filter((event) => event.type === "finish_gate_decision").length, 1);
+    assert.equal(trace.at(-1)?.type, "run_result");
   } finally {
     await rm(root, { recursive: true, force: true });
   }

@@ -6,6 +6,9 @@ export type RunEventType =
   | "workspace_create_end"
   | "checkpoint_start"
   | "checkpoint_ready"
+  | "verification_start"
+  | "verification_end"
+  | "finish_gate_decision"
   | "diff_generated"
   | "run_result";
 
@@ -39,6 +42,30 @@ export interface DiffGeneratedPayload {
   readonly byteLength: number;
 }
 
+export interface VerificationStartPayload {
+  readonly phase: "baseline" | "finish";
+  readonly commandHash: string;
+  readonly attempt: number;
+}
+
+export interface VerificationEndPayload {
+  readonly phase: "baseline" | "finish";
+  readonly attempt: number;
+  readonly status: "passed" | "failed" | "error";
+  readonly passed: boolean;
+  readonly exitCode: number | null;
+  readonly timedOut: boolean;
+  readonly durationMs: number;
+  readonly errorCode?: string;
+}
+
+export interface FinishGateDecisionPayload {
+  readonly decision: "allow" | "block";
+  readonly status: "passed" | "pre_existing_failure" | "regression" | "error";
+  readonly blockedAttempts: number;
+  readonly newFailures: readonly string[];
+}
+
 export type WorkspaceCreateStartEvent = HostRunEvent<
   "workspace_create_start",
   WorkspaceCreateStartPayload
@@ -56,6 +83,9 @@ export type CheckpointReadyEvent = HostRunEvent<
   CheckpointLifecyclePayload
 >;
 export type DiffGeneratedEvent = HostRunEvent<"diff_generated", DiffGeneratedPayload>;
+export type VerificationStartEvent = HostRunEvent<"verification_start", VerificationStartPayload>;
+export type VerificationEndEvent = HostRunEvent<"verification_end", VerificationEndPayload>;
+export type FinishGateDecisionEvent = HostRunEvent<"finish_gate_decision", FinishGateDecisionPayload>;
 export type RunResultEvent<TResult = unknown> = HostRunEvent<"run_result", TResult>;
 
 export type RunEvent<TResult = unknown> =
@@ -63,6 +93,9 @@ export type RunEvent<TResult = unknown> =
   | WorkspaceCreateEndEvent
   | CheckpointStartEvent
   | CheckpointReadyEvent
+  | VerificationStartEvent
+  | VerificationEndEvent
+  | FinishGateDecisionEvent
   | DiffGeneratedEvent
   | RunResultEvent<TResult>;
 

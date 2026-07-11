@@ -128,6 +128,31 @@ class CommandTimeoutError extends Error {
   }
 }
 
+function terminateProcessTree(child: ReturnType<typeof spawn>): void {
+  if (process.platform === "win32" && child.pid !== undefined) {
+    const taskkill = path.join(process.env.SystemRoot ?? "C:\\Windows", "System32", "taskkill.exe");
+    const killer = spawn(taskkill, ["/pid", String(child.pid), "/t", "/f"], {
+      shell: false,
+      windowsHide: true,
+      stdio: "ignore",
+    });
+    killer.once("error", () => { child.kill("SIGKILL"); });
+    killer.once("close", (code) => {
+      if (code !== 0) child.kill("SIGKILL");
+    });
+    return;
+  }
+  if (child.pid !== undefined) {
+    try {
+      process.kill(-child.pid, "SIGKILL");
+      return;
+    } catch {
+      // Fall through when the detached process group no longer exists.
+    }
+  }
+  child.kill("SIGKILL");
+}
+
 export class SpawnCommandRunner implements CommandRunner {
   async run(command: string, args: readonly string[], options: CommandRunOptions): Promise<CommandResult> {
     const maxOutputBytes = options.maxOutputBytes ?? DEFAULT_MAX_COMMAND_OUTPUT_BYTES;
@@ -144,6 +169,7 @@ export class SpawnCommandRunner implements CommandRunner {
         cwd: options.cwd,
         env: { ...(options.env ?? process.env) },
         shell: false,
+        detached: process.platform !== "win32",
         windowsHide: true,
         stdio: ["ignore", "pipe", "pipe"],
       });
@@ -157,7 +183,7 @@ export class SpawnCommandRunner implements CommandRunner {
       const timer = setTimeout(() => {
         if (settled) return;
         timeoutError = new CommandTimeoutError(timeoutMs);
-        child.kill("SIGKILL");
+        terminateProcessTree(child);
       }, timeoutMs);
 
       const rejectOnce = (error: unknown): void => {
@@ -178,7 +204,7 @@ export class SpawnCommandRunner implements CommandRunner {
         outputBytes += buffer.byteLength;
         if (outputBytes > maxOutputBytes) {
           outputLimitError = new CommandOutputLimitError(maxOutputBytes);
-          child.kill("SIGKILL");
+          terminateProcessTree(child);
           return;
         }
         target.push(buffer);

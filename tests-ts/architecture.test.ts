@@ -44,3 +44,11 @@ test("engine has no CMake-specific routing branch", async () => {
   const source = (await Promise.all(files.map((file) => readFile(file, "utf8")))).join("\n").toLowerCase();
   assert.equal(source.includes("cmake"), false);
 });
+
+test("engine has no ProjectProfile or verification gate business logic", async () => {
+  const files = await sourceFiles(path.resolve("src", "engine"));
+  const source = (await Promise.all(files.map((file) => readFile(file, "utf8")))).join("\n").toLowerCase();
+  assert.equal(source.includes("projectprofile"), false);
+  assert.equal(source.includes("verificationgate"), false);
+  assert.equal(source.includes("testcmd"), false);
+});

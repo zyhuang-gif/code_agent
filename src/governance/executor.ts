@@ -78,11 +78,17 @@ export class GovernedToolExecutor implements ToolExecutionService {
       payload: { invocation, policy },
     });
     if (preTool.blocked) {
-      return {
+      const record = {
         invocation,
         policy,
         result: deniedResult(preTool.reason ?? "blocked by pre-tool hook"),
       };
+      await this.hooks.emit({
+        type: "post_tool_use_failure",
+        sessionId: context.sessionId,
+        payload: record,
+      });
+      return record;
     }
 
     const effectiveInvocation = preTool.payload.invocation;
@@ -153,7 +159,9 @@ export class GovernedToolExecutor implements ToolExecutionService {
 
     const records: ToolExecutionRecord[] = [];
     for (const invocation of invocations) {
-      records.push(await this.#executeOne(invocation, context));
+      const record = await this.#executeOne(invocation, context);
+      records.push(record);
+      if (invocation.name === "finish" || record.result.terminal) break;
     }
     return records;
   }
