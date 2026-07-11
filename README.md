@@ -24,6 +24,8 @@ Host shell execution is disabled by default. Use `--allow-host-shell` only when 
 
 `--profile <yaml>` loads the existing snake_case Project Profile format once at startup. Its ignore patterns, maximum readable file size, and default command timeout configure the built-in tools; setup and verification commands are reserved for the verification gate.
 
+Managed runs persist `final.diff`, `result.json`, and an ordered `trace.jsonl` under the external run artifact directory. `verification.json` has a stable reserved path for the verification gate.
+
 ## TypeScript migration roadmap
 
 The prioritized migration backlog is stored in docs/roadmap/2026-07-11-typescript-runtime-roadmap.md. Completed task specifications are indexed in docs/tasks/README.md.

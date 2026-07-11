@@ -11,13 +11,22 @@ const tsxCli = path.resolve("node_modules", "tsx", "dist", "cli.mjs");
 
 interface RunResultEvent {
   readonly type: "run_result";
+  readonly sessionId: string;
   readonly sourceRepository: string;
   readonly workspace: string;
   readonly runDirectory: string;
   readonly artifactsDirectory: string;
   readonly diffPath: string;
   readonly resultPath: string;
+  readonly tracePath: string;
+  readonly verificationPath: string;
   readonly reason: string;
+}
+
+interface TraceEnvelope {
+  readonly type: string;
+  readonly sessionId: string;
+  readonly payload: unknown;
 }
 
 test("TypeScript CLI creates an isolated workspace and emits artifacts", async () => {
@@ -57,6 +66,24 @@ test("TypeScript CLI creates an isolated workspace and emits artifacts", async (
     assert.equal(await readFile(runResult?.diffPath ?? "", "utf8"), "");
     const persisted = JSON.parse(await readFile(runResult?.resultPath ?? "", "utf8")) as RunResultEvent;
     assert.equal(persisted.workspace, runResult?.workspace);
+    assert.equal(persisted.tracePath, runResult?.tracePath);
+    assert.equal(persisted.verificationPath, runResult?.verificationPath);
+
+    const trace = (await readFile(runResult?.tracePath ?? "", "utf8"))
+      .trim()
+      .split(/\r?\n/)
+      .map((line) => JSON.parse(line) as TraceEnvelope);
+    assert.deepEqual(trace.slice(0, 4).map((event) => event.type), [
+      "workspace_create_start",
+      "workspace_create_end",
+      "checkpoint_start",
+      "checkpoint_ready",
+    ]);
+    assert.equal(trace.some((event) => event.type === "model_start"), true);
+    assert.equal(trace.some((event) => event.type === "permission_request"), true);
+    assert.equal(trace.filter((event) => event.type === "run_result").length, 1);
+    assert.equal(trace.at(-1)?.type, "run_result");
+    assert.equal(trace.every((event) => event.sessionId === runResult?.sessionId), true);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

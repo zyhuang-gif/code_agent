@@ -9,12 +9,16 @@ import { loadExtensions } from "./extensions/filesystem-loader.js";
 import { ExtensionRegistry } from "./extensions/registry.js";
 import { GovernedToolExecutor } from "./governance/executor.js";
 import { HookBus } from "./governance/hooks.js";
+import type { HookEventType } from "./governance/hooks.js";
 import type { ApprovalProvider, PermissionDecision, PermissionMode, PermissionRequest } from "./governance/permissions.js";
 import { PermissionEngine } from "./governance/permissions.js";
+import { FileSystemTraceSink } from "./governance/trace.js";
+import type { TraceSink } from "./governance/trace.js";
 import { finalizeManagedRun, prepareManagedRun } from "./host/managed-run.js";
 import type { ManagedRunResult } from "./host/managed-run.js";
 import { createDefaultProjectProfile, loadProjectProfile } from "./host/project-profile.js";
 import type { ProjectProfile } from "./host/project-profile.js";
+import { DeferredRunEventSink } from "./host/run-events.js";
 import { CompactingContextService } from "./services/context.js";
 import { DefaultMcpService } from "./services/mcp.js";
 import type { ModelService } from "./services/model.js";
@@ -200,12 +204,34 @@ function printManagedResult(result: ManagedRunResult, json: boolean): void {
   console.log("reason=" + result.reason);
 }
 
+const TRACED_HOOK_TYPES = [
+  "session_start",
+  "user_prompt_submit",
+  "pre_model_call",
+  "post_model_call",
+  "pre_tool_use",
+  "permission_request",
+  "post_tool_use",
+  "post_tool_use_failure",
+  "pre_compact",
+  "post_compact",
+  "stop",
+  "session_end",
+] as const satisfies readonly HookEventType[];
+
+function registerTraceHooks(hooks: HookBus, trace: TraceSink): void {
+  for (const type of TRACED_HOOK_TYPES) {
+    hooks.on(type, (event) => trace.record(event));
+  }
+}
+
 async function executeRuntime(
   workspace: string,
   sessionId: string,
   options: CliOptions,
   tools: readonly ToolDefinition[],
   hooks: HookBus,
+  trace?: TraceSink,
 ): Promise<RunResult> {
   const executor = new GovernedToolExecutor(
     new ToolRegistry(tools),
@@ -228,6 +254,7 @@ async function executeRuntime(
   while (true) {
     const item = await stream.next();
     if (item.done) return item.value;
+    if (trace) await trace.record(item.value);
     printEvent(item.value, options.json);
   }
 }
@@ -258,17 +285,23 @@ async function execute(options: CliOptions): Promise<RunResult> {
       );
     }
 
+    const sessionId = randomUUID();
+    const hostEvents = new DeferredRunEventSink();
     const prepared = await prepareManagedRun({
-      sessionId: randomUUID(),
+      sessionId,
       sourceRepository: options.workspaceMode.sourceRepository,
       runRoot: options.workspaceMode.runRoot,
-    });
+    }, { runEventSink: hostEvents });
+    const trace = new FileSystemTraceSink(prepared.artifacts.paths.tracePath);
+    await hostEvents.attach(trace);
+    registerTraceHooks(hooks, trace);
     const runtimeResult = await executeRuntime(
       prepared.session.repository,
       prepared.session.sessionId,
       options,
       tools,
       hooks,
+      trace,
     );
     const managedResult = await finalizeManagedRun(prepared, runtimeResult);
     printManagedResult(managedResult, options.json);

@@ -13,6 +13,8 @@ export interface ArtifactPaths {
   readonly directory: string;
   readonly diffPath: string;
   readonly resultPath: string;
+  readonly tracePath: string;
+  readonly verificationPath: string;
 }
 
 export interface ArtifactStore {
@@ -20,6 +22,7 @@ export interface ArtifactStore {
   initialize(): Promise<void>;
   writeFinalDiff(diff: string): Promise<string>;
   writeResult(result: unknown): Promise<string>;
+  writeVerification(verification: unknown): Promise<string>;
 }
 
 export class ArtifactError extends Error {
@@ -90,6 +93,10 @@ async function atomicWrite(target: string, content: string): Promise<void> {
   }
 }
 
+function jsonArtifact(value: unknown): string {
+  return JSON.stringify(value, null, 2) + "\n";
+}
+
 export class FileSystemArtifactStore implements ArtifactStore {
   readonly paths: ArtifactPaths;
 
@@ -99,6 +106,8 @@ export class FileSystemArtifactStore implements ArtifactStore {
       directory: validated.artifactsDirectory,
       diffPath: childPath(validated.artifactsDirectory, "final.diff"),
       resultPath: childPath(validated.artifactsDirectory, "result.json"),
+      tracePath: childPath(validated.artifactsDirectory, "trace.jsonl"),
+      verificationPath: childPath(validated.artifactsDirectory, "verification.json"),
     });
   }
 
@@ -122,7 +131,13 @@ export class FileSystemArtifactStore implements ArtifactStore {
 
   async writeResult(result: unknown): Promise<string> {
     await this.initialize();
-    await atomicWrite(this.paths.resultPath, JSON.stringify(result, null, 2) + "\n");
+    await atomicWrite(this.paths.resultPath, jsonArtifact(result));
     return this.paths.resultPath;
+  }
+
+  async writeVerification(verification: unknown): Promise<string> {
+    await this.initialize();
+    await atomicWrite(this.paths.verificationPath, jsonArtifact(verification));
+    return this.paths.verificationPath;
   }
 }

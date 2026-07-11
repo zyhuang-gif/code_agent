@@ -5,7 +5,7 @@ import path from "node:path";
 import test from "node:test";
 import { ArtifactError, FileSystemArtifactStore } from "../src/governance/artifacts.js";
 
-test("artifact store binds artifacts to the validated run layout", async () => {
+test("artifact store binds all four artifacts to the validated run layout", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "code-agent-artifacts-"));
   try {
     const runDirectory = path.join(root, "run");
@@ -13,6 +13,28 @@ test("artifact store binds artifacts to the validated run layout", async () => {
     const artifactsDirectory = path.join(runDirectory, "artifacts");
     await mkdir(repository, { recursive: true });
     const store = new FileSystemArtifactStore({ runDirectory, repository, artifactsDirectory });
+
+    assert.deepEqual(
+      {
+        diff: path.basename(store.paths.diffPath),
+        result: path.basename(store.paths.resultPath),
+        trace: path.basename(store.paths.tracePath),
+        verification: path.basename(store.paths.verificationPath),
+      },
+      {
+        diff: "final.diff",
+        result: "result.json",
+        trace: "trace.jsonl",
+        verification: "verification.json",
+      },
+    );
+    assert.equal(new Set([
+      store.paths.diffPath,
+      store.paths.resultPath,
+      store.paths.tracePath,
+      store.paths.verificationPath,
+    ]).size, 4);
+
     assert.equal(await store.writeFinalDiff("diff --git a/a b/a\n"), store.paths.diffPath);
     assert.equal(await readFile(store.paths.diffPath, "utf8"), "diff --git a/a b/a\n");
     assert.equal(await store.writeResult({ reason: "completed", steps: 2 }), store.paths.resultPath);
@@ -20,8 +42,27 @@ test("artifact store binds artifacts to the validated run layout", async () => {
       reason: "completed",
       steps: 2,
     });
-    assert.equal(path.dirname(store.paths.diffPath), artifactsDirectory);
-    assert.equal(path.relative(repository, store.paths.diffPath).startsWith(".."), true);
+    assert.equal(
+      await store.writeVerification({ schemaVersion: 1, status: "not_run" }),
+      store.paths.verificationPath,
+    );
+    assert.equal(await readFile(store.paths.verificationPath, "utf8"), [
+      "{",
+      "  \"schemaVersion\": 1,",
+      "  \"status\": \"not_run\"",
+      "}",
+      "",
+    ].join("\n"));
+
+    for (const artifactPath of [
+      store.paths.diffPath,
+      store.paths.resultPath,
+      store.paths.tracePath,
+      store.paths.verificationPath,
+    ]) {
+      assert.equal(path.dirname(artifactPath), artifactsDirectory);
+      assert.equal(path.relative(repository, artifactPath).startsWith(".."), true);
+    }
   } finally {
     await rm(root, { recursive: true, force: true });
   }

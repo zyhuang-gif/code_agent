@@ -8,8 +8,8 @@
 |---|---|---|
 | TS-01 | DONE | Workspace 隔离、Git Checkpoint、Rollback 和 Final Diff：TS-01-workspace-checkpoint.md |
 | TS-02 | DONE | Project Profile YAML 兼容加载：TS-02-project-profile.md |
-| TS-03 | NEXT | Verification Hook 与 Finish Gate（TS-02 合并后进入实现） |
-| TS-04 | NEXT | Trace、Result 和 Artifact 持久化：TS-04 规格位于独立 worktree，合并时归档 |
+| TS-03 | NEXT | Verification Hook 与 Finish Gate |
+| TS-04 | DONE | Trace、Result 和 Artifact 持久化：TS-04-trace-artifacts.md |
 
 ## 归档规则
 

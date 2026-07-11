@@ -2,7 +2,7 @@
 
 - 创建日期：2026-07-11
 - 状态：Active
-- 当前已合并基线提交：7bfc45f
+- 当前主干阶段：TS-01、TS-02 已合并；TS-04 在本任务提交中归档
 - 核心原则：纵向切片、兼容迁移、每项独立验收
 
 ## 1. 目标
@@ -49,7 +49,7 @@
 | TS-01 | DONE | Workspace 隔离、Git Checkpoint、Rollback、Final Diff | TS-00 | 源仓库不变；修改仅发生在 Run Workspace；新增/修改/删除均进入 Diff；可安全回滚 |
 | TS-02 | DONE | Project Profile YAML 兼容加载 | TS-00 | 兼容现有 Python/Node/CMake Profile；默认值和超时语义稳定 |
 | TS-03 | NEXT | Verification Hook 与 Finish Gate | TS-01, TS-02 | 测试失败阻止 Finish；基线失败与新增失败可区分 |
-| TS-04 | NEXT | Trace、Result 和 Artifact 持久化 | TS-01 | 生成 trace.jsonl、result.json、verification.json、final.diff |
+| TS-04 | DONE | Trace、Result 和 Artifact 持久化 | TS-01 | 生成 trace.jsonl、result.json、verification.json、final.diff |
 | TS-05 | BLOCKED | Python Eval 调用 TS CLI | TS-01..TS-04 | 现有 Eval 能读取 steps、cost、reason、trace、diff |
 | TS-06 | BLOCKED | 基础五任务验收 | TS-05 | t01 到 t05 Fake 全通过；Real 模式可运行并形成基线报告 |
 
@@ -140,11 +140,8 @@ flowchart LR
 
 ## 7. 当前下一项
 
-TS-01 和 TS-02 已完成。当前可推进：
+TS-01、TS-02 和 TS-04 已完成。当前唯一 NEXT 是 TS-03：Verification Hook 与 Finish Gate。
 
-1. TS-03：Verification Hook 与 Finish Gate。
-2. TS-04：Trace、Result 和 Artifact 持久化仍在独立 worktree 收口。
+TS-05 仅等待 TS-03。
 
-TS-05 等待 TS-03 和 TS-04。
-
-完成规格见：../tasks/TS-01-workspace-checkpoint.md 和 ../tasks/TS-02-project-profile.md
+完成规格见：../tasks/TS-01-workspace-checkpoint.md、../tasks/TS-02-project-profile.md 和 ../tasks/TS-04-trace-artifacts.md
