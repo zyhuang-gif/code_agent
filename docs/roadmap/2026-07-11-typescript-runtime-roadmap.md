@@ -2,7 +2,7 @@
 
 - 创建日期：2026-07-11
 - 状态：Active
-- 当前主干阶段：TS-01 到 TS-06 已完成安全执行与基础 Eval 闭环；CM-01 为下一项
+- 当前主干阶段：TS-01 到 TS-06 与 CM-01 已完成；CM-02 为下一项
 - 核心原则：纵向切片、兼容迁移、每项独立验收
 
 ## 1. 目标
@@ -59,8 +59,8 @@
 
 | ID | 状态 | 任务 | 依赖 | 核心验收 |
 |---|---|---|---|---|
-| CM-01 | NEXT | Skill 自动选择和 Trace 记录 | TS-04, TS-06 | CMake 仓库中模型能选择 cmake-build-fix，并记录选择来源 |
-| CM-02 | BLOCKED | CMake Skill A/B Eval | CM-01 | 比较无 Skill 与有 Skill 的 Solve Rate、步骤和成本 |
+| CM-01 | DONE | Skill 自动选择和 Trace 记录 | TS-04, TS-06 | 通用选择机制、稳定来源和 Trace 投影完成；首次 Real 未选择 Skill，证据移交 CM-02 |
+| CM-02 | READY | CMake Skill A/B Eval | CM-01 | 比较无 Skill 与有 Skill 的 Solve Rate、选择率、步骤和成本 |
 | CM-03 | BLOCKED | cmake_scan 只读工具 | CM-02 | 只有 Eval 证明重复扫描是瓶颈后才实现；结构化返回 targets/includes/links |
 | CM-04 | BLOCKED | cmake_verify 独占工具 | TS-03, CM-02 | configure/build/ctest 阶段化执行；并发属性为 exclusive |
 | CM-05 | BLOCKED | Fix Report 和 Repair Memory Hooks | TS-04, CM-04 | PostRun 生成报告；成功后保存可追溯 Repair Case |
@@ -140,8 +140,8 @@ flowchart LR
 
 ## 7. 当前下一项
 
-TS-01 到 TS-06 已完成，M1 安全执行与基础 Eval 闭环关闭。当前主线 NEXT 是 CM-01：CMake Skill 自动选择和 Trace 记录。
+TS-01 到 TS-06 与 CM-01 已完成。CM-01 的 Fake 验证证明了通用 Skill 选择、治理和 Trace 链路；首次 Real 任务虽 solved，但模型未调用 `invoke_skill`，因此不能把自动选择能力标记为已证明。当前主线 NEXT 是 CM-02：CMake Skill 配对 A/B Eval。
 
-MODEL-01、MCP-01 和 GOV-01 的依赖也已满足，可在互不重叠的 worktree 中并行规格化和实现；CM-02 继续等待 CM-01。
+MODEL-01、MCP-01 和 GOV-01 的依赖也已满足，可在互不重叠的 worktree 中并行规格化和实现。CM-02 已解除依赖，但真实运行必须由具备外发权限且获得用户明确同意的执行者完成。
 
 完成规格见：../tasks/TS-01-workspace-checkpoint.md、../tasks/TS-02-project-profile.md、../tasks/TS-03-verification-gate.md、../tasks/TS-04-trace-artifacts.md、../tasks/TS-05-python-eval-bridge.md 和 ../tasks/TS-06-basic-eval-gate.md

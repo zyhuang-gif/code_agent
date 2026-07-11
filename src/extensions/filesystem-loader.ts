@@ -1,5 +1,6 @@
-import { readFile, readdir } from "node:fs/promises";
+import { readFile, readdir, realpath, stat } from "node:fs/promises";
 import path from "node:path";
+import { isStableSkillDefinitionSource } from "./contracts.js";
 import type { AgentExtension, ExtensionManifest, SkillDefinition } from "./contracts.js";
 
 function parseStringList(value: string): readonly string[] {
@@ -29,6 +30,9 @@ export function parseSkillMarkdown(markdown: string, source?: string): SkillDefi
   const allowedTools = metadata.has("allowed-tools")
     ? parseStringList(metadata.get("allowed-tools") ?? "")
     : undefined;
+  if (source !== undefined && !isStableSkillDefinitionSource(source)) {
+    throw new Error("skill definition source must be a stable relative path: " + source);
+  }
   return {
     name,
     description,
@@ -38,10 +42,15 @@ export function parseSkillMarkdown(markdown: string, source?: string): SkillDefi
   };
 }
 
-async function loadExtension(directory: string): Promise<AgentExtension> {
+function toPosixRelative(root: string, target: string): string {
+  return path.relative(root, target).split(path.sep).join(path.posix.sep);
+}
+
+async function loadExtension(root: string, directory: string): Promise<AgentExtension> {
   const manifestPath = path.join(directory, "plugin.json");
   const manifest = JSON.parse(await readFile(manifestPath, "utf8")) as ExtensionManifest;
   if (!manifest.name) throw new Error("extension manifest requires name: " + manifestPath);
+  const resolvedDirectory = await realpath(directory);
   const skills: SkillDefinition[] = [];
   for (const relative of manifest.skills ?? []) {
     const skillPath = path.resolve(directory, relative);
@@ -49,7 +58,16 @@ async function loadExtension(directory: string): Promise<AgentExtension> {
     if (escaped.startsWith("..") || path.isAbsolute(escaped)) {
       throw new Error("skill path escapes extension: " + relative);
     }
-    skills.push(parseSkillMarkdown(await readFile(skillPath, "utf8"), skillPath));
+    const resolvedSkillPath = await realpath(skillPath);
+    const resolvedEscape = path.relative(resolvedDirectory, resolvedSkillPath);
+    if (resolvedEscape.startsWith("..") || path.isAbsolute(resolvedEscape)) {
+      throw new Error("skill path escapes extension through a link: " + relative);
+    }
+    if (!(await stat(resolvedSkillPath)).isFile()) {
+      throw new Error("skill path is not a regular file: " + relative);
+    }
+    const source = toPosixRelative(root, skillPath);
+    skills.push(parseSkillMarkdown(await readFile(resolvedSkillPath, "utf8"), source));
   }
   return { name: manifest.name, skills };
 }
@@ -58,13 +76,14 @@ export async function loadExtensions(root: string): Promise<readonly AgentExtens
   let entries;
   try {
     entries = await readdir(root, { withFileTypes: true });
-  } catch {
-    return [];
+  } catch (error) {
+    if (typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT") return [];
+    throw new Error("failed to read extensions root: " + path.resolve(root), { cause: error });
   }
   const extensions: AgentExtension[] = [];
   for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
     if (!entry.isDirectory()) continue;
-    extensions.push(await loadExtension(path.join(root, entry.name)));
+    extensions.push(await loadExtension(root, path.join(root, entry.name)));
   }
   return extensions;
 }

@@ -40,6 +40,8 @@ This repository is migrating incrementally from the Python prototype to a TypeSc
 
 The first extension is `extensions/cmake`. It is a skill, not an engine branch. The engine has no CMake imports or routing condition. Models discover it through the generic `invoke_skill` tool.
 
+Skill definitions retain a stable relative provenance such as `cmake/skills/build-fix/SKILL.md`. After a real terminal `invoke_skill` result, the CLI projects only whitelisted selection metadata into a `skill_selection` trace event. The CLI, rather than an Extension, assigns `selectionSource = model_tool_call`; this keeps the audit trail truthful without making Engine aware of any domain.
+
 ## Dependency rules
 
 - Engine may depend on layer contracts, but not on extensions or direct filesystem/process APIs.
@@ -97,6 +99,7 @@ Implemented in TypeScript:
 - MCP provider abstraction
 - Generic extension and skill loading
 - CMake build-fix skill
+- Stable Skill provenance and `skill_selection` Trace projection
 
 Still using the Python implementation as the reference:
 
@@ -115,4 +118,5 @@ Still using the Python implementation as the reference:
 - Completed TS-04 specification: ../tasks/TS-04-trace-artifacts.md
 - Completed TS-05 specification: ../tasks/TS-05-python-eval-bridge.md
 - Completed TS-06 specification: ../tasks/TS-06-basic-eval-gate.md
-- Next task: CM-01 CMake Skill selection and trace recording
+- Completed CM-01 specification: ../tasks/CM-01-cmake-skill-selection.md
+- Next task: CM-02 CMake Skill paired A/B Eval

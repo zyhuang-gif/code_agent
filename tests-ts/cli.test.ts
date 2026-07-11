@@ -4,7 +4,9 @@ import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { selectBuiltInTools } from "../src/cli.js";
+import { registerSkillSelectionTraceProjection, selectBuiltInTools } from "../src/cli.js";
+import { HookBus } from "../src/governance/hooks.js";
+import type { TraceSink } from "../src/governance/trace.js";
 import { ProjectProfile } from "../src/host/project-profile.js";
 
 const tsxCli = path.resolve("node_modules", "tsx", "dist", "cli.mjs");
@@ -206,6 +208,191 @@ test("managed CLI loads a scripted model and routes its tools through governance
     ], { cwd: process.cwd(), encoding: "utf8" });
     assert.equal(conflicting.status, 2);
     assert.match(conflicting.stderr, /mutually exclusive/);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("managed CMake run records model-driven skill selection after governance", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "code-agent-cli-cmake-skill-"));
+  try {
+    const source = path.join(root, "source");
+    const runRoot = path.join(root, "runs");
+    const script = path.join(root, "model-script.json");
+    const cmakeSource = "cmake_minimum_required(VERSION 3.20)\nproject(SkillSelection LANGUAGES CXX)\n";
+    await mkdir(source, { recursive: true });
+    await writeFile(path.join(source, "CMakeLists.txt"), cmakeSource, "utf8");
+    await writeFile(script, JSON.stringify({
+      schemaVersion: 1,
+      responses: [
+        {
+          content: null,
+          toolCalls: [{
+            id: "skill-1",
+            name: "invoke_skill",
+            input: { name: "cmake-build-fix" },
+          }],
+        },
+        {
+          content: null,
+          toolCalls: [{
+            id: "finish-1",
+            name: "finish",
+            input: { summary: "CMake skill selected" },
+          }],
+        },
+      ],
+    }), "utf8");
+
+    const result = spawnSync(process.execPath, [
+      tsxCli,
+      "src/cli.ts",
+      "--model-script",
+      script,
+      "--result-json",
+      "--permission-mode",
+      "accept_edits",
+      "--task",
+      "Diagnose the build configuration",
+      "--repo",
+      source,
+      "--run-root",
+      runRoot,
+      "--extensions",
+      "extensions",
+    ], { cwd: process.cwd(), encoding: "utf8" });
+
+    assert.equal(result.status, 0, result.stderr);
+    const runResult = JSON.parse(result.stdout) as RunResultEvent;
+    assert.equal(await readFile(path.join(source, "CMakeLists.txt"), "utf8"), cmakeSource);
+    const trace = (await readFile(runResult.tracePath, "utf8"))
+      .trim()
+      .split(/\r?\n/)
+      .map((line) => JSON.parse(line) as TraceEnvelope);
+    const selections = trace.filter((event) => event.type === "skill_selection");
+    assert.equal(selections.length, 1);
+    assert.deepEqual(selections[0]?.payload, {
+      schemaVersion: 1,
+      invocationId: "skill-1",
+      selectionSource: "model_tool_call",
+      outcome: "selected",
+      requestedSkill: "cmake-build-fix",
+      selectedSkill: "cmake-build-fix",
+      extensionName: "cmake",
+      definitionSource: "cmake/skills/build-fix/SKILL.md",
+    });
+
+    const selectionIndex = trace.findIndex((event) => event.type === "skill_selection");
+    const invocationIndex = (type: string): number => trace.findIndex((event) => (
+      event.type === type && JSON.stringify(event.payload).includes('"skill-1"')
+    ));
+    const indexes = [
+      trace.findIndex((event) => event.type === "model_end"),
+      invocationIndex("tool_start"),
+      invocationIndex("pre_tool_use"),
+      invocationIndex("permission_request"),
+      invocationIndex("post_tool_use"),
+      selectionIndex,
+      invocationIndex("tool_end"),
+    ];
+    assert.equal(indexes.every((index) => index >= 0), true);
+    assert.equal(indexes.every((index, position) => position === 0 || index > indexes[position - 1]!), true);
+    assert.equal(trace.some((event) => JSON.stringify(event.payload).includes('"name":"bash"')), false);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("skill selection trace projection propagates audit write failures", async () => {
+  const hooks = new HookBus();
+  const trace: TraceSink = {
+    tracePath: path.resolve("unwritable-selection-trace.jsonl"),
+    async record() {
+      throw new Error("selection trace unavailable");
+    },
+  };
+  registerSkillSelectionTraceProjection(hooks, trace);
+
+  await assert.rejects(hooks.emit({
+    type: "post_tool_use",
+    sessionId: "session-1",
+    payload: {
+      invocation: { id: "skill-1", name: "invoke_skill", input: { name: "cmake-build-fix" } },
+      result: {
+        status: "success",
+        content: "loaded",
+        metadata: {
+          skillSelection: {
+            schemaVersion: 1,
+            outcome: "selected",
+            requestedSkill: "cmake-build-fix",
+            selectedSkill: "cmake-build-fix",
+            extensionName: "cmake",
+            definitionSource: "cmake/skills/build-fix/SKILL.md",
+          },
+        },
+      },
+    },
+  }), /selection trace unavailable/);
+});
+
+test("managed run records an unknown skill after the terminal failure hook", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "code-agent-cli-unknown-skill-"));
+  try {
+    const source = path.join(root, "source");
+    const runRoot = path.join(root, "runs");
+    const script = path.join(root, "model-script.json");
+    await mkdir(source, { recursive: true });
+    await writeFile(path.join(source, "README.md"), "test\n", "utf8");
+    await writeFile(script, JSON.stringify({
+      schemaVersion: 1,
+      responses: [
+        {
+          content: null,
+          toolCalls: [{ id: "skill-missing", name: "invoke_skill", input: { name: "missing-skill" } }],
+        },
+        {
+          content: null,
+          toolCalls: [{ id: "finish-1", name: "finish", input: { summary: "unknown skill audited" } }],
+        },
+      ],
+    }), "utf8");
+
+    const result = spawnSync(process.execPath, [
+      tsxCli,
+      "src/cli.ts",
+      "--model-script",
+      script,
+      "--result-json",
+      "--permission-mode",
+      "accept_edits",
+      "--task",
+      "Load a missing skill",
+      "--repo",
+      source,
+      "--run-root",
+      runRoot,
+      "--extensions",
+      "extensions",
+    ], { cwd: process.cwd(), encoding: "utf8" });
+
+    assert.equal(result.status, 0, result.stderr);
+    const runResult = JSON.parse(result.stdout) as RunResultEvent;
+    const trace = (await readFile(runResult.tracePath, "utf8"))
+      .trim()
+      .split(/\r?\n/)
+      .map((line) => JSON.parse(line) as TraceEnvelope);
+    const failureIndex = trace.findIndex((event) => event.type === "post_tool_use_failure");
+    const selectionIndex = trace.findIndex((event) => event.type === "skill_selection");
+    assert.equal(failureIndex >= 0, true);
+    assert.equal(selectionIndex > failureIndex, true);
+    assert.deepEqual(trace[selectionIndex]?.payload, {
+      schemaVersion: 1,
+      invocationId: "skill-missing",
+      selectionSource: "model_tool_call",
+      outcome: "not_found",
+      requestedSkill: "missing-skill",
+    });
   } finally {
     await rm(root, { recursive: true, force: true });
   }

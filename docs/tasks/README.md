@@ -12,6 +12,8 @@
 | TS-04 | DONE | Trace、Result 和 Artifact 持久化：TS-04-trace-artifacts.md |
 | TS-05 | DONE | Python Eval 调用 TypeScript CLI：TS-05-python-eval-bridge.md |
 | TS-06 | DONE | 基础五任务 Fake/Real Eval 验收：TS-06-basic-eval-gate.md |
+| CM-01 | DONE | CMake Skill 自动选择与 Trace 记录：CM-01-cmake-skill-selection.md |
+| CM-02 | READY | CMake Skill 配对 A/B Eval：CM-02-cmake-skill-ab-eval.md |
 
 ## 归档规则
 

@@ -6,6 +6,11 @@ import { createInterface } from "node:readline/promises";
 import { pathToFileURL } from "node:url";
 import { AgentRuntime } from "./engine/runtime.js";
 import type { AgentEvent, RunResult } from "./engine/contracts.js";
+import {
+  isStableSkillDefinitionSource,
+  SKILL_SELECTION_AUDIT_SCHEMA_VERSION,
+} from "./extensions/contracts.js";
+import type { SkillSelectionAudit } from "./extensions/contracts.js";
 import { loadExtensions } from "./extensions/filesystem-loader.js";
 import { ExtensionRegistry } from "./extensions/registry.js";
 import { GovernedToolExecutor } from "./governance/executor.js";
@@ -254,6 +259,77 @@ function registerTraceHooks(hooks: HookBus, trace: TraceSink): void {
   }
 }
 
+interface SkillSelectionTracePayload {
+  readonly schemaVersion: typeof SKILL_SELECTION_AUDIT_SCHEMA_VERSION;
+  readonly invocationId: string;
+  readonly selectionSource: "model_tool_call";
+  readonly outcome: SkillSelectionAudit["outcome"];
+  readonly requestedSkill: string;
+  readonly selectedSkill?: string;
+  readonly extensionName?: string;
+  readonly definitionSource?: string;
+}
+
+function asRecord(value: unknown): Readonly<Record<string, unknown>> | null {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? value as Readonly<Record<string, unknown>>
+    : null;
+}
+
+function skillSelectionTracePayload(payload: unknown): SkillSelectionTracePayload | null {
+  const terminal = asRecord(payload);
+  const invocation = asRecord(terminal?.invocation);
+  const result = asRecord(terminal?.result);
+  const metadata = asRecord(result?.metadata);
+  const selection = asRecord(metadata?.skillSelection);
+  if (
+    invocation?.name !== "invoke_skill"
+    || typeof invocation.id !== "string"
+    || selection?.schemaVersion !== SKILL_SELECTION_AUDIT_SCHEMA_VERSION
+    || (selection.outcome !== "selected" && selection.outcome !== "not_found")
+    || typeof selection.requestedSkill !== "string"
+  ) {
+    return null;
+  }
+
+  const base = {
+    schemaVersion: SKILL_SELECTION_AUDIT_SCHEMA_VERSION,
+    invocationId: invocation.id,
+    selectionSource: "model_tool_call",
+    outcome: selection.outcome,
+    requestedSkill: selection.requestedSkill,
+  } as const;
+  if (selection.outcome === "not_found") return base;
+  if (
+    typeof selection.selectedSkill !== "string"
+    || typeof selection.extensionName !== "string"
+    || typeof selection.definitionSource !== "string"
+    || !isStableSkillDefinitionSource(selection.definitionSource)
+  ) {
+    return null;
+  }
+  return {
+    ...base,
+    selectedSkill: selection.selectedSkill,
+    extensionName: selection.extensionName,
+    definitionSource: selection.definitionSource,
+  };
+}
+
+export function registerSkillSelectionTraceProjection(hooks: HookBus, trace: TraceSink): void {
+  for (const type of ["post_tool_use", "post_tool_use_failure"] as const) {
+    hooks.on(type, async (event) => {
+      const payload = skillSelectionTracePayload(event.payload);
+      if (!payload) return;
+      await trace.record({
+        type: "skill_selection",
+        sessionId: event.sessionId,
+        payload,
+      });
+    });
+  }
+}
+
 async function executeRuntime(
   workspace: string,
   sessionId: string,
@@ -327,6 +403,7 @@ async function execute(options: CliOptions): Promise<RunResult> {
     const trace = new FileSystemTraceSink(prepared.artifacts.paths.tracePath);
     await hostEvents.attach(trace);
     registerTraceHooks(hooks, trace);
+    registerSkillSelectionTraceProjection(hooks, trace);
     const verification = new VerificationGate({
       sessionId: prepared.session.sessionId,
       workspace: prepared.session.repository,
