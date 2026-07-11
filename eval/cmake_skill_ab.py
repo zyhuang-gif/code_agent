@@ -17,6 +17,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shutil
 import statistics
 import subprocess
 import sys
@@ -129,71 +130,6 @@ def discover_cmake_tasks(eval_dir: Path, phase: str) -> list[EvalTask]:
 
 
 # ---------------------------------------------------------------------------
-# Control variant -- empty extensions root
-# ---------------------------------------------------------------------------
-
-def _create_control_root(real_root: Path, staging: Path) -> Path:
-    """Create a staging root with an empty extensions/ directory and junctions
-    to the real node_modules/ and src/ directories.
-
-    The TS CLI requires node_modules/tsx/dist/cli.mjs and src/cli.ts under
-    the root.  With an empty extensions/ directory, loadExtensions returns []
-    and the invoke_skill tool is never registered, ensuring the control
-    variant has no access to the cmake build-fix skill.
-    """
-    control_root = staging / "control-root"
-    control_root.mkdir(parents=True, exist_ok=True)
-
-    # Empty extensions directory -- no skills, no tools
-    (control_root / "extensions").mkdir(exist_ok=True)
-
-    # Create junctions for directories the TS CLI requires at runtime
-    for subdir in ["node_modules", "src"]:
-        src = real_root / subdir
-        dst = control_root / subdir
-        if dst.exists():
-            continue
-        if not src.is_dir():
-            raise TsBridgeError(
-                "cli_not_found",
-                f"Required directory not found for control root: {src}",
-            )
-        if os.name == "nt":
-            result = subprocess.run(
-                ["cmd", "/c", "mklink", "/J", str(dst), str(src)],
-                check=False,
-                capture_output=True,
-                text=True,
-                timeout=10,
-            )
-            if result.returncode != 0:
-                # Junction may already exist in a broken state; remove and retry
-                subprocess.run(
-                    ["cmd", "/c", "rmdir", str(dst)],
-                    check=False,
-                    capture_output=True,
-                    timeout=5,
-                )
-                result = subprocess.run(
-                    ["cmd", "/c", "mklink", "/J", str(dst), str(src)],
-                    check=False,
-                    capture_output=True,
-                    text=True,
-                    timeout=10,
-                )
-                if result.returncode != 0:
-                    raise TsBridgeError(
-                        "cli_not_found",
-                        f"Failed to create junction {dst} -> {src}: "
-                        f"{result.stderr.strip()}",
-                    )
-        else:
-            os.symlink(str(src), str(dst), target_is_directory=True)
-
-    return control_root
-
-
-# ---------------------------------------------------------------------------
 # Trace analysis
 # ---------------------------------------------------------------------------
 
@@ -266,22 +202,28 @@ def _build_agent(
     budget_steps: int,
     fake: bool,
     model_script: Path | None,
-    control_root: Path,
+    output_dir: Path,
     run_root_parent: Path,
     timeout_seconds: int = AGENT_TIMEOUT_SECONDS,
 ) -> AgentCallable:
     """Build an AgentCallable for *variant*.
 
-    control   -- empty extensions root (no invoke_skill in tool catalog)
-    treatment -- default workspace extensions (cmake build-fix skill available)
+    control   -- real cli_root + empty extensions root (no invoke_skill)
+    treatment -- real cli_root + workspace default extensions (cmake skill)
     """
+    real_root = Path(__file__).resolve().parents[1]
     use_fake = fake and model_script is None
     if variant == "control":
+        control_ext = output_dir / "_control_ext"
+        if control_ext.exists():
+            shutil.rmtree(control_ext)
+        control_ext.mkdir(parents=True)
         return typescript_agent_factory(
             budget_steps=budget_steps,
             fake=use_fake,
             model_script=model_script,
-            cli_root=control_root,
+            cli_root=real_root,
+            extensions_root=control_ext,
             run_root_parent=run_root_parent,
             timeout_seconds=timeout_seconds,
             allow_unsafe_host_shell=False,
@@ -291,6 +233,8 @@ def _build_agent(
             budget_steps=budget_steps,
             fake=use_fake,
             model_script=model_script,
+            cli_root=real_root,
+            extensions_root=None,
             run_root_parent=run_root_parent,
             timeout_seconds=timeout_seconds,
             allow_unsafe_host_shell=False,
@@ -316,13 +260,7 @@ def run_cmake_skill_ab(
     with alternating AB/BA order.  Every run gets an independent workspace
     and session managed by the TS Bridge.
     """
-    real_root = Path(__file__).resolve().parents[1]
     output_dir.mkdir(parents=True, exist_ok=True)
-
-    # Prepare control root once (empty extensions + junctions to src & node_modules)
-    staging = output_dir / "_staging"
-    staging.mkdir(parents=True, exist_ok=True)
-    control_root = _create_control_root(real_root, staging)
 
     run_root_parent = output_dir / "_runs"
     run_root_parent.mkdir(parents=True, exist_ok=True)
@@ -354,7 +292,7 @@ def run_cmake_skill_ab(
                         model_script=(
                             model_script_path if has_model_script else None
                         ),
-                        control_root=control_root,
+                        output_dir=output_dir,
                         run_root_parent=run_root_parent,
                     )
                     eval_result = run_task(task, task_agent, run_ws)
@@ -560,7 +498,7 @@ def write_markdown_report(
             "selected | not_found | bash |"
         )
         lines.append(
-            "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|"
+            "|---|---:|---:|---:|---:|---:|---:|---:|---:|"
         )
         task_runs = sorted(
             [r for r in results if r.task_id == tid],
@@ -609,6 +547,101 @@ def write_markdown_report(
 
 
 # ---------------------------------------------------------------------------
+# Pilot gate validation (CM-02 spec section 7)
+# ---------------------------------------------------------------------------
+
+def _validate_pilot_gate(summary_path: Path) -> None:
+    """Validate pilot gate criteria from cm02-summary.json.
+
+    Gate criteria:
+      - r08 treatment: at least 2 of *repeat* runs have selected > 0
+      - r08 control: all runs have selected == 0
+      - Both variants: bash_call_count == 0 for all runs
+
+    Prints a reason and raises SystemExit(2) if the gate is not passed.
+    """
+    if not summary_path.is_file():
+        print(
+            f"Pilot summary not found: {summary_path}",
+            file=sys.stderr,
+        )
+        raise SystemExit(2)
+
+    try:
+        summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        print(
+            f"Cannot parse pilot summary {summary_path}: {exc}",
+            file=sys.stderr,
+        )
+        raise SystemExit(2)
+
+    results = summary.get("results", [])
+    if not isinstance(results, list):
+        print(
+            f"Pilot summary {summary_path} has no results array",
+            file=sys.stderr,
+        )
+        raise SystemExit(2)
+
+    # Filter to r08
+    r08 = [r for r in results if r.get("task_id") == PILOT_TASK_ID]
+    if not r08:
+        print(
+            f"Pilot summary {summary_path} contains no results for "
+            f"{PILOT_TASK_ID}",
+            file=sys.stderr,
+        )
+        raise SystemExit(2)
+
+    treatment_runs = [
+        r for r in r08 if r.get("variant") == "treatment"
+    ]
+    control_runs = [r for r in r08 if r.get("variant") == "control"]
+
+    # Gate 1: treatment repeat -- at least 2 runs with skill_selected > 0
+    t_selected = sum(
+        1 for r in treatment_runs
+        if r.get("skill_selected_count", 0) > 0
+    )
+    if t_selected < 2:
+        print(
+            "Pilot gate NOT passed: treatment variant for r08 had "
+            f"{t_selected} repeat(s) with skill_selected > 0 "
+            "(need >= 2)",
+            file=sys.stderr,
+        )
+        raise SystemExit(2)
+
+    # Gate 2: control -- all runs have skill_selected == 0
+    c_selected_any = sum(
+        1 for r in control_runs
+        if r.get("skill_selected_count", 0) != 0
+    )
+    if c_selected_any > 0:
+        print(
+            "Pilot gate NOT passed: control variant for r08 had "
+            f"{c_selected_any} run(s) with skill_selected != 0 "
+            "(need 0)",
+            file=sys.stderr,
+        )
+        raise SystemExit(2)
+
+    # Gate 3: bash_call_count == 0 for ALL r08 runs
+    bash_nonzero = [
+        r for r in r08 if r.get("bash_call_count", 0) != 0
+    ]
+    if bash_nonzero:
+        print(
+            "Pilot gate NOT passed: r08 had "
+            f"{len(bash_nonzero)} run(s) with bash calls != 0 "
+            "(need 0)",
+            file=sys.stderr,
+        )
+        raise SystemExit(2)
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
@@ -623,8 +656,12 @@ def main(argv: list[str] | None = None) -> int:
     # Full fake run with 3 repeats
     python eval/cmake_skill_ab.py --phase full --repeat 3 --fake
 
-    # Full real run (requires API key)
+    # Pilot real run (requires API key + consent)
+    python eval/cmake_skill_ab.py --phase pilot --external-consent pilot
+
+    # Full real run (requires API key + consent + pilot summary)
     python eval/cmake_skill_ab.py --phase full --repeat 3 --budget-steps 60
+        --external-consent full --pilot-summary eval/output/cm02/cm02-summary.json
     """
     parser = argparse.ArgumentParser(
         description="CM-02: CMake Skill paired A/B evaluation orchestrator",
@@ -659,6 +696,20 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Run in fake mode using model-script.json or default fake finish",
     )
+    parser.add_argument(
+        "--external-consent",
+        choices=("pilot", "full"),
+        default=None,
+        help="Real-run consent gate: must match --phase. "
+        "Not required with --fake.",
+    )
+    parser.add_argument(
+        "--pilot-summary",
+        type=Path,
+        default=None,
+        help="Path to cm02-summary.json from a prior pilot run. "
+        "Required with --external-consent full.",
+    )
     args = parser.parse_args(argv)
 
     if args.repeat < 1:
@@ -666,16 +717,43 @@ def main(argv: list[str] | None = None) -> int:
     if args.budget_steps < 1:
         parser.error("--budget-steps must be >= 1")
 
-    if not args.fake and not (
-        os.environ.get("CODE_AGENT_API_KEY")
-        or os.environ.get("DEEPSEEK_API_KEY")
-    ):
-        print(
-            "CODE_AGENT_API_KEY or DEEPSEEK_API_KEY is required "
-            "for real eval runs",
-            file=sys.stderr,
-        )
-        return 2
+    # ---- Real fail-closed consent gate ----
+    if not args.fake:
+        if args.external_consent is None:
+            print(
+                "Non-fake runs require --external-consent (pilot or full).",
+                file=sys.stderr,
+            )
+            return 2
+        if args.external_consent != args.phase:
+            print(
+                f"--external-consent ({args.external_consent}) "
+                f"must match --phase ({args.phase}).",
+                file=sys.stderr,
+            )
+            return 2
+
+        # API key check
+        if not (
+            os.environ.get("CODE_AGENT_API_KEY")
+            or os.environ.get("DEEPSEEK_API_KEY")
+        ):
+            print(
+                "CODE_AGENT_API_KEY or DEEPSEEK_API_KEY is required "
+                "for real eval runs",
+                file=sys.stderr,
+            )
+            return 2
+
+        # Full mode extra: pilot-summary required
+        if args.phase == "full":
+            if args.pilot_summary is None:
+                print(
+                    "--external-consent full requires --pilot-summary PATH",
+                    file=sys.stderr,
+                )
+                return 2
+            _validate_pilot_gate(args.pilot_summary.resolve())
 
     eval_dir = Path(__file__).resolve().parent
     try:
@@ -700,6 +778,8 @@ def main(argv: list[str] | None = None) -> int:
         f"Phase: {args.phase}  Tasks: {len(tasks)}  Repeat: {args.repeat}  "
         f"Budget: {args.budget_steps}  Fake: {args.fake}"
     )
+    if not args.fake:
+        print(f"External consent: {args.external_consent}")
     print(f"Output: {output_dir}")
 
     results = run_cmake_skill_ab(
