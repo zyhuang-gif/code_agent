@@ -190,11 +190,16 @@ def generate_pair_orders(
     first_variant: str = "control",
     second_variant: str = "treatment",
 ) -> list[PairOrder]:
+    """Generate pair orders per the CM-02 spec: AB/BA alternation by repeat index.
+
+    repeat_idx % 2 == 0 → control-first (AB), else treatment-first (BA).
+    Every task within the same repeat gets the same alternation phase.
+    """
     orders: list[PairOrder] = []
-    for task_index, task_id in enumerate(task_ids):
-        for repeat_index in range(1, repeat + 1):
-            flip = (task_index + repeat_index) % 2 == 0
-            a, b = (first_variant, second_variant) if not flip else (second_variant, first_variant)
+    for repeat_index in range(repeat):
+        flip = repeat_index % 2 != 0
+        a, b = (first_variant, second_variant) if not flip else (second_variant, first_variant)
+        for task_id in task_ids:
             orders.append(PairOrder(task_id=task_id, repeat_index=repeat_index, first_variant=a, second_variant=b))
     return orders
 
@@ -269,18 +274,18 @@ class TestPairOrderGeneration:
     def test_single_task_repeat_2_alternates_ab_ba(self):
         orders = generate_pair_orders(["t1"], repeat=2)
         assert len(orders) == 2
-        assert orders[0].order == "AB"
+        assert orders[0].order == "CT"
         assert orders[0].first_variant == "control"
         assert orders[0].second_variant == "treatment"
-        assert orders[1].order == "BA"
+        assert orders[1].order == "TC"
         assert orders[1].first_variant == "treatment"
         assert orders[1].second_variant == "control"
 
     def test_two_tasks_repeat_1_alternates(self):
         orders = generate_pair_orders(["t1", "t2"], repeat=1)
         assert len(orders) == 2
-        assert orders[0].order == "AB"
-        assert orders[1].order == "BA"
+        # repeat=1, repeat_idx=0 -> control first for ALL tasks
+        assert all(o.order == "CT" for o in orders)
 
     def test_two_tasks_repeat_3_yields_6_pairs(self):
         orders = generate_pair_orders(["t1", "t2"], repeat=3)
