@@ -468,3 +468,93 @@ def test_python_fake_report_uses_fake_model_metadata(tmp_path: Path, monkeypatch
     assert summary["model"] == "fake"
     assert summary["reasoning_effort"] == ""
     assert summary["cost_pricing_basis"] == "none"
+
+
+# ── extensions_root bridge tests ──────────────────────────────────────────
+
+
+def _capture_extensions_arg(command: list[str]) -> str | None:
+    idx = command.index("--extensions") if "--extensions" in command else -1
+    if idx < 0:
+        return None
+    return command[idx + 1]
+
+
+def test_extensions_root_defaults_to_cli_extensions(tmp_path: Path):
+    source = tmp_path / "staging"
+    source.mkdir()
+    captured: dict = {}
+
+    def runner(command, *, cwd, timeout):
+        captured["ext"] = _capture_extensions_arg(command)
+        return _managed_result(command)
+
+    agent = typescript_agent_factory(
+        fake=True,
+        cli_root=Path(__file__).resolve().parents[1],
+        command_runner=runner,
+    )
+    agent(source, "fix", ProjectProfile())
+    cli_root = Path(__file__).resolve().parents[1]
+    assert captured["ext"] == str(cli_root / "extensions")
+
+
+def test_extensions_root_explicit_empty_dir_is_passed_through(tmp_path: Path):
+    source = tmp_path / "staging"
+    source.mkdir()
+    empty = tmp_path / "empty-ext"
+    empty.mkdir()
+    captured: dict = {}
+
+    def runner(command, *, cwd, timeout):
+        captured["ext"] = _capture_extensions_arg(command)
+        return _managed_result(command)
+
+    agent = typescript_agent_factory(
+        fake=True,
+        cli_root=Path(__file__).resolve().parents[1],
+        extensions_root=empty,
+        command_runner=runner,
+    )
+    agent(source, "fix", ProjectProfile())
+    assert captured["ext"] == str(empty.resolve())
+
+
+def test_extensions_root_explicit_treatment_dir_is_passed_through(tmp_path: Path):
+    source = tmp_path / "staging"
+    source.mkdir()
+    treatment = tmp_path / "treatment-ext"
+    treatment.mkdir()
+    captured: dict = {}
+
+    def runner(command, *, cwd, timeout):
+        captured["ext"] = _capture_extensions_arg(command)
+        return _managed_result(command)
+
+    agent = typescript_agent_factory(
+        fake=True,
+        cli_root=Path(__file__).resolve().parents[1],
+        extensions_root=treatment,
+        command_runner=runner,
+    )
+    agent(source, "fix", ProjectProfile())
+    assert captured["ext"] == str(treatment.resolve())
+
+
+def test_extensions_root_does_not_enable_host_shell(tmp_path: Path):
+    source = tmp_path / "staging"
+    source.mkdir()
+    captured: dict = {}
+
+    def runner(command, *, cwd, timeout):
+        captured["cmd"] = command
+        return _managed_result(command)
+
+    agent = typescript_agent_factory(
+        fake=True,
+        extensions_root=tmp_path / "any-ext",
+        cli_root=Path(__file__).resolve().parents[1],
+        command_runner=runner,
+    )
+    agent(source, "fix", ProjectProfile())
+    assert "--allow-host-shell" not in captured["cmd"]
