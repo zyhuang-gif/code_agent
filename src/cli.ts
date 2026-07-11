@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { createInterface } from "node:readline/promises";
@@ -40,12 +41,14 @@ type WorkspaceMode =
       readonly assertion: "already-isolated";
     };
 
+type CliOutputMode = "text" | "events_json" | "result_json";
+
 interface CliOptions {
   readonly task: string;
   readonly workspaceMode: WorkspaceMode;
   readonly extensions: string;
   readonly fake: boolean;
-  readonly json: boolean;
+  readonly outputMode: CliOutputMode;
   readonly permissionMode: PermissionMode;
   readonly maxSteps: number;
   readonly allowHostShell: boolean;
@@ -54,13 +57,16 @@ interface CliOptions {
 
 function parseArgs(argv: readonly string[]): CliOptions {
   let task = "";
+  let taskFile: string | undefined;
   let sourceRepository: string | undefined;
   let runRoot: string | undefined;
   let workspace: string | undefined;
   let workspaceIsIsolated = false;
   let extensions = "extensions";
   let fake = false;
-  let json = false;
+  let outputMode: CliOutputMode = "text";
+  let jsonRequested = false;
+  let resultJsonRequested = false;
   let permissionMode: PermissionMode = "default";
   let maxSteps = 40;
   let allowHostShell = false;
@@ -76,13 +82,15 @@ function parseArgs(argv: readonly string[]): CliOptions {
     };
     switch (arg) {
       case "--task": task = next(); break;
+      case "--task-file": taskFile = path.resolve(next()); break;
       case "--repo": sourceRepository = next(); break;
       case "--run-root": runRoot = next(); break;
       case "--workspace": workspace = next(); break;
       case "--workspace-is-isolated": workspaceIsIsolated = true; break;
       case "--extensions": extensions = next(); break;
       case "--fake": fake = true; break;
-      case "--json": json = true; break;
+      case "--json": jsonRequested = true; outputMode = "events_json"; break;
+      case "--result-json": resultJsonRequested = true; outputMode = "result_json"; break;
       case "--permission-mode": permissionMode = next() as PermissionMode; break;
       case "--max-steps": maxSteps = Number.parseInt(next(), 10); break;
       case "--allow-host-shell": allowHostShell = true; break;
@@ -93,7 +101,16 @@ function parseArgs(argv: readonly string[]): CliOptions {
     }
   }
 
-  if (!task) throw new Error("task is required; use --task <text>");
+  if (task && taskFile) throw new Error("--task and --task-file are mutually exclusive");
+  if (taskFile) {
+    try {
+      task = readFileSync(taskFile, "utf8").replace(/^\uFEFF/u, "");
+    } catch (error) {
+      throw new Error(`failed to read --task-file: ${taskFile}`, { cause: error });
+    }
+  }
+  if (!task.trim()) throw new Error("task is required; use --task <text> or --task-file <path>");
+  if (jsonRequested && resultJsonRequested) throw new Error("--json and --result-json are mutually exclusive");
   if (!Number.isInteger(maxSteps) || maxSteps < 1) throw new Error("--max-steps must be a positive integer");
   if (!["default", "plan", "accept_edits", "bypass"].includes(permissionMode)) {
     throw new Error("invalid permission mode: " + permissionMode);
@@ -111,6 +128,9 @@ function parseArgs(argv: readonly string[]): CliOptions {
     throw new Error("choose managed mode with --repo/--run-root or explicit --workspace/--workspace-is-isolated");
   }
   if (workspaceIsIsolated && !workspace) throw new Error("--workspace-is-isolated requires --workspace");
+  if (resultJsonRequested && !sourceRepository) {
+    throw new Error("--result-json requires managed mode with --repo and --run-root");
+  }
 
   const workspaceMode: WorkspaceMode = sourceRepository
     ? { kind: "managed", sourceRepository: path.resolve(sourceRepository), runRoot: path.resolve(runRoot!) }
@@ -120,7 +140,7 @@ function parseArgs(argv: readonly string[]): CliOptions {
     workspaceMode,
     extensions: path.resolve(extensions),
     fake,
-    json,
+    outputMode,
     permissionMode,
     maxSteps,
     allowHostShell,
@@ -176,8 +196,9 @@ function createModel(fake: boolean): ModelService {
   });
 }
 
-function printEvent(event: AgentEvent, json: boolean): void {
-  if (json) {
+function printEvent(event: AgentEvent, outputMode: CliOutputMode): void {
+  if (outputMode === "result_json") return;
+  if (outputMode === "events_json") {
     process.stdout.write(JSON.stringify(event) + "\n");
     return;
   }
@@ -192,8 +213,8 @@ function printEvent(event: AgentEvent, json: boolean): void {
   }
 }
 
-function printManagedResult(result: ManagedRunResult, json: boolean): void {
-  if (json) {
+function printManagedResult(result: ManagedRunResult, outputMode: CliOutputMode): void {
+  if (outputMode !== "text") {
     process.stdout.write(JSON.stringify(result) + "\n");
     return;
   }
@@ -256,7 +277,7 @@ async function executeRuntime(
     const item = await stream.next();
     if (item.done) return item.value;
     if (trace) await trace.record(item.value);
-    printEvent(item.value, options.json);
+    printEvent(item.value, options.outputMode);
   }
 }
 
@@ -316,7 +337,7 @@ async function execute(options: CliOptions): Promise<RunResult> {
       trace,
     );
     const managedResult = await finalizeManagedRun(prepared, runtimeResult);
-    printManagedResult(managedResult, options.json);
+    printManagedResult(managedResult, options.outputMode);
     return runtimeResult;
   } finally {
     await mcp.close();

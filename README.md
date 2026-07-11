@@ -28,6 +28,16 @@ Managed runs persist `final.diff`, `result.json`, and an ordered `trace.jsonl` u
 
 When the selected Profile declares `test_cmd`, managed runs execute a baseline before the Agent and re-run the command before every `finish`. New failures block Finish through governance hooks; passing tests and baseline-only failures may complete.
 
+The existing Python Eval harness can drive the managed TypeScript CLI while retaining Python task discovery, setup, verification, and reporting:
+
+```powershell
+python eval\run_eval.py eval\tasks --runtime typescript --fake
+```
+
+Remove `--fake` for a real model run and configure `CODE_AGENT_API_KEY` or `DEEPSEEK_API_KEY`. TypeScript Eval results use the managed workspace and read `steps`, `reason`, `trace.jsonl`, `final.diff`, and token-derived cost from the v1 result artifacts.
+
+Host shell is still disabled by default. Real tasks that require it must add `--allow-unsafe-host-shell`, which explicitly enables non-interactive `bypass` permissions. This is not an OS sandbox; use the flag only for controlled Eval repositories until GOV-05 is implemented.
+
 ## TypeScript migration roadmap
 
 The prioritized migration backlog is stored in docs/roadmap/2026-07-11-typescript-runtime-roadmap.md. Completed task specifications are indexed in docs/tasks/README.md.

@@ -78,8 +78,9 @@ Real model execution reads:
 Implemented in TypeScript:
 
 - Managed workspace isolation, hardened Git checkpoint/rollback, final diff and result artifacts
-- Stable managed result schema, trace.jsonl lifecycle audit, and reserved verification artifact
+- Stable managed result schema, trace.jsonl lifecycle audit, and verification artifact
 - Baseline/final test verification, failure fingerprint comparison, and Finish Gate
+- Python Eval bridge with result-only CLI output and strict managed artifact validation
 - Python-compatible Project Profile YAML loading and built-in tool configuration
 - Agent runtime and JSON event stream
 - Unified tool contracts and registry
@@ -97,7 +98,7 @@ Implemented in TypeScript:
 
 Still using the Python implementation as the reference:
 
-- Existing Eval runners and result reports
+- Existing Python task discovery, setup, verification, and result reports
 - CMake structured scanners, classifiers, reports, and repair memory
 - Multi-agent planner/coder/reviewer parity
 - Strong OS-level sandboxing
@@ -110,4 +111,5 @@ Still using the Python implementation as the reference:
 - Completed TS-02 specification: ../tasks/TS-02-project-profile.md
 - Completed TS-03 specification: ../tasks/TS-03-verification-gate.md
 - Completed TS-04 specification: ../tasks/TS-04-trace-artifacts.md
-- Next task: TS-05 Python Eval bridge
+- Completed TS-05 specification: ../tasks/TS-05-python-eval-bridge.md
+- Next task: TS-06 basic five-task Eval gate

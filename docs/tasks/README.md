@@ -10,7 +10,8 @@
 | TS-02 | DONE | Project Profile YAML 兼容加载：TS-02-project-profile.md |
 | TS-03 | DONE | Verification Hook 与 Finish Gate：TS-03-verification-gate.md |
 | TS-04 | DONE | Trace、Result 和 Artifact 持久化：TS-04-trace-artifacts.md |
-| TS-05 | NEXT | Python Eval 调用 TypeScript CLI（实现前创建独立规格） |
+| TS-05 | DONE | Python Eval 调用 TypeScript CLI：TS-05-python-eval-bridge.md |
+| TS-06 | NEXT | 基础五任务 Fake/Real Eval 验收（实现前创建独立规格） |
 
 ## 归档规则
 

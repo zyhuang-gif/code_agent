@@ -2,7 +2,7 @@
 
 - 创建日期：2026-07-11
 - 状态：Active
-- 当前主干阶段：TS-01 到 TS-04 已形成基础闭环；TS-05 为下一项
+- 当前主干阶段：TS-01 到 TS-05 已形成 Python Eval 到 TypeScript managed CLI 闭环；TS-06 为下一项
 - 核心原则：纵向切片、兼容迁移、每项独立验收
 
 ## 1. 目标
@@ -50,8 +50,8 @@
 | TS-02 | DONE | Project Profile YAML 兼容加载 | TS-00 | 兼容现有 Python/Node/CMake Profile；默认值和超时语义稳定 |
 | TS-03 | DONE | Verification Hook 与 Finish Gate | TS-01, TS-02 | 测试失败阻止 Finish；基线失败与新增失败可区分 |
 | TS-04 | DONE | Trace、Result 和 Artifact 持久化 | TS-01 | 生成 trace.jsonl、result.json、verification.json、final.diff |
-| TS-05 | NEXT | Python Eval 调用 TS CLI | TS-01..TS-04 | 现有 Eval 能读取 steps、cost、reason、trace、diff |
-| TS-06 | BLOCKED | 基础五任务验收 | TS-05 | t01 到 t05 Fake 全通过；Real 模式可运行并形成基线报告 |
+| TS-05 | DONE | Python Eval 调用 TS CLI | TS-01..TS-04 | 现有 Eval 能读取 steps、cost、reason、trace、diff |
+| TS-06 | NEXT | 基础五任务验收 | TS-05 | t01 到 t05 Fake 全通过；Real 模式可运行并形成基线报告 |
 
 ### M2：CMake Skill 与领域能力
 
@@ -140,6 +140,6 @@ flowchart LR
 
 ## 7. 当前下一项
 
-TS-01 到 TS-04 已完成。当前唯一 NEXT 是 TS-05：Python Eval 调用 TypeScript CLI。
+TS-01 到 TS-05 已完成。当前唯一 NEXT 是 TS-06：基础五任务 Fake/Real Eval 验收。
 
-完成规格见：../tasks/TS-01-workspace-checkpoint.md、../tasks/TS-02-project-profile.md、../tasks/TS-03-verification-gate.md 和 ../tasks/TS-04-trace-artifacts.md
+完成规格见：../tasks/TS-01-workspace-checkpoint.md、../tasks/TS-02-project-profile.md、../tasks/TS-03-verification-gate.md、../tasks/TS-04-trace-artifacts.md 和 ../tasks/TS-05-python-eval-bridge.md

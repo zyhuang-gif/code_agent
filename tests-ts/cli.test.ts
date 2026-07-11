@@ -100,6 +100,77 @@ test("TypeScript CLI creates an isolated workspace and emits artifacts", async (
   }
 });
 
+test("managed CLI result-json emits only the persisted run result", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "code-agent-cli-result-only-"));
+  try {
+    const source = path.join(root, "source");
+    const runRoot = path.join(root, "runs");
+    const taskFile = path.join(root, "task.txt");
+    await mkdir(source, { recursive: true });
+    await writeFile(path.join(source, "hello.txt"), "original\n", "utf8");
+    await writeFile(taskFile, "x".repeat(40_000), "utf8");
+
+    const result = spawnSync(process.execPath, [
+      tsxCli,
+      "src/cli.ts",
+      "--fake",
+      "--result-json",
+      "--task-file",
+      taskFile,
+      "--repo",
+      source,
+      "--run-root",
+      runRoot,
+      "--extensions",
+      "extensions",
+    ], { cwd: process.cwd(), encoding: "utf8" });
+
+    assert.equal(result.status, 0, result.stderr);
+    const lines = result.stdout.trim().split(/\r?\n/).filter(Boolean);
+    assert.equal(lines.length, 1);
+    const runResult = JSON.parse(lines[0] ?? "null") as RunResultEvent;
+    assert.equal(runResult.type, "run_result");
+    assert.deepEqual(
+      JSON.parse(await readFile(runResult.resultPath, "utf8")),
+      runResult,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("result-json rejects event JSON and preisolated mode", () => {
+  const conflicting = spawnSync(process.execPath, [
+    tsxCli,
+    "src/cli.ts",
+    "--fake",
+    "--json",
+    "--result-json",
+    "--task",
+    "conflicting output",
+    "--repo",
+    ".",
+    "--run-root",
+    path.resolve(".tmp", "cli-conflicting-output"),
+  ], { cwd: process.cwd(), encoding: "utf8" });
+  assert.equal(conflicting.status, 2);
+  assert.match(conflicting.stderr, /mutually exclusive/);
+
+  const preisolated = spawnSync(process.execPath, [
+    tsxCli,
+    "src/cli.ts",
+    "--fake",
+    "--result-json",
+    "--task",
+    "unsupported output",
+    "--workspace",
+    ".",
+    "--workspace-is-isolated",
+  ], { cwd: process.cwd(), encoding: "utf8" });
+  assert.equal(preisolated.status, 2);
+  assert.match(preisolated.stderr, /requires managed mode/);
+});
+
 test("managed CLI runs baseline and finish verification and persists the gate artifact", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "code-agent-cli-verification-"));
   try {

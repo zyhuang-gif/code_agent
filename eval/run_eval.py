@@ -92,18 +92,22 @@ def run_task(task: EvalTask, agent: AgentCallable, work_root: Path, command_runn
             raise RuntimeError(f"setup_cmd failed for {task.id}: {output}")
     prompt = (task_path / "prompt.md").read_text(encoding="utf-8")
     meta = agent(work_root, prompt, task.profile) or {}
+    workspace_value = meta.get("workspace_path")
+    final_workspace = Path(workspace_value).resolve() if workspace_value else work_root.resolve()
+    if not final_workspace.is_dir():
+        raise RuntimeError(f"agent workspace does not exist for {task.id}: {final_workspace}")
     verify = task_path / "verify.py"
     proc = subprocess.run(
         [sys.executable, "-c", verify.read_text(encoding="utf-8").lstrip("\ufeff")],
-        cwd=work_root,
+        cwd=final_workspace,
         text=True,
         capture_output=True,
         timeout=task.profile.test_timeout,
     )
     verify_output = f"{proc.stdout}{proc.stderr}"
-    trace_path = work_root.parent / f"{work_root.name}.trace.jsonl"
-    report_path = work_root / "fix_report.md"
-    diff_path = work_root / "final.diff"
+    trace_path = Path(meta["trace_path"]) if meta.get("trace_path") else work_root.parent / f"{work_root.name}.trace.jsonl"
+    report_path = Path(meta["report_path"]) if meta.get("report_path") else final_workspace / "fix_report.md"
+    diff_path = Path(meta["diff_path"]) if meta.get("diff_path") else final_workspace / "final.diff"
     return EvalResult(
         task.id,
         "solved" if proc.returncode == 0 else "failed",
@@ -113,7 +117,7 @@ def run_task(task: EvalTask, agent: AgentCallable, work_root: Path, command_runn
         str(trace_path) if trace_path.exists() else "",
         str(report_path) if report_path.exists() else "",
         str(diff_path) if diff_path.exists() else "",
-        str(work_root),
+        str(final_workspace),
         verify_output[:4000],
     )
 
@@ -422,12 +426,35 @@ def multi_agent_factory(*, budget_steps: int | None = None) -> AgentCallable:
 def main(argv: list[str] | None = None, agent_factory: Callable[[], AgentCallable] | None = None, work_root: Path = Path("workspace")) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("tasks", type=Path, nargs="?", default=Path(__file__).parent / "tasks")
+    parser.add_argument("--runtime", choices=("python", "typescript"), default="python")
     parser.add_argument("--fake", action="store_true")
     parser.add_argument("--multi", action="store_true")
     parser.add_argument("--repeat", type=int, default=1)
     parser.add_argument("--json-summary", type=Path)
+    parser.add_argument("--ts-cli-timeout", type=int, default=3600)
+    parser.add_argument("--allow-unsafe-host-shell", action="store_true")
     args = parser.parse_args(argv)
-    if args.fake:
+    if args.ts_cli_timeout < 1:
+        parser.error("--ts-cli-timeout must be >= 1")
+    if args.runtime == "typescript":
+        if args.multi:
+            parser.error("--multi is not supported by the TypeScript runtime")
+        if agent_factory is not None:
+            agent = agent_factory()
+        else:
+            if not args.fake and not (os.environ.get("CODE_AGENT_API_KEY") or os.environ.get("DEEPSEEK_API_KEY")):
+                print("CODE_AGENT_API_KEY or DEEPSEEK_API_KEY is required for TypeScript eval runs", file=sys.stderr)
+                return 2
+            from eval.ts_bridge import typescript_agent_factory
+
+            agent = typescript_agent_factory(
+                fake=args.fake,
+                allow_unsafe_host_shell=args.allow_unsafe_host_shell,
+                timeout_seconds=args.ts_cli_timeout,
+            )
+    elif args.allow_unsafe_host_shell:
+        parser.error("--allow-unsafe-host-shell is only valid with --runtime typescript")
+    elif args.fake:
         agent = fake_agent
     else:
         if agent_factory is None and not os.environ.get("DEEPSEEK_API_KEY"):
