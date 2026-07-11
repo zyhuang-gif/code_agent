@@ -31,7 +31,9 @@ if __package__ in {None, ""}:
 
 from eval.run_eval import (
     AgentCallable,
+    CommandRunner,
     EvalTask,
+    default_command_runner,
     discover,
     run_task,
 )
@@ -204,41 +206,36 @@ def _build_agent(
     model_script: Path | None,
     output_dir: Path,
     run_root_parent: Path,
+    cli_root: Path | None = None,
     timeout_seconds: int = AGENT_TIMEOUT_SECONDS,
+    command_runner: Any = None,
 ) -> AgentCallable:
     """Build an AgentCallable for *variant*.
 
     control   -- real cli_root + empty extensions root (no invoke_skill)
     treatment -- real cli_root + workspace default extensions (cmake skill)
     """
-    real_root = Path(__file__).resolve().parents[1]
+    real_root = (cli_root or Path(__file__).resolve().parents[1]).resolve()
     use_fake = fake and model_script is None
+    kwargs: dict[str, Any] = dict(
+        budget_steps=budget_steps,
+        fake=use_fake,
+        model_script=model_script,
+        cli_root=real_root,
+        run_root_parent=run_root_parent,
+        timeout_seconds=timeout_seconds,
+        allow_unsafe_host_shell=False,
+    )
+    if command_runner is not None:
+        kwargs["command_runner"] = command_runner
     if variant == "control":
         control_ext = output_dir / "_control_ext"
         if control_ext.exists():
             shutil.rmtree(control_ext)
         control_ext.mkdir(parents=True)
-        return typescript_agent_factory(
-            budget_steps=budget_steps,
-            fake=use_fake,
-            model_script=model_script,
-            cli_root=real_root,
-            extensions_root=control_ext,
-            run_root_parent=run_root_parent,
-            timeout_seconds=timeout_seconds,
-            allow_unsafe_host_shell=False,
-        )
+        return typescript_agent_factory(extensions_root=control_ext, **kwargs)
     if variant == "treatment":
-        return typescript_agent_factory(
-            budget_steps=budget_steps,
-            fake=use_fake,
-            model_script=model_script,
-            cli_root=real_root,
-            extensions_root=None,
-            run_root_parent=run_root_parent,
-            timeout_seconds=timeout_seconds,
-            allow_unsafe_host_shell=False,
-        )
+        return typescript_agent_factory(extensions_root=None, **kwargs)
     raise ValueError(f"Unknown variant: {variant!r}")
 
 
@@ -253,6 +250,8 @@ def run_cmake_skill_ab(
     budget_steps: int,
     output_dir: Path,
     fake: bool,
+    command_runner: Any = None,
+    cli_root: Path | None = None,
 ) -> list[CM02Result]:
     """Run paired A/B evaluation for CMake Skill.
 
@@ -294,8 +293,10 @@ def run_cmake_skill_ab(
                         ),
                         output_dir=output_dir,
                         run_root_parent=run_root_parent,
+                        cli_root=cli_root,
+                        command_runner=command_runner,
                     )
-                    eval_result = run_task(task, task_agent, run_ws)
+                    eval_result = run_task(task, task_agent, run_ws, command_runner=command_runner if command_runner is not None else default_command_runner)
                     latency_ms = int((time.time() - session_start) * 1000)
 
                     tp = eval_result.trace_path

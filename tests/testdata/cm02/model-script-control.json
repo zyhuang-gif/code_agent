@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "responses": [
+    {
+      "content": null,
+      "toolCalls": [
+        {
+          "id": "edit-cmakelists",
+          "name": "edit_file",
+          "input": {
+            "path": "CMakeLists.txt",
+            "search": "add_executable(app src/main.cpp)",
+            "replace": "add_executable(app src/main.cpp src/add.cpp)"
+          }
+        }
+      ],
+      "usage": {
+        "promptTokens": 100,
+        "completionTokens": 50,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 0
+      }
+    },
+    {
+      "content": null,
+      "toolCalls": [
+        {
+          "id": "finish-r08",
+          "name": "finish",
+          "input": {
+            "summary": "Added src/add.cpp to the add_executable call to fix the undefined reference."
+          }
+        }
+      ],
+      "usage": {
+        "promptTokens": 0,
+        "completionTokens": 0,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 0
+      }
+    }
+  ]
+}
