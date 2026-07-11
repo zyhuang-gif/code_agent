@@ -89,3 +89,9 @@ Still using the Python implementation as the reference:
 - Multi-agent planner/coder/reviewer parity
 - Checkpoint/diff parity
 - Strong OS-level sandboxing
+
+## Roadmap and active tasks
+
+- Migration roadmap: ../roadmap/2026-07-11-typescript-runtime-roadmap.md
+- Active task index: ../tasks/README.md
+- Next implementation task: ../tasks/TS-01-workspace-checkpoint.md

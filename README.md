@@ -19,3 +19,7 @@ A new four-layer TypeScript runtime now lives under `src/`. The Python runtime r
 `npm run start:ts -- --fake --json --task "smoke" --workspace . --extensions extensions`
 
 See `docs/architecture/ts-runtime-foundation.md` for layer boundaries and migration status.
+
+## TypeScript migration roadmap
+
+The prioritized migration backlog is stored in docs/roadmap/2026-07-11-typescript-runtime-roadmap.md. The next implementation specification is docs/tasks/TS-01-workspace-checkpoint.md.
