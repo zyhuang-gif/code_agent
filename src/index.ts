@@ -13,3 +13,8 @@ export * from "./governance/executor.js";
 export * from "./extensions/contracts.js";
 export * from "./extensions/registry.js";
 export * from "./extensions/filesystem-loader.js";
+export * from "./governance/artifacts.js";
+export * from "./governance/checkpoint.js";
+export * from "./host/run-layout.js";
+export * from "./host/workspace.js";
+export * from "./host/managed-run.js";

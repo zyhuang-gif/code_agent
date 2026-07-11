@@ -25,29 +25,20 @@ const NETWORK_PATTERNS: readonly RegExp[] = [
   /\bgit\s+(?:fetch|pull|push|clone)\b/i,
 ];
 
-const READ_ONLY_PATTERNS: readonly RegExp[] = [
-  /^\s*(?:pwd|cd\s*|dir\b|ls\b|tree\b|cat\b|type\b|get-content\b|get-childitem\b)/i,
-  /^\s*(?:rg|grep|findstr|select-string)\b/i,
-  /^\s*git\s+(?:status|diff|log|show|branch(?:\s+--list)?|rev-parse|worktree\s+list)\b/i,
-  /^\s*(?:node|npm|python|pytest|tsc)\s+--?version\b/i,
-];
-
 export function assessBashCommand(command: string): BashAssessment {
   const reasons: string[] = [];
   const destructive = DESTRUCTIVE_PATTERNS.some((pattern) => pattern.test(command));
-  const openWorld = NETWORK_PATTERNS.some((pattern) => pattern.test(command));
-  const readOnly = !destructive && !openWorld && READ_ONLY_PATTERNS.some((pattern) => pattern.test(command));
+  const network = NETWORK_PATTERNS.some((pattern) => pattern.test(command));
   if (destructive) reasons.push("command matches destructive pattern");
-  if (openWorld) reasons.push("command may access external systems or the network");
-  if (readOnly) reasons.push("command matches local read-only pattern");
-  if (reasons.length === 0) reasons.push("command side effects are not provably read-only");
+  if (network) reasons.push("command may access external systems or the network");
+  reasons.push("host shell execution is not sandboxed and is never treated as read-only");
   return {
     policy: {
-      access: readOnly ? "read_only" : "write",
+      access: "write",
       impact: destructive ? "destructive" : "non_destructive",
-      concurrency: readOnly ? "parallel_safe" : destructive ? "exclusive" : "serial",
-      idempotent: readOnly,
-      openWorld,
+      concurrency: destructive ? "exclusive" : "serial",
+      idempotent: false,
+      openWorld: true,
     },
     reasons,
   };

@@ -19,10 +19,10 @@ function imports(source: string): readonly string[] {
 
 test("four-layer dependency boundaries are mechanically enforced", async () => {
   const rules: Readonly<Record<string, readonly string[]>> = {
-    engine: ["node:fs", "node:child_process", "/extensions/", "../extensions"],
-    tools: ["/engine/", "../engine", "/services/", "../services", "/governance/", "../governance", "/extensions/", "../extensions"],
-    services: ["/engine/", "../engine", "/governance/", "../governance", "/extensions/", "../extensions"],
-    governance: ["/engine/", "../engine", "/services/", "../services", "/extensions/", "../extensions"],
+    engine: ["node:fs", "node:child_process", "/extensions/", "../extensions", "/host/", "../host"],
+    tools: ["/engine/", "../engine", "/services/", "../services", "/governance/", "../governance", "/extensions/", "../extensions", "/host/", "../host"],
+    services: ["/engine/", "../engine", "/governance/", "../governance", "/extensions/", "../extensions", "/host/", "../host"],
+    governance: ["/engine/", "../engine", "/services/", "../services", "/extensions/", "../extensions", "/host/", "../host"],
   };
 
   for (const [layer, forbidden] of Object.entries(rules)) {

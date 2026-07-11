@@ -1,6 +1,6 @@
 # TS-01：Workspace 隔离、Git Checkpoint、Rollback 和 Final Diff
 
-- 状态：NEXT
+- 状态：DONE
 - 优先级：P0
 - 所属里程碑：M1 安全执行与基础 Eval 闭环
 - 依赖：TS-00
@@ -358,18 +358,18 @@ reason=completed
 
 TS-01 完成必须满足：
 
-- [ ] 默认 CLI 路径不直接修改源仓库。
-- [ ] Workspace 和 Artifact 布局符合规格。
-- [ ] Checkpoint 初始化失败会阻止 Agent 启动。
-- [ ] 新增、修改、删除均进入 final.diff。
-- [ ] Rollback 可恢复全部工作区变化。
-- [ ] 路径逃逸和错误清理目标被拒绝。
-- [ ] engine 无 Git、复制、Artifact 具体实现依赖。
-- [ ] TypeScript 严格类型检查通过。
-- [ ] TypeScript 全部测试通过。
-- [ ] Python 199 个现有测试无回归。
-- [ ] 源码和编译后 CLI 冒烟通过。
-- [ ] 路线图状态从 NEXT 更新为 DONE，TS-02 保持 READY，TS-03/TS-04 依赖状态重新评估。
+- [x] 默认 CLI 路径不直接修改源仓库。
+- [x] Workspace 和 Artifact 布局符合规格。
+- [x] Checkpoint 初始化失败会阻止 Agent 启动。
+- [x] 新增、修改、删除均进入 final.diff。
+- [x] Rollback 可恢复全部工作区变化。
+- [x] 路径逃逸和错误清理目标被拒绝。
+- [x] engine 无 Git、复制、Artifact 具体实现依赖。
+- [x] TypeScript 严格类型检查通过。
+- [x] TypeScript 全部测试通过。
+- [x] Python 199 个现有测试无回归。
+- [x] 源码和编译后 CLI 冒烟通过。
+- [x] 路线图状态从 NEXT 更新为 DONE；TS-02 和 TS-04 标记为可并行 NEXT；TS-03 继续等待 TS-02。
 
 ## 16. 实现顺序
 
@@ -386,10 +386,27 @@ TS-01 完成必须满足：
 
 ## 17. 完成记录
 
-实现完成后填写：
+实现完成记录：
 
-- 提交：TBD
-- TypeScript 测试：TBD
-- Python 测试：TBD
-- CLI/Eval 证据：TBD
-- 遗留问题：TBD
+- 提交：本任务实现提交（见 Git history）
+- TypeScript 测试：严格类型检查通过；51 passed，0 failed
+- Python 测试：199 passed，保持 3 个既存 Windows/pytest 警告
+- CLI/Eval 证据：源码测试和编译后 CLI 均完成 managed workspace 冒烟；输出 session 事件、run_result、final.diff 和 result.json；源仓库保持不变
+- 遗留问题：
+  - preisolated CLI 模式仅用于调用方明确声明已隔离的过渡兼容路径，不创建第二层 managed checkpoint/artifact
+  - Host shell 默认不注册；显式 --allow-host-shell 仍是未沙箱化高风险能力，等待 GOV-05
+  - Diff 超限当前返回结构化失败，流式 Artifact 和 truncated 元数据留给 TS-04/CTX-01
+  - 第一版拒绝所有 symlink/junction，后续如需支持必须新增安全复制策略和平台测试
+
+
+## 18. 安全收敛记录
+
+实现阶段通过并行安全审查额外修复：
+
+- Checkpoint 使用初始化时保存的不可变 baseline OID，Agent 自行 commit 不能绕过 Diff 或 Rollback。
+- 基线强制跟踪复制后的 ignored 文件；新增 ignored 文件进入 Diff；Rollback 恢复已有 ignored 文件并删除新增项。
+- Run Marker 所有字段强制校验并与实际路径精确匹配。
+- Git 使用空 template、禁用 commit hook、禁用 external diff/textconv、屏蔽 system/global Git config，并设置命令超时。
+- runRoot 和 sourceRepository 两棵目录树必须完全不相交。
+- 默认不向模型注册 Host Bash Tool；显式启用后仍始终按 write/open-world 权限处理。
+- ArtifactStore 只能从经过验证的 Run Layout 创建，Artifact 必须位于 Repository 外。

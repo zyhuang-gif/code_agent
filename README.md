@@ -16,9 +16,11 @@ A new four-layer TypeScript runtime now lives under `src/`. The Python runtime r
 
 `npm run check:ts`
 
-`npm run start:ts -- --fake --json --task "smoke" --workspace . --extensions extensions`
+`npm run start:ts -- --fake --json --task "smoke" --repo <source-repo> --run-root <external-run-root> --extensions extensions`
 
 See `docs/architecture/ts-runtime-foundation.md` for layer boundaries and migration status.
+
+Host shell execution is disabled by default. Use `--allow-host-shell` only when you explicitly accept unsandboxed shell access; it still passes through permission governance.
 
 ## TypeScript migration roadmap
 

@@ -6,7 +6,9 @@
 
 | ID | 状态 | 文档 |
 |---|---|---|
-| TS-01 | NEXT | Workspace 隔离、Git Checkpoint、Rollback 和 Final Diff：TS-01-workspace-checkpoint.md |
+| TS-01 | DONE | Workspace 隔离、Git Checkpoint、Rollback 和 Final Diff：TS-01-workspace-checkpoint.md |
+| TS-02 | NEXT | Project Profile YAML 兼容加载（规格待进入实现前创建） |
+| TS-04 | NEXT | Trace、Result 和 Artifact 持久化（规格待进入实现前创建） |
 
 ## 归档规则
 

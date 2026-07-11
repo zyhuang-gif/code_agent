@@ -55,7 +55,9 @@ These rules are enforced by `tests-ts/architecture.test.ts`.
 
 Fake CLI smoke test:
 
-`npm run start:ts -- --fake --json --task "smoke" --workspace . --extensions extensions`
+`npm run start:ts -- --fake --json --task "smoke" --repo <source-repo> --run-root <external-run-root> --extensions extensions`
+
+Host shell tools are not registered by default. `--allow-host-shell` is an explicit unsandboxed opt-in and shell commands are always governed as write/open-world capabilities.
 
 Real model execution reads:
 
@@ -68,6 +70,7 @@ Real model execution reads:
 
 Implemented in TypeScript:
 
+- Managed workspace isolation, hardened Git checkpoint/rollback, final diff and result artifacts
 - Agent runtime and JSON event stream
 - Unified tool contracts and registry
 - File/search/edit/Bash/finish tools
@@ -87,11 +90,11 @@ Still using the Python implementation as the reference:
 - Existing Eval runners and result reports
 - CMake structured scanners, classifiers, reports, and repair memory
 - Multi-agent planner/coder/reviewer parity
-- Checkpoint/diff parity
 - Strong OS-level sandboxing
 
 ## Roadmap and active tasks
 
 - Migration roadmap: ../roadmap/2026-07-11-typescript-runtime-roadmap.md
 - Active task index: ../tasks/README.md
-- Next implementation task: ../tasks/TS-01-workspace-checkpoint.md
+- Completed TS-01 specification: ../tasks/TS-01-workspace-checkpoint.md
+- Next parallel tasks: TS-02 Project Profile and TS-04 Trace/Artifact persistence (see roadmap/task index)

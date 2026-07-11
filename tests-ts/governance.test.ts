@@ -26,14 +26,20 @@ test("permission engine separates read, write, destructive, and plan-mode behavi
   assert.equal(new PermissionEngine("plan").evaluate(request({ ...READ_ONLY_POLICY, access: "write" })).kind, "deny");
 });
 
-test("Bash safety derives dynamic policy from the command", () => {
-  assert.deepEqual(assessBashCommand("git status").policy, READ_ONLY_POLICY);
+test("Bash safety never treats host shell execution as read-only", () => {
+  const readCommand = assessBashCommand("git status").policy;
+  assert.equal(readCommand.access, "write");
+  assert.equal(readCommand.openWorld, true);
+  assert.equal(readCommand.concurrency, "serial");
+  assert.equal(readCommand.idempotent, false);
+
   const destructive = assessBashCommand("git reset --hard HEAD").policy;
   assert.equal(destructive.impact, "destructive");
   assert.equal(destructive.concurrency, "exclusive");
-  const network = assessBashCommand("git push origin master").policy;
-  assert.equal(network.openWorld, true);
-  assert.equal(network.access, "write");
+
+  const compound = assessBashCommand("git status & echo modified>../result.json").policy;
+  assert.equal(compound.openWorld, true);
+  assert.equal(compound.access, "write");
 });
 
 test("governed executor asks before a destructive Bash command", async () => {
