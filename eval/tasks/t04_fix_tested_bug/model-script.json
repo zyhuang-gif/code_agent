@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "responses": [
+    {
+      "content": null,
+      "toolCalls": [
+        {
+          "id": "edit-pricing",
+          "name": "edit_file",
+          "input": {
+            "path": "pricing.py",
+            "search": "    return price - percent",
+            "replace": "    return price - (price * percent / 100)"
+          }
+        }
+      ],
+      "usage": {
+        "promptTokens": 0,
+        "completionTokens": 0,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 0
+      }
+    },
+    {
+      "content": null,
+      "toolCalls": [
+        {
+          "id": "finish-pricing",
+          "name": "finish",
+          "input": {
+            "summary": "Fixed apply_discount to calculate percentage-based discounts."
+          }
+        }
+      ],
+      "usage": {
+        "promptTokens": 0,
+        "completionTokens": 0,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 0
+      }
+    }
+  ]
+}

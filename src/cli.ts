@@ -17,6 +17,7 @@ import { FileSystemTraceSink } from "./governance/trace.js";
 import type { TraceSink } from "./governance/trace.js";
 import { finalizeManagedRun, prepareManagedRun } from "./host/managed-run.js";
 import type { ManagedRunResult } from "./host/managed-run.js";
+import { loadModelScript } from "./host/model-script.js";
 import { createDefaultProjectProfile, loadProjectProfile } from "./host/project-profile.js";
 import type { ProjectProfile } from "./host/project-profile.js";
 import { DeferredRunEventSink } from "./host/run-events.js";
@@ -48,6 +49,7 @@ interface CliOptions {
   readonly workspaceMode: WorkspaceMode;
   readonly extensions: string;
   readonly fake: boolean;
+  readonly modelScriptPath: string | null;
   readonly outputMode: CliOutputMode;
   readonly permissionMode: PermissionMode;
   readonly maxSteps: number;
@@ -64,6 +66,7 @@ function parseArgs(argv: readonly string[]): CliOptions {
   let workspaceIsIsolated = false;
   let extensions = "extensions";
   let fake = false;
+  let modelScriptPath: string | null = null;
   let outputMode: CliOutputMode = "text";
   let jsonRequested = false;
   let resultJsonRequested = false;
@@ -89,6 +92,7 @@ function parseArgs(argv: readonly string[]): CliOptions {
       case "--workspace-is-isolated": workspaceIsIsolated = true; break;
       case "--extensions": extensions = next(); break;
       case "--fake": fake = true; break;
+      case "--model-script": modelScriptPath = path.resolve(next()); break;
       case "--json": jsonRequested = true; outputMode = "events_json"; break;
       case "--result-json": resultJsonRequested = true; outputMode = "result_json"; break;
       case "--permission-mode": permissionMode = next() as PermissionMode; break;
@@ -102,6 +106,7 @@ function parseArgs(argv: readonly string[]): CliOptions {
   }
 
   if (task && taskFile) throw new Error("--task and --task-file are mutually exclusive");
+  if (fake && modelScriptPath) throw new Error("--fake and --model-script are mutually exclusive");
   if (taskFile) {
     try {
       task = readFileSync(taskFile, "utf8").replace(/^\uFEFF/u, "");
@@ -140,6 +145,7 @@ function parseArgs(argv: readonly string[]): CliOptions {
     workspaceMode,
     extensions: path.resolve(extensions),
     fake,
+    modelScriptPath,
     outputMode,
     permissionMode,
     maxSteps,
@@ -174,7 +180,8 @@ export function selectBuiltInTools(
   }).filter((tool) => allowHostShell || tool.name !== "bash");
 }
 
-function createModel(fake: boolean): ModelService {
+async function createModel(fake: boolean, modelScriptPath: string | null): Promise<ModelService> {
+  if (modelScriptPath) return new ScriptedModelService(await loadModelScript(modelScriptPath));
   if (fake) {
     return new ScriptedModelService([
       {
@@ -251,6 +258,7 @@ async function executeRuntime(
   workspace: string,
   sessionId: string,
   options: CliOptions,
+  model: ModelService,
   tools: readonly ToolDefinition[],
   hooks: HookBus,
   trace?: TraceSink,
@@ -262,7 +270,7 @@ async function executeRuntime(
     hooks,
   );
   const runtime = new AgentRuntime(
-    createModel(options.fake),
+    model,
     new CompactingContextService(),
     executor,
     hooks,
@@ -282,6 +290,7 @@ async function executeRuntime(
 }
 
 async function execute(options: CliOptions): Promise<RunResult> {
+  const model = await createModel(options.fake, options.modelScriptPath);
   const profile = options.profilePath
     ? await loadProjectProfile(options.profilePath)
     : createDefaultProjectProfile();
@@ -302,6 +311,7 @@ async function execute(options: CliOptions): Promise<RunResult> {
         options.workspaceMode.workspace,
         randomUUID(),
         options,
+        model,
         tools,
         hooks,
       );
@@ -332,6 +342,7 @@ async function execute(options: CliOptions): Promise<RunResult> {
       prepared.session.repository,
       prepared.session.sessionId,
       options,
+      model,
       tools,
       hooks,
       trace,

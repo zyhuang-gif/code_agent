@@ -23,3 +23,4 @@ export * from "./host/workspace.js";
 export * from "./host/run-events.js";
 export * from "./host/verification-gate.js";
 export * from "./host/managed-run.js";
+export * from "./host/model-script.js";

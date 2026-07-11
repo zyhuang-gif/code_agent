@@ -81,6 +81,8 @@ Implemented in TypeScript:
 - Stable managed result schema, trace.jsonl lifecycle audit, and verification artifact
 - Baseline/final test verification, failure fingerprint comparison, and Finish Gate
 - Python Eval bridge with result-only CLI output and strict managed artifact validation
+- Versioned host-loaded model scripts for deterministic Eval, routed through normal tools and governance
+- Basic five-task Fake/Real Eval gate with structured runtime reports and infrastructure errors
 - Python-compatible Project Profile YAML loading and built-in tool configuration
 - Agent runtime and JSON event stream
 - Unified tool contracts and registry
@@ -112,4 +114,5 @@ Still using the Python implementation as the reference:
 - Completed TS-03 specification: ../tasks/TS-03-verification-gate.md
 - Completed TS-04 specification: ../tasks/TS-04-trace-artifacts.md
 - Completed TS-05 specification: ../tasks/TS-05-python-eval-bridge.md
-- Next task: TS-06 basic five-task Eval gate
+- Completed TS-06 specification: ../tasks/TS-06-basic-eval-gate.md
+- Next task: CM-01 CMake Skill selection and trace recording

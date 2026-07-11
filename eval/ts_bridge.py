@@ -192,6 +192,7 @@ def typescript_agent_factory(
     *,
     budget_steps: int | None = None,
     fake: bool = False,
+    model_script: Path | None = None,
     allow_unsafe_host_shell: bool = False,
     cli_root: Path | None = None,
     run_root_parent: Path | None = None,
@@ -200,10 +201,15 @@ def typescript_agent_factory(
 ):
     if budget_steps is not None and budget_steps < 1:
         raise ValueError("budget_steps must be a positive integer")
+    if fake and model_script is not None:
+        raise ValueError("fake and model_script are mutually exclusive")
     if timeout_seconds < 1:
         raise ValueError("timeout_seconds must be a positive integer")
     root = (cli_root or Path(__file__).resolve().parents[1]).resolve()
     runs_parent = (run_root_parent or Path(tempfile.gettempdir())).resolve()
+    script_path = model_script.resolve() if model_script is not None else None
+    if script_path is not None and not script_path.is_file():
+        raise TsBridgeError("model_script_not_found", f"TypeScript model script does not exist: {script_path}")
 
     def agent(workspace: Path, prompt: str, profile: ProjectProfile) -> dict[str, Any]:
         source = workspace.resolve()
@@ -245,7 +251,9 @@ def typescript_agent_factory(
         ]
         if allow_unsafe_host_shell:
             command.append("--allow-host-shell")
-        if fake:
+        if script_path is not None:
+            command.extend(["--model-script", str(script_path)])
+        elif fake:
             command.append("--fake")
         try:
             process = command_runner(command, cwd=root, timeout=timeout_seconds)
@@ -267,6 +275,7 @@ def typescript_agent_factory(
             "diff_path": result["diffPath"],
             "result_path": result["resultPath"],
             "verification_path": result["verificationPath"],
+            "session_id": result["sessionId"],
             "usage": usage,
         }
 

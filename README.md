@@ -34,7 +34,9 @@ The existing Python Eval harness can drive the managed TypeScript CLI while reta
 python eval\run_eval.py eval\tasks --runtime typescript --fake
 ```
 
-Remove `--fake` for a real model run and configure `CODE_AGENT_API_KEY` or `DEEPSEEK_API_KEY`. TypeScript Eval results use the managed workspace and read `steps`, `reason`, `trace.jsonl`, `final.diff`, and token-derived cost from the v1 result artifacts.
+In TypeScript Eval, `--fake` selects each task's versioned `model-script.json`. The scripted calls still pass through the normal tool registry, permissions, hooks, and Finish Gate; task behavior is not compiled into the engine. Direct CLI smoke tests can select a script with `--model-script <json>`, which is mutually exclusive with CLI `--fake`.
+
+Remove Eval `--fake` for a real model run and configure `CODE_AGENT_API_KEY` or `DEEPSEEK_API_KEY`. `--budget-steps` applies the same step budget to Python and TypeScript runs. Eval reports include runtime/mode metadata, token usage, managed artifact paths, and structured infrastructure errors; exit codes are 0 for all solved, 1 for verifier failures, and 2 for infrastructure errors.
 
 Host shell is still disabled by default. Real tasks that require it must add `--allow-unsafe-host-shell`, which explicitly enables non-interactive `bypass` permissions. This is not an OS sandbox; use the flag only for controlled Eval repositories until GOV-05 is implemented.
 

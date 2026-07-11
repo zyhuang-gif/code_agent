@@ -207,6 +207,34 @@ def test_typescript_bridge_requires_every_v1_artifact(tmp_path: Path):
     assert raised.value.code == "missing_artifact"
 
 
+def test_typescript_bridge_passes_a_model_script_without_enabling_fake(tmp_path: Path):
+    source = tmp_path / "staging"
+    source.mkdir()
+    script = tmp_path / "model-script.json"
+    script.write_text('{"schemaVersion":1,"responses":[]}', encoding="utf-8")
+    captured = {}
+
+    def runner(command, **kwargs):
+        captured["command"] = command
+        return _managed_result(command)
+
+    agent = typescript_agent_factory(
+        model_script=script,
+        cli_root=Path(__file__).resolve().parents[1],
+        command_runner=runner,
+    )
+    agent(source, "fix", ProjectProfile())
+    command = captured["command"]
+    assert command[command.index("--model-script") + 1] == str(script.resolve())
+    assert "--fake" not in command
+
+    with pytest.raises(ValueError, match="mutually exclusive"):
+        typescript_agent_factory(fake=True, model_script=script)
+    with pytest.raises(TsBridgeError) as raised:
+        typescript_agent_factory(model_script=tmp_path / "missing.json")
+    assert raised.value.code == "model_script_not_found"
+
+
 def _make_task(task_dir: Path, answer: str) -> None:
     repo = task_dir / "repo"
     repo.mkdir(parents=True)
@@ -262,6 +290,17 @@ def test_run_eval_typescript_fake_smoke_reads_managed_artifacts():
             "test_timeout: 30\n",
             encoding="utf-8",
         )
+        (task_dir / "model-script.json").write_text(json.dumps({
+            "schemaVersion": 1,
+            "responses": [{
+                "content": None,
+                "toolCalls": [{
+                    "id": "finish-1",
+                    "name": "finish",
+                    "input": {"summary": "already solved"},
+                }],
+            }],
+        }), encoding="utf-8")
         summary_path = root / "summary.json"
 
         code = main(
@@ -283,9 +322,149 @@ def test_run_eval_typescript_fake_smoke_reads_managed_artifacts():
         assert result["steps"] == 1
         assert result["cost_usd"] == 0.0
         assert result["reason"] == "completed"
+        assert result["session_id"]
+        assert Path(result["result_path"]).is_file()
+        assert Path(result["verification_path"]).is_file()
+        assert result["usage"] == {
+            "promptTokens": 0,
+            "completionTokens": 0,
+            "cacheReadTokens": 0,
+            "cacheWriteTokens": 0,
+        }
         assert Path(result["workspace_path"]).is_dir()
         assert Path(result["trace_path"]).is_file()
         assert Path(result["diff_path"]).is_file()
         assert (task_dir / "repo" / "answer.txt").read_text(encoding="utf-8") == "ok"
     finally:
         robust_rmtree(root)
+
+
+def test_typescript_scripted_fake_solves_all_basic_tasks():
+    scratch_parent = Path.cwd() / ".tmp"
+    scratch_parent.mkdir(exist_ok=True)
+    root = Path(tempfile.mkdtemp(prefix="ts-basic-fake-", dir=scratch_parent))
+    try:
+        summary_path = root / "summary.json"
+        code = main(
+            [
+                str(Path("eval/tasks").resolve()),
+                "--runtime",
+                "typescript",
+                "--fake",
+                "--json-summary",
+                str(summary_path),
+            ],
+            work_root=root / "eval-work",
+        )
+
+        assert code == 0
+        summary = json.loads(summary_path.read_text(encoding="utf-8"))
+        assert summary["schema_version"] == 1
+        assert summary["runtime"] == "typescript"
+        assert summary["mode"] == "fake"
+        assert summary["total"] == 5
+        assert summary["solved"] == 5
+        assert summary["infrastructure_errors"] == 0
+        assert summary["task_ids"] == [
+            "t01_implement",
+            "t02_fix_bug",
+            "t03_add_case",
+            "t04_fix_tested_bug",
+            "t05_multifile",
+        ]
+        for task in summary["tasks"].values():
+            [result] = task["results"]
+            assert result["status"] == "solved"
+            assert result["reason"] == "completed"
+            assert result["session_id"]
+            assert Path(result["trace_path"]).is_file()
+            assert Path(result["diff_path"]).is_file()
+            assert Path(result["result_path"]).is_file()
+            assert Path(result["verification_path"]).is_file()
+    finally:
+        robust_rmtree(root)
+
+
+def test_typescript_fake_missing_script_writes_error_report(tmp_path: Path):
+    task_dir = tmp_path / "tasks" / "missing-script"
+    _make_task(task_dir, "bad")
+    summary_path = tmp_path / "summary.json"
+
+    code = main(
+        [
+            str(task_dir.parent),
+            "--runtime",
+            "typescript",
+            "--fake",
+            "--json-summary",
+            str(summary_path),
+        ],
+        work_root=tmp_path / "eval-work",
+    )
+
+    assert code == 2
+    summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    assert summary["infrastructure_errors"] == 1
+    [result] = summary["tasks"]["missing-script"]["results"]
+    assert result["status"] == "error"
+    assert result["infrastructure_error"]["code"] == "model_script_not_found"
+    assert result["workspace_path"] == ""
+
+
+def test_discovery_errors_are_reported_without_skipping_valid_tasks(tmp_path: Path):
+    tasks_root = tmp_path / "tasks"
+    invalid = tasks_root / "a-invalid"
+    valid = tasks_root / "b-valid"
+    invalid.mkdir(parents=True)
+    (invalid / "profile.yaml").write_text("[invalid", encoding="utf-8")
+    _make_task(valid, "ok")
+    (valid / "repo" / "CMakeLists.txt").write_text("", encoding="utf-8")
+    summary_path = tmp_path / "summary.json"
+
+    code = main(
+        [str(tasks_root), "--fake", "--json-summary", str(summary_path)],
+        work_root=tmp_path / "eval-work",
+    )
+
+    assert code == 2
+    summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    assert summary["task_ids"] == ["a-invalid", "b-valid"]
+    assert summary["infrastructure_errors"] == 1
+    assert summary["tasks"]["a-invalid"]["results"][0]["workspace_path"] == ""
+    assert summary["tasks"]["b-valid"]["results"][0]["status"] == "solved"
+
+
+def test_missing_task_root_writes_discovery_error_report(tmp_path: Path):
+    summary_path = tmp_path / "summary.json"
+
+    code = main(
+        [str(tmp_path / "missing"), "--fake", "--json-summary", str(summary_path)],
+        work_root=tmp_path / "eval-work",
+    )
+
+    assert code == 2
+    summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    assert summary["task_ids"] == ["__discovery__"]
+    [result] = summary["tasks"]["__discovery__"]["results"]
+    assert result["status"] == "error"
+    assert result["infrastructure_error"]["type"] == "FileNotFoundError"
+
+
+def test_python_fake_report_uses_fake_model_metadata(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    task_dir = tmp_path / "tasks" / "already-solved"
+    _make_task(task_dir, "ok")
+    (task_dir / "repo" / "CMakeLists.txt").write_text("", encoding="utf-8")
+    summary_path = tmp_path / "summary.json"
+    monkeypatch.setenv("DEEPSEEK_MODEL", "must-not-leak-into-fake")
+    monkeypatch.setenv("DEEPSEEK_REASONING_EFFORT", "must-not-leak-into-fake")
+
+    code = main(
+        [str(task_dir.parent), "--fake", "--json-summary", str(summary_path)],
+        work_root=tmp_path / "eval-work",
+    )
+
+    assert code == 0
+    summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    assert summary["model"] == "fake"
+    assert summary["reasoning_effort"] == ""
+    assert summary["cost_pricing_basis"] == "none"

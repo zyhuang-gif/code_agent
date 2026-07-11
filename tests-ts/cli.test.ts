@@ -139,6 +139,78 @@ test("managed CLI result-json emits only the persisted run result", async () => 
   }
 });
 
+test("managed CLI loads a scripted model and routes its tools through governance", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "code-agent-cli-model-script-"));
+  try {
+    const source = path.join(root, "source");
+    const runRoot = path.join(root, "runs");
+    const script = path.join(root, "model-script.json");
+    await mkdir(source, { recursive: true });
+    await writeFile(path.join(source, "hello.txt"), "original\n", "utf8");
+    await writeFile(script, JSON.stringify({
+      schemaVersion: 1,
+      responses: [
+        {
+          content: null,
+          toolCalls: [{
+            id: "edit-1",
+            name: "edit_file",
+            input: { path: "hello.txt", search: "original", replace: "scripted" },
+          }],
+        },
+        {
+          content: null,
+          toolCalls: [{ id: "finish-1", name: "finish", input: { summary: "scripted edit complete" } }],
+        },
+      ],
+    }), "utf8");
+
+    const result = spawnSync(process.execPath, [
+      tsxCli,
+      "src/cli.ts",
+      "--model-script",
+      script,
+      "--result-json",
+      "--permission-mode",
+      "accept_edits",
+      "--task",
+      "scripted CLI smoke",
+      "--repo",
+      source,
+      "--run-root",
+      runRoot,
+      "--extensions",
+      "extensions",
+    ], { cwd: process.cwd(), encoding: "utf8" });
+
+    assert.equal(result.status, 0, result.stderr);
+    const runResult = JSON.parse(result.stdout) as RunResultEvent;
+    assert.equal(await readFile(path.join(runResult.workspace, "hello.txt"), "utf8"), "scripted\n");
+    assert.match(await readFile(runResult.diffPath, "utf8"), /scripted/);
+    const trace = await readFile(runResult.tracePath, "utf8");
+    assert.match(trace, /"name":"edit_file"/);
+    assert.match(trace, /"name":"finish"/);
+
+    const conflicting = spawnSync(process.execPath, [
+      tsxCli,
+      "src/cli.ts",
+      "--fake",
+      "--model-script",
+      script,
+      "--task",
+      "conflict",
+      "--repo",
+      source,
+      "--run-root",
+      path.join(root, "conflicting-runs"),
+    ], { cwd: process.cwd(), encoding: "utf8" });
+    assert.equal(conflicting.status, 2);
+    assert.match(conflicting.stderr, /mutually exclusive/);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test("result-json rejects event JSON and preisolated mode", () => {
   const conflicting = spawnSync(process.execPath, [
     tsxCli,

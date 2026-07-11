@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "responses": [
+    {
+      "content": null,
+      "toolCalls": [
+        {
+          "id": "edit-greeting",
+          "name": "edit_file",
+          "input": {
+            "path": "greeting.py",
+            "search": "    raise NotImplementedError",
+            "replace": "    return f\"Hello, {name}!\""
+          }
+        }
+      ],
+      "usage": {
+        "promptTokens": 0,
+        "completionTokens": 0,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 0
+      }
+    },
+    {
+      "content": null,
+      "toolCalls": [
+        {
+          "id": "finish-greeting",
+          "name": "finish",
+          "input": {
+            "summary": "Implemented greet to return the requested greeting."
+          }
+        }
+      ],
+      "usage": {
+        "promptTokens": 0,
+        "completionTokens": 0,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 0
+      }
+    }
+  ]
+}

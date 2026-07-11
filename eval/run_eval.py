@@ -10,7 +10,7 @@ import statistics
 import stat
 import subprocess
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, Any
 
@@ -43,6 +43,32 @@ class EvalResult:
     diff_path: str = ""
     workspace_path: str = ""
     verify_output: str = ""
+    session_id: str = ""
+    result_path: str = ""
+    verification_path: str = ""
+    usage: dict[str, int] = field(default_factory=dict)
+    infrastructure_error: dict[str, str] | None = None
+
+
+def infrastructure_error_result(
+    task_id: str,
+    exc: Exception,
+    workspace: Path | None = None,
+) -> EvalResult:
+    error_code = getattr(exc, "code", "unhandled_exception")
+    return EvalResult(
+        task_id=task_id,
+        status="error",
+        steps=0,
+        cost_usd=0.0,
+        reason="infrastructure_error",
+        workspace_path=str(workspace.resolve()) if workspace and workspace.is_dir() else "",
+        infrastructure_error={
+            "code": str(error_code),
+            "type": type(exc).__name__,
+            "message": str(exc)[:2000],
+        },
+    )
 
 
 
@@ -119,6 +145,10 @@ def run_task(task: EvalTask, agent: AgentCallable, work_root: Path, command_runn
         str(diff_path) if diff_path.exists() else "",
         str(final_workspace),
         verify_output[:4000],
+        str(meta.get("session_id", "")),
+        str(meta.get("result_path", "")),
+        str(meta.get("verification_path", "")),
+        dict(meta.get("usage", {})),
     )
 
 
@@ -150,6 +180,11 @@ def summarize(results: list[EvalResult]) -> dict[str, Any]:
                     "diff_path": getattr(result, "diff_path", ""),
                     "workspace_path": getattr(result, "workspace_path", ""),
                     "verify_output": getattr(result, "verify_output", ""),
+                    "session_id": getattr(result, "session_id", ""),
+                    "result_path": getattr(result, "result_path", ""),
+                    "verification_path": getattr(result, "verification_path", ""),
+                    "usage": getattr(result, "usage", {}),
+                    "infrastructure_error": getattr(result, "infrastructure_error", None),
                 }
                 for result in task_results
             ],
@@ -316,6 +351,28 @@ def discover(root: Path) -> list[EvalTask]:
     return tasks
 
 
+def discover_for_eval(root: Path) -> tuple[list[EvalTask], list[EvalResult], list[str]]:
+    try:
+        paths = sorted(root.iterdir())
+    except Exception as exc:
+        return [], [infrastructure_error_result("__discovery__", exc)], ["__discovery__"]
+
+    tasks = []
+    errors = []
+    task_ids = []
+    for path in paths:
+        if not path.is_dir():
+            continue
+        task_ids.append(path.name)
+        try:
+            profile_path = path / "profile.yaml"
+            profile = load_profile(profile_path) if profile_path.exists() else ProjectProfile()
+            tasks.append(EvalTask(path.name, path, profile))
+        except Exception as exc:
+            errors.append(infrastructure_error_result(path.name, exc))
+    return tasks, errors, task_ids
+
+
 def _llm_env_kwargs(prefix: str) -> dict[str, str]:
     kwargs = {}
     model = os.environ.get(f"{prefix}_MODEL")
@@ -433,9 +490,14 @@ def main(argv: list[str] | None = None, agent_factory: Callable[[], AgentCallabl
     parser.add_argument("--json-summary", type=Path)
     parser.add_argument("--ts-cli-timeout", type=int, default=3600)
     parser.add_argument("--allow-unsafe-host-shell", action="store_true")
+    parser.add_argument("--budget-steps", type=int, default=40)
     args = parser.parse_args(argv)
     if args.ts_cli_timeout < 1:
         parser.error("--ts-cli-timeout must be >= 1")
+    if args.budget_steps < 1:
+        parser.error("--budget-steps must be >= 1")
+    scripted_typescript_fake = False
+    typescript_factory = None
     if args.runtime == "typescript":
         if args.multi:
             parser.error("--multi is not supported by the TypeScript runtime")
@@ -446,12 +508,16 @@ def main(argv: list[str] | None = None, agent_factory: Callable[[], AgentCallabl
                 print("CODE_AGENT_API_KEY or DEEPSEEK_API_KEY is required for TypeScript eval runs", file=sys.stderr)
                 return 2
             from eval.ts_bridge import typescript_agent_factory
-
-            agent = typescript_agent_factory(
-                fake=args.fake,
-                allow_unsafe_host_shell=args.allow_unsafe_host_shell,
-                timeout_seconds=args.ts_cli_timeout,
-            )
+            typescript_factory = typescript_agent_factory
+            if args.fake:
+                scripted_typescript_fake = True
+                agent = None
+            else:
+                agent = typescript_agent_factory(
+                    budget_steps=args.budget_steps,
+                    allow_unsafe_host_shell=args.allow_unsafe_host_shell,
+                    timeout_seconds=args.ts_cli_timeout,
+                )
     elif args.allow_unsafe_host_shell:
         parser.error("--allow-unsafe-host-shell is only valid with --runtime typescript")
     elif args.fake:
@@ -461,18 +527,60 @@ def main(argv: list[str] | None = None, agent_factory: Callable[[], AgentCallabl
             print("DEEPSEEK_API_KEY is required for non-fake eval runs", file=sys.stderr)
             return 2
         default_factory = multi_agent_factory if args.multi else real_agent_factory
-        agent = (agent_factory or default_factory)()
+        agent = agent_factory() if agent_factory else default_factory(budget_steps=args.budget_steps)
     if args.repeat < 1:
         parser.error("--repeat must be >= 1")
-    results = []
-    for task in discover(args.tasks):
+    tasks, results, task_ids = discover_for_eval(args.tasks)
+    for task in tasks:
         for run_index in range(1, args.repeat + 1):
-            results.append(run_task(task, agent, work_root / task.id / f"run-{run_index}"))
+            run_workspace = work_root / task.id / f"run-{run_index}"
+            try:
+                task_agent = agent
+                if scripted_typescript_fake:
+                    model_script = task.path / "model-script.json"
+                    if typescript_factory is None:
+                        raise RuntimeError("TypeScript scripted model factory is unavailable")
+                    task_agent = typescript_factory(
+                        budget_steps=args.budget_steps,
+                        model_script=model_script,
+                        allow_unsafe_host_shell=args.allow_unsafe_host_shell,
+                        timeout_seconds=args.ts_cli_timeout,
+                    )
+                if task_agent is None:
+                    raise RuntimeError("Eval agent is unavailable")
+                results.append(run_task(task, task_agent, run_workspace))
+            except Exception as exc:
+                results.append(infrastructure_error_result(task.id, exc, run_workspace))
+    fake_model = "scripted" if scripted_typescript_fake else "fake"
     summary = summarize(results)
+    summary.update({
+        "schema_version": 1,
+        "runtime": args.runtime,
+        "mode": "fake" if args.fake else "real",
+        "repeat": args.repeat,
+        "budget_steps": args.budget_steps,
+        "cli_timeout_seconds": args.ts_cli_timeout,
+        "allow_unsafe_host_shell": args.allow_unsafe_host_shell,
+        "model": fake_model if args.fake else (
+            os.environ.get("CODE_AGENT_MODEL", "deepseek-v4-flash")
+            if args.runtime == "typescript"
+            else os.environ.get("DEEPSEEK_MODEL", "deepseek-v4-flash")
+        ),
+        "reasoning_effort": "" if args.fake else (
+            os.environ.get("CODE_AGENT_REASONING_EFFORT", "")
+            if args.runtime == "typescript"
+            else os.environ.get("DEEPSEEK_REASONING_EFFORT", "")
+        ),
+        "task_ids": task_ids,
+        "infrastructure_errors": sum(1 for result in results if result.status == "error"),
+        "cost_pricing_basis": "none" if args.fake else "deepseek_compatible_2026_07",
+    })
     print(summary)
     if args.json_summary:
         args.json_summary.parent.mkdir(parents=True, exist_ok=True)
         args.json_summary.write_text(json.dumps(summary, indent=2, sort_keys=True), encoding="utf-8")
+    if summary["infrastructure_errors"]:
+        return 2
     return 0 if summary["solved"] == summary["total"] else 1
 
 

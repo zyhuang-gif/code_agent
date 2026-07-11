@@ -2,7 +2,7 @@
 
 - 创建日期：2026-07-11
 - 状态：Active
-- 当前主干阶段：TS-01 到 TS-05 已形成 Python Eval 到 TypeScript managed CLI 闭环；TS-06 为下一项
+- 当前主干阶段：TS-01 到 TS-06 已完成安全执行与基础 Eval 闭环；CM-01 为下一项
 - 核心原则：纵向切片、兼容迁移、每项独立验收
 
 ## 1. 目标
@@ -51,7 +51,7 @@
 | TS-03 | DONE | Verification Hook 与 Finish Gate | TS-01, TS-02 | 测试失败阻止 Finish；基线失败与新增失败可区分 |
 | TS-04 | DONE | Trace、Result 和 Artifact 持久化 | TS-01 | 生成 trace.jsonl、result.json、verification.json、final.diff |
 | TS-05 | DONE | Python Eval 调用 TS CLI | TS-01..TS-04 | 现有 Eval 能读取 steps、cost、reason、trace、diff |
-| TS-06 | NEXT | 基础五任务验收 | TS-05 | t01 到 t05 Fake 全通过；Real 模式可运行并形成基线报告 |
+| TS-06 | DONE | 基础五任务验收 | TS-05 | t01 到 t05 Fake/Real 均 5/5；形成结构化基线报告 |
 
 ### M2：CMake Skill 与领域能力
 
@@ -59,7 +59,7 @@
 
 | ID | 状态 | 任务 | 依赖 | 核心验收 |
 |---|---|---|---|---|
-| CM-01 | BLOCKED | Skill 自动选择和 Trace 记录 | TS-04, TS-06 | CMake 仓库中模型能选择 cmake-build-fix，并记录选择来源 |
+| CM-01 | NEXT | Skill 自动选择和 Trace 记录 | TS-04, TS-06 | CMake 仓库中模型能选择 cmake-build-fix，并记录选择来源 |
 | CM-02 | BLOCKED | CMake Skill A/B Eval | CM-01 | 比较无 Skill 与有 Skill 的 Solve Rate、步骤和成本 |
 | CM-03 | BLOCKED | cmake_scan 只读工具 | CM-02 | 只有 Eval 证明重复扫描是瓶颈后才实现；结构化返回 targets/includes/links |
 | CM-04 | BLOCKED | cmake_verify 独占工具 | TS-03, CM-02 | configure/build/ctest 阶段化执行；并发属性为 exclusive |
@@ -70,18 +70,18 @@
 
 | ID | 状态 | 任务 | 依赖 | 核心验收 |
 |---|---|---|---|---|
-| MODEL-01 | BACKLOG | Streaming、Retry、Timeout 和错误分类 | TS-06 | 模型中断和限流有结构化错误；事件可流式展示 |
+| MODEL-01 | READY | Streaming、Retry、Timeout 和错误分类 | TS-06 | 模型中断和限流有结构化错误；事件可流式展示 |
 | MODEL-02 | BACKLOG | Model Routing、Usage 和 Cost | MODEL-01 | 不同角色可配置模型；成本进入 RunResult 和 Eval |
 | CTX-01 | BACKLOG | Token Budget 和 Tool Result Pruning | TS-04 | 按真实 Token/预算触发，不只按字符数 |
 | CTX-02 | BACKLOG | LLM Conversation Compaction | CTX-01, MODEL-01 | 压缩前后 Hook 可用；关键约束和未完成事项保留 |
-| MCP-01 | BACKLOG | 真实 MCP Transport | TS-06 | 支持至少一种 Transport；连接、发现、关闭和超时可测试 |
+| MCP-01 | READY | 真实 MCP Transport | TS-06 | 支持至少一种 Transport；连接、发现、关闭和超时可测试 |
 | MCP-02 | BACKLOG | MCP ToolPolicy 映射与权限 | MCP-01 | Annotation 转换为内部 ToolPolicy；MCP 工具不能绕过治理 |
 
 ### M4：安全与治理产品化
 
 | ID | 状态 | 任务 | 依赖 | 核心验收 |
 |---|---|---|---|---|
-| GOV-01 | BACKLOG | 持久化 Permission Rules | TS-06 | 支持 allow/ask/deny，匹配 Tool、路径、命令、域名和 MCP Server |
+| GOV-01 | READY | 持久化 Permission Rules | TS-06 | 支持 allow/ask/deny，匹配 Tool、路径、命令、域名和 MCP Server |
 | GOV-02 | BACKLOG | Plugin/项目 Hook 配置 | TS-04 | Plugin 可注册 Hook，不修改引擎；Hook 结果可审计 |
 | GOV-03 | BACKLOG | Shell AST/命令段风险分析 | GOV-01 | 正确处理管道、连接符、PowerShell/cmd/bash 差异 |
 | GOV-04 | BACKLOG | Secret Redaction 和审计完整性 | TS-04 | Tool Result、Trace 和模型回灌前统一脱敏 |
@@ -140,6 +140,8 @@ flowchart LR
 
 ## 7. 当前下一项
 
-TS-01 到 TS-05 已完成。当前唯一 NEXT 是 TS-06：基础五任务 Fake/Real Eval 验收。
+TS-01 到 TS-06 已完成，M1 安全执行与基础 Eval 闭环关闭。当前主线 NEXT 是 CM-01：CMake Skill 自动选择和 Trace 记录。
 
-完成规格见：../tasks/TS-01-workspace-checkpoint.md、../tasks/TS-02-project-profile.md、../tasks/TS-03-verification-gate.md、../tasks/TS-04-trace-artifacts.md 和 ../tasks/TS-05-python-eval-bridge.md
+MODEL-01、MCP-01 和 GOV-01 的依赖也已满足，可在互不重叠的 worktree 中并行规格化和实现；CM-02 继续等待 CM-01。
+
+完成规格见：../tasks/TS-01-workspace-checkpoint.md、../tasks/TS-02-project-profile.md、../tasks/TS-03-verification-gate.md、../tasks/TS-04-trace-artifacts.md、../tasks/TS-05-python-eval-bridge.md 和 ../tasks/TS-06-basic-eval-gate.md
