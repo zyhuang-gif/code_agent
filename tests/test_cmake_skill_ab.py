@@ -276,7 +276,7 @@ def count_bash_invocations(trace_events: list[dict[str, Any]]) -> int:
 
 
 # ============================================================================
-# Mock TS Bridge helpers (绕过 node/TS CLI 依赖)
+# Mock TS Bridge helpers
 # ============================================================================
 
 _THIS_DIR = Path(__file__).resolve().parent
@@ -291,11 +291,6 @@ def _managed_result(
     overrides: dict | None = None,
     trace_events: list[dict[str, Any]] | None = None,
 ) -> TsProcessResult:
-    """构建 mock TsProcessResult，模拟 TS CLI 的 managed run result。
-
-    基于 test_ts_eval_bridge.py 的 _managed_result 模式扩展，
-    支持注入 trace_events 到 trace.jsonl。
-    """
     source = Path(command[command.index("--repo") + 1]).resolve()
     run_root = Path(command[command.index("--run-root") + 1]).resolve()
     run_directory = run_root / "session-1"
@@ -343,8 +338,6 @@ def _make_mock_runner(
     overrides: dict | None = None,
     trace_events: list[dict[str, Any]] | None = None,
 ):
-    """创建注入式 command_runner，每次调用返回固定结果。"""
-
     def _runner(command: list[str], *, cwd: Path, timeout: int) -> TsProcessResult:
         return _managed_result(
             command,
@@ -352,12 +345,10 @@ def _make_mock_runner(
             overrides=overrides,
             trace_events=trace_events,
         )
-
     return _runner
 
 
 def _make_cmake_task_structure(task_dir: Path, task_id: str) -> Path:
-    """创建迷你 CMake task 结构用于测试。"""
     repo = task_dir / "repo"
     repo.mkdir(parents=True)
     src = repo / "src"
@@ -403,7 +394,6 @@ def _make_cmake_task_structure(task_dir: Path, task_id: str) -> Path:
 
 
 def _make_default_trace() -> list[dict[str, Any]]:
-    """默认 trace：无 skill_selection 或 bash 事件。"""
     return [
         {"type": "model_start"},
         {"type": "model_end"},
@@ -415,7 +405,6 @@ def _make_default_trace() -> list[dict[str, Any]]:
 
 
 def _make_treatment_trace() -> list[dict[str, Any]]:
-    """模拟 treatment trace：包含 skill_selection selected 事件。"""
     return [
         {"type": "model_start"},
         {"type": "model_end"},
@@ -768,19 +757,13 @@ class TestSkillSelectionAudit:
 
 
 # ============================================================================
-# 集成 Fake 测试（使用 mock command_runner 绕过 TS CLI）
+# 集成 Fake 测试
 # ============================================================================
 
 
 class TestCmakeSkillABFakeIntegration:
-    """使用 mock command_runner 的集成测试，无需 node/TS CLI 环境。
-
-    通过 command_runner 参数向 run_cmake_skill_ab() 注入可控的
-    managed result 和 trace events，验证 orchestrator 层行为正确性。
-    """
 
     def test_fake_pilot_both_solved(self, tmp_path: Path):
-        """用 mock runner 跑 pilot，验证 control 和 treatment 都 solved 且无 Bash。"""
         eval_dir = tmp_path / "eval"
         tasks_dir = eval_dir / "tasks_cmake_real"
         task_dir = _make_cmake_task_structure(
@@ -819,7 +802,6 @@ class TestCmakeSkillABFakeIntegration:
         assert result[1].bash_call_count == 0
 
     def test_control_no_skill_selection(self, tmp_path: Path):
-        """control trace 不应有 skill_selection 事件。"""
         output_dir = tmp_path / "output"
         trace_path = output_dir / "control-trace.jsonl"
         trace_path.parent.mkdir(parents=True, exist_ok=True)
@@ -829,9 +811,7 @@ class TestCmakeSkillABFakeIntegration:
             + "\n",
             encoding="utf-8",
         )
-
         assert not has_skill_selection_event(control_trace)
-
         from eval.cmake_skill_ab import _parse_trace_metrics
         metrics = _parse_trace_metrics(str(trace_path))
         assert metrics["invoke_skill_count"] == 0
@@ -839,7 +819,6 @@ class TestCmakeSkillABFakeIntegration:
         assert metrics["bash_call_count"] == 0
 
     def test_treatment_has_valid_selected(self, tmp_path: Path):
-        """treatment trace 应有有效的 skill_selection selected 事件。"""
         trace_events = _make_treatment_trace()
         skill_events = [
             e for e in trace_events if e.get("type") == "skill_selection"
@@ -853,7 +832,6 @@ class TestCmakeSkillABFakeIntegration:
         assert payload["selectedSkill"] == "cmake-build-fix"
 
     def test_paired_ab_ba_alternation(self, tmp_path: Path):
-        """repeat=2 时顺序应为 CT, TC。"""
         orders = generate_pair_orders(["r08"], repeat=2)
         assert orders[0].order == "CT"
         assert orders[1].order == "TC"
@@ -861,7 +839,6 @@ class TestCmakeSkillABFakeIntegration:
         assert orders[1].repeat_index == 1
 
     def test_full_mode_discovers_10_tasks(self):
-        """full phase 应发现 10 个 task（真实 tasks 目录）。"""
         eval_dir = Path(__file__).resolve().parents[1] / "eval"
         tasks = discover_cmake_tasks(eval_dir, "full")
         assert len(tasks) == 10
@@ -870,14 +847,12 @@ class TestCmakeSkillABFakeIntegration:
             assert task.id in DEFAULT_TASK_IDS_CMDS
 
     def test_pilot_mode_only_runs_r08(self):
-        """pilot phase 应只返回 r08 task（真实 tasks 目录）。"""
         eval_dir = Path(__file__).resolve().parents[1] / "eval"
         tasks = discover_cmake_tasks(eval_dir, "pilot")
         assert len(tasks) == 1
         assert tasks[0].id == "r08_local_library_source_omitted"
 
     def test_summary_json_is_valid(self, tmp_path: Path):
-        """运行 Fake pilot，验证输出的 summary JSON 通过 schema 验证。"""
         eval_dir = tmp_path / "eval"
         tasks_dir = eval_dir / "tasks_cmake_real"
         task_dir = _make_cmake_task_structure(
@@ -885,7 +860,6 @@ class TestCmakeSkillABFakeIntegration:
             "r08_local_library_source_omitted",
         )
         output_dir = tmp_path / "output"
-
         default_trace = _make_default_trace()
         result = run_cmake_skill_ab(
             tasks=[
@@ -910,7 +884,6 @@ class TestCmakeSkillABFakeIntegration:
         assert result[1].variant == "treatment"
         assert result[0].solved is True
         assert result[1].solved is True
-
         json_path = write_summary_json(result, output_dir)
         assert json_path.is_file()
         summary = json.loads(json_path.read_text(encoding="utf-8"))
@@ -920,7 +893,6 @@ class TestCmakeSkillABFakeIntegration:
         assert summary["treatment"]["total"] >= 1
 
     def test_report_recomputable_from_artifacts(self, tmp_path: Path):
-        """验证 report 能从带有不同 trace metrics 的 run 数据正确生成。"""
         eval_dir = tmp_path / "eval"
         tasks_dir = eval_dir / "tasks_cmake_real"
         task_dir = _make_cmake_task_structure(
@@ -928,7 +900,6 @@ class TestCmakeSkillABFakeIntegration:
             "r08_local_library_source_omitted",
         )
         output_dir = tmp_path / "output"
-
         runner_calls: list[dict[str, Any]] = []
 
         def two_phase_runner(
@@ -967,15 +938,12 @@ class TestCmakeSkillABFakeIntegration:
             fake=False,
             command_runner=two_phase_runner,
         )
-
         assert len(result) == 2
         control_run = [r for r in result if r.variant == "control"][0]
         treatment_run = [r for r in result if r.variant == "treatment"][0]
         assert control_run.skill_selected_count == 0
         assert treatment_run.skill_selected_count >= 1
         assert treatment_run.solved is True
-
-        # 写 report
         report_path = write_markdown_report(
             result, phase="pilot", repeat=1, budget_steps=40, fake=False,
             output_dir=output_dir,
@@ -985,15 +953,12 @@ class TestCmakeSkillABFakeIntegration:
         assert "CM-02" in content
         assert "Control" in content
         assert "Treatment" in content
-
-        # 写 JSON
         json_path = write_summary_json(result, output_dir)
         summary = json.loads(json_path.read_text(encoding="utf-8"))
         assert summary["control"]["total"] >= 1
         assert summary["treatment"]["total"] >= 1
 
     def test_infrastructure_error_propagation(self, tmp_path: Path):
-        """模拟基础设施错误，验证错误被正确传播。"""
         eval_dir = tmp_path / "eval"
         tasks_dir = eval_dir / "tasks_cmake_real"
         task_dir = _make_cmake_task_structure(
@@ -1001,8 +966,6 @@ class TestCmakeSkillABFakeIntegration:
             "r08_local_library_source_omitted",
         )
         output_dir = tmp_path / "output"
-
-        # exit_code=2 导致 TsBridgeError("cli_failed")
         result = run_cmake_skill_ab(
             tasks=[
                 EvalTask(
@@ -1019,7 +982,6 @@ class TestCmakeSkillABFakeIntegration:
             fake=False,
             command_runner=_make_mock_runner(exit_code=2),
         )
-
         assert len(result) == 2
         for r in result:
             assert r.solved is False
