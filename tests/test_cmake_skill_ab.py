@@ -2,28 +2,23 @@
 
 测试分为两类：
 A. 契约 / Schema 测试——纯逻辑，不依赖外部环境
-B. 集成 Fake 测试——通过 mock command_runner 绕过 TS CLI，验证 orchestrator 行为
+B. 集成测试——通过 subprocess 真实执行 Fake pilot，验证 orchestrator 行为
 """
 
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 import pytest
 
-from agent.profile import ProjectProfile
 from eval.cmake_skill_ab import (
-    CM02Result,
     discover_cmake_tasks,
-    run_cmake_skill_ab,
-    write_summary_json,
-    write_markdown_report,
 )
 from eval.run_eval import EvalTask
-from eval.ts_bridge import TsBridgeError, TsProcessResult
 
 SCHEMA_VERSION = 1
 VARIANTS = ("control", "treatment")
@@ -276,164 +271,8 @@ def count_bash_invocations(trace_events: list[dict[str, Any]]) -> int:
 
 
 # ============================================================================
-# Mock TS Bridge helpers
-# ============================================================================
-
-_THIS_DIR = Path(__file__).resolve().parent
-_MODEL_SCRIPT_CONTROL = _THIS_DIR / "testdata" / "cm02" / "model-script-control.json"
-_MODEL_SCRIPT_TREATMENT = _THIS_DIR / "testdata" / "cm02" / "model-script-treatment.json"
-
-
-def _managed_result(
-    command: list[str],
-    *,
-    exit_code: int = 0,
-    overrides: dict | None = None,
-    trace_events: list[dict[str, Any]] | None = None,
-) -> TsProcessResult:
-    source = Path(command[command.index("--repo") + 1]).resolve()
-    run_root = Path(command[command.index("--run-root") + 1]).resolve()
-    run_directory = run_root / "session-1"
-    workspace = run_directory / "repository"
-    artifacts = run_directory / "artifacts"
-    workspace.mkdir(parents=True)
-    artifacts.mkdir()
-    result: dict[str, Any] = {
-        "type": "run_result",
-        "schemaVersion": 1,
-        "mode": "managed",
-        "sessionId": "session-1",
-        "sourceRepository": str(source),
-        "workspace": str(workspace),
-        "runDirectory": str(run_directory),
-        "artifactsDirectory": str(artifacts),
-        "diffPath": str(artifacts / "final.diff"),
-        "resultPath": str(artifacts / "result.json"),
-        "tracePath": str(artifacts / "trace.jsonl"),
-        "verificationPath": str(artifacts / "verification.json"),
-        "reason": "budget_exceeded" if exit_code == 1 else "completed",
-        "summary": "done",
-        "steps": 3,
-        "usage": {
-            "promptTokens": 100,
-            "completionTokens": 20,
-            "cacheReadTokens": 40,
-            "cacheWriteTokens": 0,
-        },
-    }
-    result.update(overrides or {})
-    (artifacts / "final.diff").write_text("diff", encoding="utf-8")
-    trace_content = "\n".join(
-        json.dumps(e, ensure_ascii=False) for e in (trace_events or [])
-    ) + "\n"
-    (artifacts / "trace.jsonl").write_text(trace_content, encoding="utf-8")
-    (artifacts / "verification.json").write_text("{}\n", encoding="utf-8")
-    Path(result["resultPath"]).write_text(json.dumps(result), encoding="utf-8")
-    return TsProcessResult(exit_code, json.dumps(result), "")
-
-
-def _make_mock_runner(
-    *,
-    exit_code: int = 0,
-    overrides: dict | None = None,
-    trace_events: list[dict[str, Any]] | None = None,
-):
-    def _runner(command: list[str], *, cwd: Path, timeout: int) -> TsProcessResult:
-        return _managed_result(
-            command,
-            exit_code=exit_code,
-            overrides=overrides,
-            trace_events=trace_events,
-        )
-    return _runner
-
-
-def _make_cmake_task_structure(task_dir: Path, task_id: str) -> Path:
-    repo = task_dir / "repo"
-    repo.mkdir(parents=True)
-    src = repo / "src"
-    src.mkdir()
-    inc = repo / "include"
-    inc.mkdir()
-    mathx = inc / "mathx"
-    mathx.mkdir()
-    (mathx / "add.hpp").write_text(
-        "#pragma once\n\nnamespace mathx {\nint add(int left, int right);\n}\n",
-        encoding="utf-8",
-    )
-    (repo / "CMakeLists.txt").write_text(
-        "cmake_minimum_required(VERSION 3.16)\n"
-        "project(R08LocalSourceOmitted LANGUAGES CXX)\n"
-        "enable_testing()\n"
-        "add_executable(app src/main.cpp)\n"
-        "target_include_directories(app PRIVATE include)\n"
-        "add_test(NAME app_runs COMMAND app)\n",
-        encoding="utf-8",
-    )
-    (src / "main.cpp").write_text(
-        '#include "mathx/add.hpp"\n'
-        "int main() { return mathx::add(2, 3) == 5 ? 0 : 1; }\n",
-        encoding="utf-8",
-    )
-    (src / "add.cpp").write_text(
-        '#include "mathx/add.hpp"\n'
-        "namespace mathx { int add(int l, int r) { return l + r; } }\n",
-        encoding="utf-8",
-    )
-    (task_dir / "prompt.md").write_text(
-        "Fix the undefined reference.", encoding="utf-8"
-    )
-    (task_dir / "verify.py").write_text(
-        "import sys\nraise SystemExit(0)\n", encoding="utf-8"
-    )
-    (task_dir / "profile.yaml").write_text(
-        "language: cmake\ntest_cmd: echo ok\ntest_timeout: 30\n",
-        encoding="utf-8",
-    )
-    return task_dir
-
-
-def _make_default_trace() -> list[dict[str, Any]]:
-    return [
-        {"type": "model_start"},
-        {"type": "model_end"},
-        {"type": "tool_start", "payload": {"toolName": "read_file"}},
-        {"type": "tool_end", "payload": {"invocation": {"name": "read_file"}}},
-        {"type": "model_start"},
-        {"type": "finish"},
-    ]
-
-
-def _make_treatment_trace() -> list[dict[str, Any]]:
-    return [
-        {"type": "model_start"},
-        {"type": "model_end"},
-        {
-            "type": "skill_selection",
-            "sessionId": "session-1",
-            "payload": {
-                "schemaVersion": 1,
-                "invocationId": "skill-1",
-                "selectionSource": "model_tool_call",
-                "outcome": "selected",
-                "requestedSkill": "cmake-build-fix",
-                "selectedSkill": "cmake-build-fix",
-                "extensionName": "cmake",
-                "definitionSource": "cmake/skills/build-fix/SKILL.md",
-            },
-        },
-        {"type": "tool_end", "payload": {"invocation": {"name": "invoke_skill"}}},
-        {"type": "model_start"},
-        {"type": "model_end"},
-        {"type": "tool_start", "payload": {"toolName": "edit_file"}},
-        {"type": "tool_end", "payload": {"invocation": {"name": "edit_file"}}},
-        {"type": "model_start"},
-        {"type": "finish"},
-    ]
-
-
-# ============================================================================
 # 契约测试
+# ============================================================================
 # ============================================================================
 
 
@@ -757,238 +596,48 @@ class TestSkillSelectionAudit:
 
 
 # ============================================================================
-# 集成 Fake 测试
+# 集成测试
 # ============================================================================
 
 
+class TestCmakeSkillABIntegration:
+    """通过 subprocess 真实执行 Fake pilot，验证 orchestrator 行为。"""
 
-class TestCmakeSkillABFakeIntegration:
-    '''使用 mock typescript_agent_factory 的实质集成测试，无需 node/TS CLI。
+    def test_fake_pilot_subprocess_smoke(self, tmp_path):
+        import subprocess
+        import sys
 
-    通过 unittest.mock.patch 替换 eval.cmake_skill_ab.typescript_agent_factory，
-    注入可控的 mock agent callable，验证 orchestrator 层行为正确性。
-    '''
-
-    # ------------------------------------------------------------------
-    # helpers
-    # ------------------------------------------------------------------
-
-    @staticmethod
-    def _apply_cmake_fix(workspace):
-        '''在 workspace 中修复 CMakeLists.txt，加入 src/add.cpp 引用。'''
-        from pathlib import Path
-        cmake_path = Path(workspace) / "CMakeLists.txt"
-        if cmake_path.exists():
-            content = cmake_path.read_text(encoding="utf-8")
-            if "src/add.cpp" not in content:
-                content = content.replace(
-                    "add_executable(app src/main.cpp)",
-                    "add_executable(app src/main.cpp src/add.cpp)",
-                )
-                cmake_path.write_text(content, encoding="utf-8")
-
-    @staticmethod
-    def _build_mock_agent(trace_events, *, override_steps=2):
-        '''构建 mock AgentCallable：修复 CMake 项目并写入 trace 工件。'''
-        import json
-        from pathlib import Path
-
-        def agent(workspace, prompt, profile):
-            TestCmakeSkillABFakeIntegration._apply_cmake_fix(workspace)
-            artifacts = Path(workspace) / "_artifacts"
-            artifacts.mkdir(parents=True, exist_ok=True)
-            tp = artifacts / "trace.jsonl"
-            dp = artifacts / "final.diff"
-            rp = artifacts / "result.json"
-            vp = artifacts / "verification.json"
-            tc = "\n".join(
-                json.dumps(e, ensure_ascii=False) for e in trace_events
-            ) + "\n"
-            tp.write_text(tc, encoding="utf-8")
-            dp.write_text("diff\n", encoding="utf-8")
-            rp.write_text("{}", encoding="utf-8")
-            vp.write_text("{}\n", encoding="utf-8")
-            return {
-                "steps": override_steps,
-                "cost_usd": 0.001,
-                "reason": "completed",
-                "workspace_path": str(workspace),
-                "trace_path": str(tp),
-                "diff_path": str(dp),
-                "result_path": str(rp),
-                "verification_path": str(vp),
-                "session_id": "fake-sess-001",
-                "usage": {
-                    "promptTokens": 100,
-                    "completionTokens": 50,
-                    "cacheReadTokens": 0,
-                    "cacheWriteTokens": 0,
-                },
-            }
-        return agent
-
-    def _setup_r08_task(self, tmp_path):
-        '''创建 r08 临时任务目录，返回 (task, output_dir)。'''
-        from pathlib import Path
-        from agent.profile import ProjectProfile
-        from eval.run_eval import EvalTask
-
-        tasks_dir = Path(tmp_path) / "tasks_cmake_real"
-        task_dir = _make_cmake_task_structure(
-            tasks_dir / "r08_local_library_source_omitted",
-            "r08_local_library_source_omitted",
+        output_dir = tmp_path / "output"
+        proc = subprocess.run(
+            [
+                sys.executable, "-m", "eval.cmake_skill_ab",
+                "--phase", "pilot", "--repeat", "2", "--fake",
+                "--output-dir", str(output_dir),
+            ],
+            cwd=Path(__file__).resolve().parents[1],
+            capture_output=True, text=True, timeout=300,
+            env={**os.environ},
         )
-        output_dir = Path(tmp_path) / "output"
-        task = EvalTask(
-            id="r08_local_library_source_omitted",
-            path=task_dir,
-            profile=ProjectProfile(
-                language="cmake", test_cmd="echo ok", test_timeout=30
-            ),
-        )
-        return task, output_dir
+        assert proc.returncode == 0, f"stderr: {proc.stderr[:500]}"
+        summary = json.loads((output_dir / "cm02-summary.json").read_text(encoding="utf-8"))
+        runs = summary["runs"]
+        control = [r for r in runs if r["variant"] == "control"]
+        treatment = [r for r in runs if r["variant"] == "treatment"]
+        assert all(r["solved"] for r in control)
+        assert all(r["solved"] for r in treatment)
+        assert all(r["invoke_skill_count"] == 0 for r in control)
+        assert all(r["skill_selected_count"] == 0 for r in control)
+        assert all(r["skill_selected_count"] == 1 for r in treatment)
+        assert all(r["bash_call_count"] == 0 for r in runs)
+        assert all(r.get("infrastructure_error") is None for r in runs)
+        from eval.cmake_skill_ab_report import validate_summary_document
+        assert validate_summary_document(summary) == []
 
     # ------------------------------------------------------------------
-    # 1. both variants solved
-    # ------------------------------------------------------------------
-
-    def test_fake_pilot_both_variants_solved(self, tmp_path):
-        task, output_dir = self._setup_r08_task(tmp_path)
-        from unittest.mock import patch
-        from eval.cmake_skill_ab import run_cmake_skill_ab
-
-        with patch(
-            "eval.cmake_skill_ab.typescript_agent_factory"
-        ) as mock_factory:
-            mock_factory.side_effect = [
-                self._build_mock_agent(_make_default_trace()),
-                self._build_mock_agent(_make_default_trace()),
-            ]
-            results = run_cmake_skill_ab(
-                tasks=[task],
-                repeat=1,
-                budget_steps=40,
-                output_dir=output_dir,
-                fake=True,
-            )
-
-        assert len(results) == 2
-        control = [r for r in results if r.variant == "control"][0]
-        treatment = [r for r in results if r.variant == "treatment"][0]
-        assert control.solved is True
-        assert treatment.solved is True
-
-    # ------------------------------------------------------------------
-    # 2. control trace 中无 skill_selection
-    # ------------------------------------------------------------------
-
-    def test_control_has_no_skill_in_trace(self, tmp_path):
-        task, output_dir = self._setup_r08_task(tmp_path)
-        from unittest.mock import patch
-        from eval.cmake_skill_ab import run_cmake_skill_ab
-
-        with patch(
-            "eval.cmake_skill_ab.typescript_agent_factory"
-        ) as mock_factory:
-            mock_factory.side_effect = [
-                self._build_mock_agent(_make_default_trace()),
-                self._build_mock_agent(_make_default_trace()),
-            ]
-            results = run_cmake_skill_ab(
-                tasks=[task],
-                repeat=1,
-                budget_steps=40,
-                output_dir=output_dir,
-                fake=True,
-            )
-
-        control = [r for r in results if r.variant == "control"][0]
-        assert control.skill_selected_count == 0
-        assert control.invoke_skill_count == 0
-
-    # ------------------------------------------------------------------
-    # 3. treatment trace 中有 skill_selection
-    # ------------------------------------------------------------------
-
-    def test_treatment_has_skill_selection_in_trace(self, tmp_path):
-        task, output_dir = self._setup_r08_task(tmp_path)
-        from pathlib import Path
-        from unittest.mock import patch
-        from eval.cmake_skill_ab import run_cmake_skill_ab, _parse_trace_metrics
-
-        with patch(
-            "eval.cmake_skill_ab.typescript_agent_factory"
-        ) as mock_factory:
-            mock_factory.side_effect = [
-                self._build_mock_agent(_make_default_trace()),
-                self._build_mock_agent(_make_treatment_trace()),
-            ]
-            results = run_cmake_skill_ab(
-                tasks=[task],
-                repeat=1,
-                budget_steps=40,
-                output_dir=output_dir,
-                fake=True,
-            )
-
-        treatment = [r for r in results if r.variant == "treatment"][0]
-        assert treatment.skill_selected_count >= 1
-        assert treatment.skill_selected_count == 1
-        tp = Path(treatment.trace_path)
-        assert tp.is_file()
-        metrics = _parse_trace_metrics(str(tp))
-        assert metrics["invoke_skill_count"] == 1
-        assert metrics["skill_selected_count"] == 1
-
-    # ------------------------------------------------------------------
-    # 4. paired AB/BA alternation
-    # ------------------------------------------------------------------
-
-    def test_paired_ab_ba_alternation(self, tmp_path):
-        task, output_dir = self._setup_r08_task(tmp_path)
-        from unittest.mock import patch
-        from eval.cmake_skill_ab import run_cmake_skill_ab
-
-        with patch(
-            "eval.cmake_skill_ab.typescript_agent_factory"
-        ) as mock_factory:
-            mock_factory.side_effect = [
-                self._build_mock_agent(_make_default_trace()),
-                self._build_mock_agent(_make_treatment_trace()),
-                self._build_mock_agent(_make_treatment_trace()),
-                self._build_mock_agent(_make_default_trace()),
-            ]
-            results = run_cmake_skill_ab(
-                tasks=[task],
-                repeat=2,
-                budget_steps=40,
-                output_dir=output_dir,
-                fake=True,
-            )
-
-        assert len(results) == 4
-        assert results[0].variant == "control"
-        assert results[0].repeat_index == 0
-        assert results[0].order_index == 0
-        assert results[1].variant == "treatment"
-        assert results[1].repeat_index == 0
-        assert results[1].order_index == 1
-        assert results[2].variant == "treatment"
-        assert results[2].repeat_index == 1
-        assert results[2].order_index == 0
-        assert results[3].variant == "control"
-        assert results[3].repeat_index == 1
-        assert results[3].order_index == 1
-
-    # ------------------------------------------------------------------
-    # 5. full discovers 10 tasks
+    # discovery tests
     # ------------------------------------------------------------------
 
     def test_full_discovers_10_tasks(self):
-        from pathlib import Path
-        from eval.cmake_skill_ab import discover_cmake_tasks
-        from eval.run_eval import EvalTask
-
         eval_dir = Path(__file__).resolve().parents[1] / "eval"
         tasks = discover_cmake_tasks(eval_dir, "full")
         assert len(tasks) == 10
@@ -996,21 +645,14 @@ class TestCmakeSkillABFakeIntegration:
             assert isinstance(t, EvalTask)
             assert t.id in DEFAULT_TASK_IDS_CMDS
 
-    # ------------------------------------------------------------------
-    # 6. pilot discovers only r08
-    # ------------------------------------------------------------------
-
     def test_pilot_discovers_only_r08(self):
-        from pathlib import Path
-        from eval.cmake_skill_ab import discover_cmake_tasks
-
         eval_dir = Path(__file__).resolve().parents[1] / "eval"
         tasks = discover_cmake_tasks(eval_dir, "pilot")
         assert len(tasks) == 1
         assert tasks[0].id == "r08_local_library_source_omitted"
 
     # ------------------------------------------------------------------
-    # 7. no external consent fails on real
+    # consent gate tests
     # ------------------------------------------------------------------
 
     def test_no_external_consent_fails_on_real(self, monkeypatch):
@@ -1021,10 +663,6 @@ class TestCmakeSkillABFakeIntegration:
         code = main(argv=["--phase", "pilot"])
         assert code == 2
 
-    # ------------------------------------------------------------------
-    # 8. external consent mismatch fails
-    # ------------------------------------------------------------------
-
     def test_external_consent_mismatch_fails(self, monkeypatch):
         from eval.cmake_skill_ab import main
 
@@ -1033,151 +671,6 @@ class TestCmakeSkillABFakeIntegration:
         code = main(argv=["--phase", "pilot", "--external-consent", "full"])
         assert code == 2
 
-    # ------------------------------------------------------------------
-    # 9. fake summary JSON passes schema validation
-    # ------------------------------------------------------------------
-
-    def test_fake_summary_json_passes_schema_validation(self, tmp_path):
-        import json
-        from unittest.mock import patch
-        from eval.cmake_skill_ab import (
-            run_cmake_skill_ab, _cm02_result_to_dict,
-        )
-        from eval.cmake_skill_ab_report import (
-            build_cm02_report,
-            validate_summary_document as report_validate_summary,
-        )
-
-        task, output_dir = self._setup_r08_task(tmp_path)
-
-        # Pre-create artifacts directory with real files so
-        # build_cm02_report can resolve_safe_relative_path.
-        art_dir = output_dir / "_artifacts"
-        art_dir.mkdir(parents=True, exist_ok=True)
-        (art_dir / "trace.jsonl").write_text(
-            json.dumps({"type": "skill_selection", "payload": {
-                "outcome": "selected", "selectionSource": "model_tool_call",
-                "extensionName": "cmake",
-                "definitionSource": "cmake/skills/build-fix/SKILL.md",
-                "selectedSkill": "cmake-build-fix", "schemaVersion": 1,
-            }}) + "\n",
-            encoding="utf-8",
-        )
-        (art_dir / "result.json").write_text("{}", encoding="utf-8")
-        (art_dir / "verification.json").write_text("{}", encoding="utf-8")
-        (art_dir / "final.diff").write_text("", encoding="utf-8")
-
-        with patch(
-            "eval.cmake_skill_ab.typescript_agent_factory"
-        ) as mock_factory:
-            mock_factory.side_effect = [
-                self._build_mock_agent(_make_default_trace()),
-                self._build_mock_agent(_make_treatment_trace()),
-            ]
-            results = run_cmake_skill_ab(
-                tasks=[task],
-                repeat=1,
-                budget_steps=40,
-                output_dir=output_dir,
-                fake=True,
-            )
-
-        run_dicts = [_cm02_result_to_dict(r) for r in results]
-        for rd in run_dicts:
-            rd.setdefault("result_path", str(art_dir / "result.json"))
-            rd.setdefault("verification_path", str(art_dir / "verification.json"))
-            rd.setdefault("diff_path", str(art_dir / "final.diff"))
-        json_path, _md_path = build_cm02_report(
-            run_dicts, "pilot", "fake", 1, output_dir,
-        )
-        summary = json.loads(json_path.read_text(encoding="utf-8"))
-        errors = report_validate_summary(summary)
-        assert errors == []
-        assert summary["schema_version"] == 1
-        assert summary["phase"] == "pilot"
-        assert summary["model"] == "fake"
-        assert summary["repeat"] == 1
-        assert len(summary["runs"]) == 2
-
-    # ------------------------------------------------------------------
-    # 10. report recomputable
-    # ------------------------------------------------------------------
-
-    def test_report_recomputable(self, tmp_path):
-        import json
-        from unittest.mock import patch
-        from eval.cmake_skill_ab import (
-            run_cmake_skill_ab, _cm02_result_to_dict,
-        )
-        from eval.cmake_skill_ab_report import (
-            build_cm02_report, calc_paired_outcomes,
-        )
-
-        task, output_dir = self._setup_r08_task(tmp_path)
-
-        with patch(
-            "eval.cmake_skill_ab.typescript_agent_factory"
-        ) as mock_factory:
-            mock_factory.side_effect = [
-                self._build_mock_agent(_make_default_trace()),
-                self._build_mock_agent(_make_treatment_trace()),
-            ]
-            results = run_cmake_skill_ab(
-                tasks=[task],
-                repeat=1,
-                budget_steps=40,
-                output_dir=output_dir,
-                fake=True,
-            )
-
-        run_dicts = [_cm02_result_to_dict(r) for r in results]
-        json_path, _md_path = build_cm02_report(
-            run_dicts, "pilot", "fake", 1, output_dir,
-        )
-        summary = json.loads(json_path.read_text(encoding="utf-8"))
-        aggregate = summary["aggregate"]
-        runs = summary["runs"]
-
-        for variant in ("control", "treatment"):
-            vr = [r for r in runs if r["variant"] == variant]
-            if vr:
-                recomputed = sum(
-                    1 for r in vr if r.get("solved")
-                ) / len(vr)
-                assert (
-                    abs(recomputed - aggregate[f"{variant}_solve_rate"])
-                    < 0.001
-                )
-
-        recomputed_paired = calc_paired_outcomes(runs)
-        for k in (
-            "both_solved", "control_only", "treatment_only", "neither"
-        ):
-            assert (
-                recomputed_paired[k] == aggregate["paired_outcomes"][k]
-            )
-
-        recomputed_bash = sum(
-            r.get("bash_call_count", 0) for r in runs
-        )
-        assert recomputed_bash == aggregate["bash_call_total"]
-
-        treatment_runs = [
-            r for r in runs if r["variant"] == "treatment"
-        ]
-        if treatment_runs:
-            recomputed_sel = sum(
-                1
-                for r in treatment_runs
-                if r.get("skill_selected_count", 0) > 0
-            ) / len(treatment_runs)
-            assert (
-                abs(
-                    recomputed_sel
-                    - aggregate["treatment_skill_selection_rate"]
-                )
-                < 0.001
-            )
 
 # ============================================================================
 # 审查报告生成
