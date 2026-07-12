@@ -18,8 +18,6 @@ import argparse
 import json
 import os
 import shutil
-import statistics
-import subprocess
 import sys
 import time
 from dataclasses import dataclass
@@ -37,7 +35,9 @@ from eval.run_eval import (
     discover,
     run_task,
 )
-from eval.ts_bridge import TsBridgeError, typescript_agent_factory
+from eval.ts_bridge import typescript_agent_factory
+
+from eval.cmake_skill_ab_report import build_cm02_report
 
 
 # ---------------------------------------------------------------------------
@@ -76,6 +76,9 @@ class CM02Result:
     bash_call_count: int
     infrastructure_error: dict[str, str] | None
     trace_path: str
+    result_path: str
+    verification_path: str
+    diff_path: str
 
 
 def _cm02_result_to_dict(result: CM02Result) -> dict[str, Any]:
@@ -97,6 +100,9 @@ def _cm02_result_to_dict(result: CM02Result) -> dict[str, Any]:
         "bash_call_count": result.bash_call_count,
         "infrastructure_error": result.infrastructure_error,
         "trace_path": result.trace_path,
+        "result_path": result.result_path,
+        "verification_path": result.verification_path,
+        "diff_path": result.diff_path,
     }
 
 
@@ -129,69 +135,6 @@ def discover_cmake_tasks(eval_dir: Path, phase: str) -> list[EvalTask]:
             )
         return all_tasks
     raise ValueError(f"Unknown phase: {phase!r}")
-
-
-# ---------------------------------------------------------------------------
-# Trace analysis
-# ---------------------------------------------------------------------------
-
-def _parse_trace_metrics(trace_path: str) -> dict[str, int]:
-    """Parse a trace JSONL file to extract skill- and bash-invocation counts.
-
-    Returns a dict with keys:
-      invoke_skill_count, skill_selected_count, skill_not_found_count,
-      bash_call_count.
-    """
-    metrics = {
-        "invoke_skill_count": 0,
-        "skill_selected_count": 0,
-        "skill_not_found_count": 0,
-        "bash_call_count": 0,
-    }
-    tp = Path(trace_path)
-    if not tp.is_file():
-        return metrics
-
-    try:
-        with open(tp, encoding="utf-8") as fh:
-            for line in fh:
-                line = line.strip()
-                if not line:
-                    continue
-                try:
-                    event = json.loads(line)
-                except json.JSONDecodeError:
-                    continue
-
-                etype = event.get("type", "")
-                payload = event.get("payload", {})
-                if not isinstance(payload, dict):
-                    continue
-
-                # skill_selection events are produced by the
-                # registerSkillSelectionTraceProjection hook for every
-                # invoke_skill tool call (both success and failure).
-                if etype == "skill_selection":
-                    metrics["invoke_skill_count"] += 1
-                    outcome = payload.get("outcome", "")
-                    if outcome == "selected":
-                        metrics["skill_selected_count"] += 1
-                    elif outcome == "not_found":
-                        metrics["skill_not_found_count"] += 1
-
-                # Count bash invocations from tool_end events.
-                if etype == "tool_end":
-                    invocation = payload.get("invocation", {})
-                    if (
-                        isinstance(invocation, dict)
-                        and invocation.get("name") == "bash"
-                    ):
-                        metrics["bash_call_count"] += 1
-
-    except OSError:
-        pass
-
-    return metrics
 
 
 # ---------------------------------------------------------------------------
@@ -268,8 +211,17 @@ def run_cmake_skill_ab(
     results: list[CM02Result] = []
 
     for task in tasks:
-        model_script_path = task.path / "model-script.json"
-        has_model_script = model_script_path.is_file()
+        # Fake mode: each variant has a deterministic sidecar.
+        # control -> model-script-control.json, treatment -> model-script.json
+        if fake:
+            control_sidecar = task.path / "model-script-control.json"
+            treatment_sidecar = task.path / "model-script.json"
+            sidecar_map: dict[str, Path] = {
+                "control": control_sidecar,
+                "treatment": treatment_sidecar,
+            }
+        else:
+            sidecar_map = {}
 
         for repeat_idx in range(repeat):
             # AB/BA alternation
@@ -284,13 +236,21 @@ def run_cmake_skill_ab(
                 run_ws = work_root / task.id / variant_name / f"repeat-{repeat_idx}"
 
                 try:
+                    # Fake mode: resolve sidecar per variant, fail closed if missing
+                    model_script: Path | None = None
+                    if fake:
+                        sc = sidecar_map[variant_name]
+                        if not sc.is_file():
+                            raise FileNotFoundError(
+                                f"Fake mode requires sidecar file: {sc}"
+                            )
+                        model_script = sc
+
                     task_agent = _build_agent(
                         variant_name,
                         budget_steps=budget_steps,
                         fake=fake,
-                        model_script=(
-                            model_script_path if has_model_script else None
-                        ),
+                        model_script=model_script,
                         output_dir=output_dir,
                         run_root_parent=run_root_parent,
                         cli_root=cli_root,
@@ -298,11 +258,6 @@ def run_cmake_skill_ab(
                     )
                     eval_result = run_task(task, task_agent, run_ws, command_runner=command_runner if command_runner is not None else default_command_runner)
                     latency_ms = int((time.time() - session_start) * 1000)
-
-                    tp = eval_result.trace_path
-                    trace_metrics = (
-                        _parse_trace_metrics(tp) if tp else {}
-                    )
 
                     results.append(
                         CM02Result(
@@ -317,20 +272,15 @@ def run_cmake_skill_ab(
                             latency_ms=latency_ms,
                             cost_usd=eval_result.cost_usd,
                             token_usage=eval_result.usage,
-                            invoke_skill_count=trace_metrics.get(
-                                "invoke_skill_count", 0
-                            ),
-                            skill_selected_count=trace_metrics.get(
-                                "skill_selected_count", 0
-                            ),
-                            skill_not_found_count=trace_metrics.get(
-                                "skill_not_found_count", 0
-                            ),
-                            bash_call_count=trace_metrics.get(
-                                "bash_call_count", 0
-                            ),
+                            invoke_skill_count=0,
+                            skill_selected_count=0,
+                            skill_not_found_count=0,
+                            bash_call_count=0,
                             infrastructure_error=eval_result.infrastructure_error,
                             trace_path=eval_result.trace_path,
+                            result_path=eval_result.result_path,
+                            verification_path=eval_result.verification_path,
+                            diff_path=eval_result.diff_path,
                         )
                     )
                 except Exception as exc:
@@ -359,192 +309,13 @@ def run_cmake_skill_ab(
                                 "message": str(exc)[:2000],
                             },
                             trace_path="",
+                            result_path="",
+                            verification_path="",
+                            diff_path="",
                         )
                     )
 
     return results
-
-
-# ---------------------------------------------------------------------------
-# JSON summary output
-# ---------------------------------------------------------------------------
-
-def _variant_stats(variant_results: list[CM02Result]) -> dict[str, Any]:
-    total = len(variant_results)
-    if total == 0:
-        return {"total": 0, "solved": 0, "solution_rate": 0.0}
-    solved = sum(1 for r in variant_results if r.solved)
-    errors = sum(
-        1 for r in variant_results if r.infrastructure_error is not None
-    )
-    steps = [r.steps for r in variant_results]
-    latencies = [r.latency_ms for r in variant_results]
-    costs = [r.cost_usd for r in variant_results]
-    invoke = [r.invoke_skill_count for r in variant_results]
-    selected = [r.skill_selected_count for r in variant_results]
-    not_found = [r.skill_not_found_count for r in variant_results]
-    bash = [r.bash_call_count for r in variant_results]
-    return {
-        "total": total,
-        "solved": solved,
-        "solution_rate": solved / total,
-        "infrastructure_errors": errors,
-        "avg_steps": statistics.mean(steps) if steps else 0.0,
-        "avg_latency_ms": statistics.mean(latencies) if latencies else 0.0,
-        "avg_cost_usd": statistics.mean(costs) if costs else 0.0,
-        "avg_invoke_skill_count": (
-            statistics.mean(invoke) if invoke else 0.0
-        ),
-        "avg_skill_selected_count": (
-            statistics.mean(selected) if selected else 0.0
-        ),
-        "avg_skill_not_found_count": (
-            statistics.mean(not_found) if not_found else 0.0
-        ),
-        "avg_bash_call_count": statistics.mean(bash) if bash else 0.0,
-    }
-
-
-def write_summary_json(results: list[CM02Result], output_dir: Path) -> Path:
-    """Write cm02-summary.json (schema v1)."""
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    json_path = output_dir / "cm02-summary.json"
-    json_path.write_text(
-        json.dumps(
-            {
-                "schema_version": 1,
-                "evaluation": "cmake-skill-ab",
-                "control": _variant_stats(
-                    [r for r in results if r.variant == "control"]
-                ),
-                "treatment": _variant_stats(
-                    [r for r in results if r.variant == "treatment"]
-                ),
-                "results": [_cm02_result_to_dict(r) for r in results],
-            },
-            indent=2,
-            sort_keys=True,
-        ),
-        encoding="utf-8",
-    )
-    return json_path
-
-
-# ---------------------------------------------------------------------------
-# Markdown report
-# ---------------------------------------------------------------------------
-
-def write_markdown_report(
-    results: list[CM02Result],
-    phase: str,
-    repeat: int,
-    budget_steps: int,
-    fake: bool,
-    output_dir: Path,
-) -> Path:
-    """Write cm02-report.md.
-
-    The report deliberately omits source code, prompt content, tool result
-    content, absolute paths, and secrets.
-    """
-    output_dir.mkdir(parents=True, exist_ok=True)
-    control = [r for r in results if r.variant == "control"]
-    treatment = [r for r in results if r.variant == "treatment"]
-
-    cs = _variant_stats(control)
-    ts = _variant_stats(treatment)
-
-    def _delta(ctrl_val: float, treat_val: float) -> str:
-        d = treat_val - ctrl_val
-        sign = "+" if d >= 0 else ""
-        return f"{sign}{d:.3f}"
-
-    lines = [
-        "# CM-02 CMake Skill A/B Evaluation Report",
-        "",
-        f"- **Phase**: {phase}",
-        f"- **Repeat**: {repeat}",
-        f"- **Budget steps**: {budget_steps}",
-        f"- **Mode**: {'fake' if fake else 'real'}",
-        "- **Control**: empty extensions root (no invoke_skill tool)",
-        "- **Treatment**: workspace extensions (cmake build-fix skill)",
-        "",
-        "## Summary",
-        "",
-        "| Metric | Control | Treatment | Delta |",
-        "|---|---:|---:|---:|",
-        f"| Solution Rate | {cs['solution_rate']:.3f} | {ts['solution_rate']:.3f} | {_delta(cs['solution_rate'], ts['solution_rate'])} |",
-        f"| Solved / Total | {cs['solved']}/{cs['total']} | {ts['solved']}/{ts['total']} | |",
-        f"| Infrastructure Errors | {cs['infrastructure_errors']} | {ts['infrastructure_errors']} | |",
-        f"| Avg Steps | {cs['avg_steps']:.1f} | {ts['avg_steps']:.1f} | {_delta(cs['avg_steps'], ts['avg_steps'])} |",
-        f"| Avg Latency (ms) | {cs['avg_latency_ms']:.0f} | {ts['avg_latency_ms']:.0f} | |",
-        f"| Avg Cost (USD) | {cs['avg_cost_usd']:.4f} | {ts['avg_cost_usd']:.4f} | |",
-        f"| Avg invoke_skill Calls | {cs['avg_invoke_skill_count']:.1f} | {ts['avg_invoke_skill_count']:.1f} | |",
-        f"| Avg Skill Selected | {cs['avg_skill_selected_count']:.1f} | {ts['avg_skill_selected_count']:.1f} | |",
-        f"| Avg Skill Not Found | {cs['avg_skill_not_found_count']:.1f} | {ts['avg_skill_not_found_count']:.1f} | |",
-        f"| Avg Bash Calls | {cs['avg_bash_call_count']:.1f} | {ts['avg_bash_call_count']:.1f} | |",
-        "",
-    ]
-
-    # Per-task breakdown
-    task_ids = sorted({r.task_id for r in results})
-    lines.extend(["## Per-Task Results", ""])
-    for tid in task_ids:
-        lines.append(f"### {tid}")
-        lines.append("")
-        lines.append(
-            "| Repeat | Variant | Order | Solved | Steps | "
-            "Latency (ms) | Cost (USD) | invoke_skill | "
-            "selected | not_found | bash |"
-        )
-        lines.append(
-            "|---|---:|---:|---:|---:|---:|---:|---:|---:|"
-        )
-        task_runs = sorted(
-            [r for r in results if r.task_id == tid],
-            key=lambda r: (r.repeat_index, r.order_index),
-        )
-        for r in task_runs:
-            lines.append(
-                f"| {r.repeat_index} | {r.variant} | {r.order_index} | "
-                f"{'yes' if r.solved else 'no'} | {r.steps} | "
-                f"{r.latency_ms} | {r.cost_usd:.4f} | "
-                f"{r.invoke_skill_count} | {r.skill_selected_count} | "
-                f"{r.skill_not_found_count} | {r.bash_call_count} |"
-            )
-        lines.append("")
-
-    # Infrastructure errors
-    errors = [r for r in results if r.infrastructure_error is not None]
-    if errors:
-        lines.extend(["## Infrastructure Errors", ""])
-        for r in errors:
-            ie = r.infrastructure_error
-            msg = (ie.get("message", "") or "")[:200]
-            lines.append(
-                f"- **{r.task_id}** repeat={r.repeat_index} "
-                f"variant={r.variant}: "
-                f"`{ie.get('type', '')}` code={ie.get('code', '')}"
-                f"{': ' + msg if msg else ''}"
-            )
-        lines.append("")
-
-    # Noise warning
-    lines.extend(
-        [
-            "## Notes",
-            "",
-            "LLM evals are inherently noisy. Never draw conclusions from a "
-            "single solution rate. Use mean +/- std across repeated runs and "
-            "inspect traces for qualitative differences.",
-            "",
-        ]
-    )
-
-    report_path = output_dir / "cm02-report.md"
-    report_path.write_text("\n".join(lines), encoding="utf-8")
-    return report_path
 
 
 # ---------------------------------------------------------------------------
@@ -705,6 +476,12 @@ def main(argv: list[str] | None = None) -> int:
         "Not required with --fake.",
     )
     parser.add_argument(
+        "--model",
+        type=str,
+        default="fake",
+        help="Model identifier for report metadata (default: fake)",
+    )
+    parser.add_argument(
         "--pilot-summary",
         type=Path,
         default=None,
@@ -791,17 +568,15 @@ def main(argv: list[str] | None = None) -> int:
         fake=args.fake,
     )
 
-    json_path = write_summary_json(results, output_dir)
-    print(f"Summary JSON: {json_path}")
-
-    report_path = write_markdown_report(
-        results,
+    result_dicts = [_cm02_result_to_dict(r) for r in results]
+    json_path, report_path = build_cm02_report(
+        result_dicts,
         phase=args.phase,
+        model=args.model,
         repeat=args.repeat,
-        budget_steps=args.budget_steps,
-        fake=args.fake,
         output_dir=output_dir,
     )
+    print(f"Summary JSON: {json_path}")
     print(f"Report: {report_path}")
 
     # Quick summary
