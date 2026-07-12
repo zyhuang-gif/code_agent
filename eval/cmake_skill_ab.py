@@ -259,6 +259,17 @@ def run_cmake_skill_ab(
                     eval_result = run_task(task, task_agent, run_ws, command_runner=command_runner if command_runner is not None else default_command_runner)
                     latency_ms = int((time.time() - session_start) * 1000)
 
+                    # Parse trace for skill/bash metrics
+                    tp = eval_result.trace_path
+                    tm = {"invoke_skill_count": 0, "skill_selected_count": 0, "skill_not_found_count": 0, "bash_call_count": 0}
+                    if tp:
+                        try:
+                            from eval.cmake_skill_ab_report import parse_trace_metrics
+                            parsed = parse_trace_metrics(tp)
+                            tm = {k: parsed.get(k, 0) for k in tm}
+                        except Exception:
+                            pass  # fail-soft only for non-critical trace read
+
                     results.append(
                         CM02Result(
                             task_id=task.id,
@@ -272,10 +283,10 @@ def run_cmake_skill_ab(
                             latency_ms=latency_ms,
                             cost_usd=eval_result.cost_usd,
                             token_usage=eval_result.usage,
-                            invoke_skill_count=0,
-                            skill_selected_count=0,
-                            skill_not_found_count=0,
-                            bash_call_count=0,
+                            invoke_skill_count=tm["invoke_skill_count"],
+                            skill_selected_count=tm["skill_selected_count"],
+                            skill_not_found_count=tm["skill_not_found_count"],
+                            bash_call_count=tm["bash_call_count"],
                             infrastructure_error=eval_result.infrastructure_error,
                             trace_path=eval_result.trace_path,
                             result_path=eval_result.result_path,
