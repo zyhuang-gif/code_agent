@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "responses": [
+    {
+      "content": null,
+      "toolCalls": [
+        {"id": "invoke-skill-1", "name": "invoke_skill", "input": {"name": "cmake-build-fix"}}
+      ],
+      "usage": {"promptTokens": 200, "completionTokens": 80, "cacheReadTokens": 0, "cacheWriteTokens": 0}
+    },
+    {
+      "content": null,
+      "toolCalls": [
+        {"id": "edit-1", "name": "edit_file", "input": {"path": "CMakeLists.txt", "search": "add_executable(app src/main.cpp)", "replace": "add_executable(app src/main.cpp src/add.cpp)"}}
+      ],
+      "usage": {"promptTokens": 100, "completionTokens": 50, "cacheReadTokens": 0, "cacheWriteTokens": 0}
+    },
+    {
+      "content": null,
+      "toolCalls": [
+        {"id": "finish-1", "name": "finish", "input": {"summary": "Fixed undefined reference by adding src/add.cpp to add_executable"}}
+      ],
+      "usage": {"promptTokens": 0, "completionTokens": 0, "cacheReadTokens": 0, "cacheWriteTokens": 0}
+    }
+  ]
+}
