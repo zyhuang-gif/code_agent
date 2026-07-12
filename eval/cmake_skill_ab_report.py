@@ -77,9 +77,13 @@ def parse_trace_metrics(trace_path: str) -> dict[str, int]:
                 if not isinstance(payload, dict):
                     payload = {}
 
+                # ---- tool_start / tool_end 事件：invoke_skill 计数 ----
+                if etype in ("tool_start", "tool_end"):
+                    if _is_invoke_skill_tool(payload):
+                        metrics["invoke_skill_count"] += 1
+
                 # ---- skill_selection 事件 ----
                 if etype == "skill_selection":
-                    metrics["invoke_skill_count"] += 1
                     outcome = payload.get("outcome", "")
                     if outcome == "selected":
                         metrics["skill_selected_count"] += 1
@@ -122,15 +126,34 @@ def _safe_int(value: Any) -> int:
     return 0
 
 
+def _is_invoke_skill_tool(payload: dict[str, Any]) -> bool:
+    """检查 tool_start/tool_end payload 是否对应 invoke_skill 工具调用。"""
+    invocation = payload.get("invocation", {})
+    if isinstance(invocation, dict) and invocation.get("name") == "invoke_skill":
+        return True
+    record = payload.get("record", {})
+    if isinstance(record, dict):
+        rec_invocation = record.get("invocation", {})
+        if isinstance(rec_invocation, dict) and rec_invocation.get("name") == "invoke_skill":
+            return True
+    return False
+
+
 def _is_invalid_skill_selection(payload: dict[str, Any]) -> bool:
     """检查 skill_selection payload 是否不合规。"""
     for key in ("schemaVersion", "selectionSource", "outcome"):
         if key not in payload:
             return True
+    if payload.get("selectionSource") != "model_tool_call":
+        return True
     if payload.get("outcome") == "selected":
         for key in ("extensionName", "definitionSource", "selectedSkill"):
             if key not in payload:
                 return True
+        if payload.get("extensionName") != "cmake":
+            return True
+        if payload.get("definitionSource") != "cmake/skills/build-fix/SKILL.md":
+            return True
     return False
 
 
@@ -200,7 +223,9 @@ def calc_paired_outcomes(runs: list[dict[str, Any]]) -> dict[str, int]:
 def resolve_safe_relative_path(abs_path: str, output_dir: Path) -> str:
     """验证路径在 output_dir 内，返回相对路径。"""
     if not isinstance(abs_path, str) or not abs_path:
-        return ""
+        raise ValueError(
+            f"abs_path must be a non-empty string, got {abs_path!r}"
+        )
     candidate = Path(abs_path).resolve()
     resolved_output = output_dir.resolve()
     try:
@@ -240,10 +265,7 @@ def build_cm02_report(
         tp = run.get("trace_path", "")
         trace_metrics: dict[str, int] = {}
         if tp:
-            try:
-                trace_metrics = parse_trace_metrics(tp)
-            except (FileNotFoundError, ValueError, OSError):
-                trace_metrics = {}
+            trace_metrics = parse_trace_metrics(tp)
         run.setdefault("invoke_skill_count", trace_metrics.get("invoke_skill_count", 0))
         run.setdefault("skill_selected_count", trace_metrics.get("skill_selected_count", 0))
         run.setdefault("skill_not_found_count", trace_metrics.get("skill_not_found_count", 0))
@@ -266,10 +288,7 @@ def build_cm02_report(
         for art_key in ("trace_path", "result_path", "verification_path", "diff_path"):
             abs_val = run.get(art_key, "")
             if abs_val:
-                try:
-                    run[f"_rel_{art_key}"] = resolve_safe_relative_path(abs_val, output_dir)
-                except ValueError:
-                    run[f"_rel_{art_key}"] = ""
+                run[f"_rel_{art_key}"] = resolve_safe_relative_path(abs_val, output_dir)
             else:
                 run[f"_rel_{art_key}"] = ""
         enriched.append(run)
@@ -308,11 +327,8 @@ def build_cm02_report(
     for r in enriched:
         tp_ia = r.get("trace_path", "")
         if tp_ia:
-            try:
-                tm = parse_trace_metrics(tp_ia)
-                invalid_selection_audit_count += tm.get("invalid_selection_audit_count", 0)
-            except (FileNotFoundError, ValueError, OSError):
-                pass
+            tm = parse_trace_metrics(tp_ia)
+            invalid_selection_audit_count += tm.get("invalid_selection_audit_count", 0)
 
     aggregate = {
         "control_solve_rate": round(control_solve_rate, 6),
